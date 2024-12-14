@@ -1,0 +1,2 @@
+Make sure .NET 6.0 Runtime AND .NET 6.0 SDKs are installed
+Make sure "MSBuildSDKsPath" is set to C:\Program Files\dotnet\sdk\{NUMBER}\Sdks or something similar where {NUMBER} is also matches sdk in global.json
