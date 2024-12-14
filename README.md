@@ -66,7 +66,7 @@ Plugin installation guide:
 Руководство по установке плагина:
 
 1. Загрузите файл "UniversalAssetLoader.zip" отсюда https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0
-2. распакуйте папку "OuterFolder\UniversalAssetLoader" из архива "UniversalAssetLoaderRelease.zip" в "...\MiSide\BepInEx\plugins" и переместите "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" в "...\MiSide" вручную.
+2. извлеките папку "OuterFolder\UniversalAssetLoader" из архива "UniversalAssetLoaderRelease.zip" в "...\MiSide\BepInEx\plugins" и переместите "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" в "...\MiSide" вручную.
 
    ИЛИ
    
