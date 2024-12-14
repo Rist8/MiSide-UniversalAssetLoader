@@ -76,3 +76,17 @@ Plugin installation guide:
 ![image](https://github.com/user-attachments/assets/3e4c4c09-e31a-47ad-bff3-634c203f32d9)
 
 ________________________________________________________________________________________________________________________________________________________
+
+
+Some screenshots from cat ears addon/ Несколько скриншотов из аддона на кошачьи уши:
+
+![image](https://github.com/user-attachments/assets/76c8d3f0-7bbc-484f-bddb-03db69215b1f)
+![image](https://github.com/user-attachments/assets/e6325bbf-fb06-4757-9384-e07ab47d5212)
+![image](https://github.com/user-attachments/assets/f13dd339-d0a9-4ebc-80aa-c2d0dd12bfd9)
+![image](https://github.com/user-attachments/assets/255db69d-2528-4968-8c9d-551ffab0b17e)
+![image](https://github.com/user-attachments/assets/3478a7ba-e0db-4d9d-ab4d-1ad3c49b2192)
+
+
+
+
+
