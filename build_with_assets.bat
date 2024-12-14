@@ -1,6 +1,8 @@
+@echo off
+
 setlocal enabledelayedexpansion
 dotnet build Plugin -c Release -o Compiled
-@echo off
+
 
 for /f "tokens=3" %%a in ('REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath ^|findstr /ri "REG_SZ"') do set SteamPath=%%a
 
