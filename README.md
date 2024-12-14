@@ -1,4 +1,13 @@
 # MiSide-AssetLoader
+This project was originally a fork of the project https://github.com/CORRUPTOR2037/MiSide-AssetLoader
+
+
+Изначально этот проект был форком проекта https://github.com/CORRUPTOR2037/MiSide-AssetLoader
+________________________________________________________________________________________________________________________________________________________
+
+
+
+________________________________________________________________________________________________________________________________________________________
 Mod for loading assets in real time for a Unity game "MiSide". Supports custom configs to add new buttons with custom functionality (listed in addons_config.txt which is the file for all configs) in «Addon» tab. It also contains in it's code all features of https://github.com/Rist8/MiSide-Console-Unlocker and additional "greenscreen" free camera for main menu (works also inside the game but the greenscreen is not working properly now). By default has CatEars config which adds cat ears to all Mitas except Chibi. Full list of functionalities is available in readme.txt.
 
 
