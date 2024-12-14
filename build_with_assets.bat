@@ -1,7 +1,8 @@
 dotnet build Plugin -c Release -o Compiled
 @echo off
 
-set "GameFolder=E:\Program Files (x86)\Steam\SteamApps\common\MiSide Demo"
+for /f "tokens=3" %%a in ('REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath ^|findstr /ri "REG_SZ"') do set SteamPath=%%a
+set "GameFolder=%SteamPath%\SteamApps\common\MiSide Demo"
 
 set "pluginInfoFile=.\Plugin\PluginLoader.cs"
 
