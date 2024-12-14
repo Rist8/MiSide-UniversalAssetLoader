@@ -1,6 +1,5 @@
-setlocal enabledelayedexpansion
-dotnet build Plugin -c Release -o Compiled
 @echo off
+setlocal enabledelayedexpansion
 
 for /f "tokens=3" %%a in ('REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath ^|findstr /ri "REG_SZ"') do set SteamPath=%%a
 REM Define input file
@@ -73,17 +72,24 @@ if defined path2 (
     )
 )
 
-set "pluginInfoFile=.\Plugin\PluginLoader.cs"
 
-for /f "tokens=2 delims==" %%a in ('findstr /c:"public const string PLUGIN_GUID" "%pluginInfoFile%"') do (
-  set "PluginName=%%a"
+set "GameFolder=!GameFolder:\\=\!"
+robocopy "." "%GameFolder%\BepInEx\plugins" /E /np /nfl /njh /njs /ndl /nc /ns
+echo Copied all needed files to %GameFolder%\BepInEx\plugins
+
+
+
+del %GameFolder%\BepInEx\plugins\move.bat
+
+echo Deleted the copy of this script (Yes it's not the best bat file)
+
+
+if not exist %GameFolder%\assimp.dll (
+    move "%GameFolder%\BepInEx\plugins\UniversalAssetLoader\assimp.dll" "%GameFolder%\assimp.dll"
+    echo Moved assimp.dll to %GameFolder%
+) else (
+    del %GameFolder%\BepInEx\plugins\UniversalAssetLoader\assimp.dll
+    echo Deleted assimp.dll because it's already present in %GameFolder%
 )
 
-set "PluginName=%PluginName: =%"
-set "PluginName=%PluginName:"=%"
-set "PluginName=%PluginName:;=%"
-
-robocopy ".\Compiled" "%GameFolder%\BepInEx\plugins\%PluginName%" Plugin.* /E /np /nfl /njh /njs /ndl /nc /ns
-
-
-::"%GameFolder%\MiSideFull.exe" 
+pause
