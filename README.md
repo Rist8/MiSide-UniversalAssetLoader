@@ -1,8 +1,9 @@
 # MiSide-AssetLoader
 This project was originally a fork of the project https://github.com/CORRUPTOR2037/MiSide-AssetLoader
-
+It WILL conflict with ConsoleUnocker's binds, so it is recommended to delete ConsoleUnlocker before using UniversalAssetLoader (you can do it by just deleting "...\MiSide\BepInEx\plugins\ConsoleUnlocker" folder) 
 
 Изначально этот проект был форком проекта https://github.com/CORRUPTOR2037/MiSide-AssetLoader
+Он БУДЕТ конфликтовать с привязками ConsoleUnocker, поэтому рекомендуется удалить ConsoleUnlocker перед использованием UniversalAssetLoader (вы можете сделать это, просто удалив папку "...\MiSide\BepInEx\plugins\ConsoleUnlocker")
 ________________________________________________________________________________________________________________________________________________________
 
 
