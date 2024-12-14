@@ -1,0 +1,26 @@
+// existing renderers on Mita
+//  - Attribute
+//  - Body
+//  - Hair
+//  - Head
+//  - Pantyhose
+//  - Shoes
+//  - Skirt
+//  - Sweater
+
+//menu_music tech-house-vibes
+menu_logo logo
+
+replace_tex Mita Hair Hair
+replace_mesh Mita Body MitaCatMaid Body
+replace_tex Mita Body BodyFixedHands
+remove Mita Skirt
+remove Mita Sweater
+
+create_static_appendix Mita CatEars Head
+replace_tex Mita CatEars CatEar_BaseColor
+replace_mesh Mita CatEars MitaCatMaid CatEars
+
+create_skinned_appendix Mita MaidDress Sweater
+replace_tex Mita MaidDress Cloth1
+replace_mesh Mita MaidDress MitaCatMaid MaidDress
