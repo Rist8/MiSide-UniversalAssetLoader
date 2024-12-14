@@ -1,8 +1,11 @@
-setlocal enabledelayedexpansion
-dotnet build Plugin -c Release -o Compiled
 @echo off
 
+setlocal enabledelayedexpansion
+dotnet build Plugin -c Release -o Compiled
+
+
 for /f "tokens=3" %%a in ('REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath ^|findstr /ri "REG_SZ"') do set SteamPath=%%a
+
 REM Define input file
 
 set "inputFile=%SteamPath%\steamapps\libraryfolders.vdf"
@@ -73,17 +76,6 @@ if defined path2 (
     )
 )
 
-
-set "pluginInfoFile=.\Plugin\PluginLoader.cs"
-
-for /f "tokens=2 delims==" %%a in ('findstr /c:"public const string PLUGIN_GUID" "%pluginInfoFile%"') do (
-  set "PluginName=%%a"
-)
-
-set "PluginName=%PluginName: =%"
-set "PluginName=%PluginName:"=%"
-set "PluginName=%PluginName:;=%"
-
 copy ".\Dependencies\AssimpNet.dll" ".\Compiled"
 copy ".\Dependencies\AssimpNet.pdb" ".\Compiled"
 
@@ -98,10 +90,8 @@ echo. - .mp4 as video files >> %readme_file%
 
 
 robocopy "./Assets" "./Compiled/Assets" /E /np /nfl /njh /njs /ndl /nc /ns
-robocopy ".\Compiled" "%GameFolder%\BepInEx\plugins\%PluginName%" /E /np /nfl /njh /njs /ndl /nc /ns
+robocopy ".\Compiled" "%GameFolder%\BepInEx\plugins\UniversalAssetLoader" /E /np /nfl /njh /njs /ndl /nc /ns
 
 if not exist %GameFolder%\assimp.dll (
     copy ".\Dependencies\assimp.dll" "%GameFolder%"
 )
-
-::"%GameFolder%\MiSide.exe" 
