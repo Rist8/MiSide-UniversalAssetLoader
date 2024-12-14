@@ -13,7 +13,7 @@ direct link to it
  https://github.com/BepInEx/BepInEx/releases/download/v6.0.0-pre.2/BepInEx-Unity.IL2CPP-win-x64-6.0.0-pre.2.zip
 2. extract all files to MiSide folder (it is in SteamLibrary\steamapps\common by default)
 
-Game directory should look like this after extraction from archive ![image](https://github.com/user-attachments/assets/9e2a5cf8-d623-45bf-b734-c793a506f1b0)
+Game directory should look like this after extraction from archive ![image](https://github.com/user-attachments/assets/bc7d35bf-3b98-499f-8122-410911d545f2)
 
 3. launch the game and wait until the menu screen appears (BepInEx will open the console window in parallel with game window if installed successfully)
 4. exit the game and go to Plugin installation guide
@@ -29,7 +29,7 @@ Game directory should look like this after extraction from archive ![image](http
  https://github.com/BepInEx/BepInEx/releases/download/v6.0.0-pre.2/BepInEx-Unity.IL2CPP-win-x64-6.0.0-pre.2.zip
 2. извлеките все файлы в папку MiSide (по умолчанию она находится в SteamLibrary\steamapps\common)
 
-Папка с игрой должна выглядеть так после распаковки архива ![image](https://github.com/user-attachments/assets/7cae838a-e185-41fd-9600-a6d89d8e52bc)
+Папка с игрой должна выглядеть так после распаковки архива ![image](https://github.com/user-attachments/assets/bc7d35bf-3b98-499f-8122-410911d545f2)
 
 3. запустите игру и дождитесь загрузки экрана меню (BepInEx откроет окно консоли параллельно с окном игры, если установка прошла успешно)
 4. выйдите из игры и перейдите к руководству по установке плагина
