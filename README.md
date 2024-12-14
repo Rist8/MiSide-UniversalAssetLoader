@@ -58,6 +58,9 @@ Plugin installation guide:
    unpack the archive into any folder, download "move.bat" then move it into extracted "OuterFolder" and run the script, which will try to find the MiSide folder and automatically copy all files
 4. launch the game and check if the mod works by opening the Сlothes menu and seeing if the «Addons» tab appeared
 
+![image](https://github.com/user-attachments/assets/3524e6f1-f576-4043-a7a3-37636190d9e4)
+
+
 
 Руководство по установке плагина:
 
@@ -68,4 +71,7 @@ Plugin installation guide:
    
    распакуйте архив в любую папку и скачайте "move.bat", затем переместите его в распакованную "OuterFolder" и запустите скрипт, который попытается найти папку MiSide и автоматически скопировать все файлы
 4. запустите игру и проверьте, работает ли мод, открыв меню Одежда и посмотрев, появилась ли вкладка «Addons»
+
+![image](https://github.com/user-attachments/assets/3e4c4c09-e31a-47ad-bff3-634c203f32d9)
+
 ________________________________________________________________________________________________________________________________________________________
