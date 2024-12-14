@@ -1,0 +1,69 @@
+// existing renderers on Mita
+//  - Attribute
+//  - Body
+//  - Hair
+//  - Head
+//  - Pantyhose
+//  - Shoes
+//  - Skirt
+//  - Sweater
+//Available commands:
+//	trailer - unique command, doesn't need disactivation command
+//	halloween - unique command, doesn't need disactivation command		
+//	create_static_appendix Mita Name ParentRenderer
+//	create_skinned_appendix Mita Name ParentRenderer
+//	replace_tex Mita Name TextureFilename
+//	replace_mesh Mita Name MeshFilename MeshName
+//	remove Mita Name
+//	recover Mita Name
+//Usage:
+//	*ButtonName
+//	commands on activation
+//	-commands on disactivation
+
+*TrailerMode
+trailer
+
+*Halloween
+halloween
+
+*Christmas
+christmas
+
+*CatEars
+create_static_appendix Mita CatEars Head
+replace_tex Mita CatEars CatEar_BaseColor
+replace_mesh Mita CatEars MitaCatMaid CatEars
+-remove Mita CatEars
+
+*RemoveSkirt
+remove Mita Skirt
+-recover Mita Skirt
+
+*RemoveSweater
+remove Mita Sweater
+-recover Mita Sweater
+
+*RemoveAttribute
+remove Mita Attribute
+-recover Mita Attribute
+
+*RemoveHair
+remove Mita Hair
+-recover Mita Hair
+
+*RemoveBody
+remove Mita Body
+-recover Mita Body
+
+*RemoveHead
+remove Mita Head
+-recover Mita Head
+
+*RemovePantyhose
+remove Mita Pantyhose
+-recover Mita Pantyhose
+
+*RemoveShoes
+remove Mita Shoes
+-recover Mita Shoes
