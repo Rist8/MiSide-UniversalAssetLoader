@@ -55,7 +55,7 @@ Plugin installation guide:
    
     2.1. and move "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" to "...\MiSide" manually.
 
-        OR
+  OR
    
 2. unpack the archive into any folder, download "move.bat" then move it into extracted "OuterFolder" and run the script, which will try to find the MiSide folder and automatically copy all files
 3. launch the game and check if the mod works by opening the Сlothes menu and seeing if the «Addons» tab appeared
@@ -72,7 +72,7 @@ Plugin installation guide:
    
     2.1. и переместите "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" в "...\MiSide" вручную.
 
-        ИЛИ
+  ИЛИ
    
 2. распакуйте архив в любую папку и скачайте "move.bat", затем переместите его в распакованную "OuterFolder" и запустите скрипт, который попытается найти папку MiSide и автоматически скопировать все файлы
 3. запустите игру и проверьте, работает ли мод, открыв меню Одежда и посмотрев, появилась ли вкладка «Addons»
