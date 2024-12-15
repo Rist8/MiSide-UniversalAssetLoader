@@ -32,8 +32,8 @@ Path to delete ConsoleUnlocker:
 - **Adds a free camera** with greenscreen support (note: greenscreen currently has issues).
   > Добавляет свободную камеру с поддержкой зеленого экрана *(зелёный экран пока работает некорректно)*.
 
-- The **default CatEars configuration** adds cat ears to all Mitas except Chibi.  
-  > Конфигурация **CatEars** по умолчанию добавляет кошачьи уши всем Митам, кроме Чиби.
+- By default has **CatEars** config, which adds cat ears to all Mitas except Chibi.  
+  > По умолчанию имеет **CatEars** конфиг, который добавляет кошачьи уши всем Митам, кроме Чиби.
 
 For a complete list of features, refer to the `readme.txt` file.  
 > Полный список функций доступен в файле `readme.txt`.
