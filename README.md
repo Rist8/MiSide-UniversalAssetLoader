@@ -6,10 +6,10 @@ This project is based on a fork of the original [MiSide-AssetLoader](https://git
 ---
 
 **Important:** This mod **will conflict** with ConsoleUnlocker's key bindings.  
-> Важно: Этот мод **будет конфликтовать** с биндами ConsoleUnlocker.*  
+> Важно: Этот мод **будет конфликтовать** с биндами ConsoleUnlocker.
 
 You have to delete ConsoleUnlocker before using UniversalAssetLoader for full functionality.  
-> Необходимо удалить ConsoleUnlocker перед использованием UniversalAssetLoader для полной функциональности.*  
+> Необходимо удалить ConsoleUnlocker перед использованием UniversalAssetLoader для полной функциональности.
 
 Path to delete ConsoleUnlocker:  
 `...\MiSide\BepInEx\plugins\ConsoleUnlocker`  
