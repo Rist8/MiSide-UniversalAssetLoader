@@ -68,8 +68,8 @@ For a complete list of features, refer to the `readme.txt` file.
 
 #### **Plugin Installation**
 
-1. **Download** `UniversalAssetLoader.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0).  
-   > **Скачайте** `UniversalAssetLoader.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0).
+1. **Download** `UniversalAssetLoaderRelease.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0).  
+   > **Скачайте** `UniversalAssetLoaderRelease.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0).
 
 2. **Extract the folder** `OuterFolder\UniversalAssetLoader` into `...\MiSide\BepInEx\plugins`. Then move the `assimp.dll` file to the main MiSide folder manually.  
    > **Извлеките папку** `OuterFolder\UniversalAssetLoader` в `...\MiSide\BepInEx\plugins`. Затем вручную переместите файл `assimp.dll` в основную папку MiSide.
