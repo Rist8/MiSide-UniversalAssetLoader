@@ -49,13 +49,15 @@ For a complete list of features, refer to the `readme.txt` file.
 
    **Direct download link:**  
    > Прямая ссылка для скачивания:  
+
    https://github.com/BepInEx/BepInEx/releases/download/v6.0.0-pre.2/BepInEx-Unity.IL2CPP-win-x64-6.0.0-pre.2.zip  
 
 2. **Extract all files** to the MiSide folder (default path: `...\SteamLibrary\steamapps\common\MiSide`).  
    > **Извлеките все файлы** в папку MiSide (по умолчанию: `...\SteamLibrary\steamapps\common\MiSide`).
 
    Your game directory should look like this after extraction:  
-   > Папка с игрой должна выглядеть так после распаковки:  
+   > Папка с игрой должна выглядеть так после распаковки:
+
    ![image](https://github.com/user-attachments/assets/bc7d35bf-3b98-499f-8122-410911d545f2)
 
 3. **Launch the game** and wait until the main menu appears. If BepInEx is installed successfully, a console window will open alongside the game window.  
