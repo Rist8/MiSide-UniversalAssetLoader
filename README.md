@@ -25,10 +25,7 @@ Path to delete ConsoleUnlocker:
 **MiSide-AssetLoader** — мод для загрузки ресурсов в реальном времени для Unity-игры *MiSide*.
 
 - **Supports custom configurations** for adding new buttons through the **Addons** tab.  
-
----
-
-Поддерживает пользовательские конфигурации для добавления новых кнопок через вкладку Addons.
+  > Поддерживает пользовательские конфигурации для добавления новых кнопок через вкладку **Addons**.
 
 - **Includes all features** from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
   > Включает все функции из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).
@@ -41,7 +38,6 @@ Path to delete ConsoleUnlocker:
 
 For a complete list of features, refer to the `readme.txt` file.  
 > Полный список функций доступен в файле `readme.txt`.
-
 ---
 
 ## Installation / Установка  
