@@ -51,7 +51,7 @@ ________________________________________________________________________________
 Plugin installation guide:
 
 1. download "UniversalAssetLoader.zip" file from here https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0
-!!!!
+
 2. extract the folder "OuterFolder\UniversalAssetLoader" from the archive "UniversalAssetLoaderRelease.zip" to "...\MiSide\BepInEx\plugins"
    
     2.1. and move "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" to "...\MiSide" manually.
@@ -59,7 +59,7 @@ Plugin installation guide:
     OR
    
 2. unpack the archive into any folder, download "move.bat" then move it into extracted "OuterFolder" and run the script, which will try to find the MiSide folder and automatically copy all files
-!!!!
+
 3. launch the game and check if the mod works by opening the Сlothes menu and seeing if the «Addons» tab appeared
 
 ![image](https://github.com/user-attachments/assets/b380ff52-5c7d-4ebe-9b85-52eda35ce9fb)
@@ -70,7 +70,7 @@ Plugin installation guide:
 Руководство по установке плагина:
 
 1. Загрузите файл "UniversalAssetLoader.zip" отсюда https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0
-!!!!
+
 2. извлеките папку "OuterFolder\UniversalAssetLoader" из архива "UniversalAssetLoaderRelease.zip" в "...\MiSide\BepInEx\plugins"
    
     2.1. и переместите "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" в "...\MiSide" вручную.
@@ -78,7 +78,7 @@ Plugin installation guide:
     ИЛИ
    
 2. распакуйте архив в любую папку и скачайте "move.bat", затем переместите его в распакованную "OuterFolder" и запустите скрипт, который попытается найти папку MiSide и автоматически скопировать все файлы
-!!!!
+
 3. запустите игру и проверьте, работает ли мод, открыв меню Одежда и посмотрев, появилась ли вкладка «Addons»
 
 ![image](https://github.com/user-attachments/assets/3e4c4c09-e31a-47ad-bff3-634c203f32d9)
