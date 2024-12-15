@@ -1,7 +1,7 @@
 # MiSide-AssetLoader  
 
 This project is based on a fork of the original [MiSide-AssetLoader](https://github.com/CORRUPTOR2037/MiSide-AssetLoader).  
-> Этот проект основан на форке оригинального [MiSide-AssetLoader](https://github.com/CORRUPTOR2037/MiSide-AssetLoader).*  
+> Этот проект основан на форке оригинального [MiSide-AssetLoader](https://github.com/CORRUPTOR2037/MiSide-AssetLoader).
 
 ---
 
