@@ -14,7 +14,7 @@ You have to delete ConsoleUnlocker before using UniversalAssetLoader for full fu
 Path to delete ConsoleUnlocker:  
 `...\MiSide\BepInEx\plugins\ConsoleUnlocker`  
 > Путь для удаления ConsoleUnlocker:  
-> `...\MiSide\BepInEx\plugins\ConsoleUnlocker`*  
+> `...\MiSide\BepInEx\plugins\ConsoleUnlocker`  
 
 ---
 
