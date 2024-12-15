@@ -56,7 +56,8 @@ and move "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" to "...\Mi
 
    OR
    
-   unpack the archive into any folder, download "move.bat" then move it into extracted "OuterFolder" and run the script, which will try to find the MiSide folder and automatically copy all files
+   unpack the archive into any folder, download "move.bat" then move it into extracted "OuterFolder" and run the script, which will try to find the MiSide folder and
+automatically copy all files
 3. launch the game and check if the mod works by opening the Сlothes menu and seeing if the «Addons» tab appeared
 
 ![image](https://github.com/user-attachments/assets/b380ff52-5c7d-4ebe-9b85-52eda35ce9fb)
@@ -68,7 +69,8 @@ and move "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" to "...\Mi
 
 1. Загрузите файл "UniversalAssetLoader.zip" отсюда https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.0
 2. извлеките папку "OuterFolder\UniversalAssetLoader" из архива "UniversalAssetLoaderRelease.zip" в "...\MiSide\BepInEx\plugins" 
-и переместите "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" в "...\MiSide" вручную.
+и 
+переместите "...\MiSide\BepInEx\plugins\UniversalAssetLoader\assimp.dll" в "...\MiSide" вручную.
 
    ИЛИ
    
