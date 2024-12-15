@@ -19,25 +19,25 @@ Path to delete ConsoleUnlocker:
 
 ---
 
-## About / О моде  
+### About / О моде
 
 **MiSide-AssetLoader** is a mod for loading assets in real time for the Unity game *MiSide*.  
-**MiSide-AssetLoader** — мод для загрузки ресурсов в реальном времени для Unity-игры *MiSide*.  
+**MiSide-AssetLoader** — мод для загрузки ресурсов в реальном времени для Unity-игры *MiSide*.
 
-- Supports custom configurations for adding new buttons through the **Addons** tab.  
-  *Поддерживает пользовательские конфигурации для добавления новых кнопок через вкладку **Addons**.*  
+- **Supports custom configurations** for adding new buttons through the **Addons** tab.  
+  > Поддерживает пользовательские конфигурации для добавления новых кнопок через вкладку **Addons**.
 
-- Includes all features from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
- *Включает все функции из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).*  
+- **Includes all features** from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
+  > Включает все функции из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).
 
-- Adds a free camera with greenscreen support (greenscreen currently has issues).  
-  *Добавляет свободную камеру с поддержкой зеленого экрана (зеленый экран в игре пока работает некорректно).*  
+- **Adds a free camera** with greenscreen support (note: greenscreen currently has issues).  
+  > Добавляет свободную камеру с поддержкой зеленого экрана *(зелёный экран пока работает некорректно)*.
 
-- Default **CatEars configuration** adds cat ears to all Mitas except Chibi.  
-  *Конфигурация по умолчанию **CatEars** добавляет кошачьи уши всем Митам, кроме Чиби.*  
+- The **default CatEars configuration** adds cat ears to all Mitas except Chibi.  
+  > Конфигурация CatEars по умолчанию добавляет кошачьи уши всем Митам, кроме Чиби.
 
 For a complete list of features, refer to the `readme.txt` file.  
-*Полный список функций доступен в файле `readme.txt`.*  
+> Полный список функций доступен в файле `readme.txt`.
 
 ---
 
