@@ -29,7 +29,7 @@ Path to delete ConsoleUnlocker:
 - **Includes all features** from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
   > Включает все функции из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).
 
-- **Adds a free camera** with greenscreen support (note: greenscreen currently has issues).  z
+- **Adds a free camera** with greenscreen support (note: greenscreen currently has issues).
   > Добавляет свободную камеру с поддержкой зеленого экрана *(зелёный экран пока работает некорректно)*.
 
 - The **default CatEars configuration** adds cat ears to all Mitas except Chibi.  
