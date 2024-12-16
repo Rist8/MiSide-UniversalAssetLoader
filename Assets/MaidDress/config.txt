@@ -1,0 +1,34 @@
+name: Maid Dress
+colorCase1: #ffffff
+colorCase2: #f4c8da
+attributeMesh: *FIIdClSchool
+bodyMesh: MitaCatMaid#Body
+pantyhoseMesh: *original
+shoesMesh: *original
+skirtMesh:
+sweaterMesh: MitaCatMaid#MaidDress
+variants:
+- color1: #ffffff
+  color2: #f4c8da
+  bodyTextures:
+   - BodyFixedHands
+  attributeTextures:
+   - *FIIdClSchool#3
+  pantyhoseTextures:
+   - *original#1
+  shoesTextures:
+   - *original#1
+  sweaterTextures:
+   - Cloth1
+- color1: #ffffff
+  color2: #333333
+  bodyTextures:
+   - BodyFixedHands
+  attributeTextures:
+   - *FIIdClSchool#3
+  pantyhoseTextures:
+   - *original#1
+  shoesTextures:
+   - *original#1
+  sweaterTextures:
+   - Cloth2

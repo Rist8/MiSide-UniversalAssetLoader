@@ -71,27 +71,27 @@ replace_tex Mita JustMonika HM_BaseColor
 replace_mesh Mita JustMonika MonikaHair JustMonika
 remove Mita Hair
 remove Mita Hairs
-replace_tex Mita Head Face !Small
+replace_tex Mita Head Face !Little
 remove Mita Attribute
 -remove Mita JustMonika
 -recover Mita Hair
 -recover Mita Hairs
 -recover Mita Attribute
 
-*MitaCatMaidFix
-replace_tex Mita Hair Hair
-replace_mesh Mita Body MitaCatMaid Body
-replace_tex Mita Body BodyFixedHands
-remove Mita Skirt
-remove Mita Sweater
--recover Mita Skirt
--recover Mita Sweater
+//*MitaCatMaidFix
+//replace_tex Mita Hair Hair
+//replace_mesh Mita Body MitaCatMaid Body
+//replace_tex Mita Body BodyFixedHands
+//remove Mita Skirt
+//remove Mita Sweater
+//-recover Mita Skirt
+//-recover Mita Sweater
 
-*MitaDress
-create_skinned_appendix Mita MaidDress Sweater
-replace_mesh Mita MaidDress MitaCatMaid MaidDress
-replace_tex Mita MaidDress Cloth1
--remove MaidDress
+//*MitaDress
+//create_skinned_appendix Mita MaidDress Sweater
+//replace_mesh Mita MaidDress MitaCatMaid MaidDress
+//replace_tex Mita MaidDress Cloth1
+//-remove MaidDress
 
 *RemoveSkirt
 remove Mita Skirt

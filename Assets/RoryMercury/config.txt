@@ -1,0 +1,16 @@
+name: original
+variants:
+- color1: #2f3036
+  color2: #c0445b
+  bodyTextures:
+   - Body
+  attributeTextures:
+   - Cloth
+  pantyhoseTextures:
+   - Cloth
+  shoesTextures:
+   - Cloth
+  sweaterTextures:
+   - Cloth
+  skirtTextures:
+   - Cloth

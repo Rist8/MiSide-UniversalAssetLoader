@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Globalization;
+using System.IO.Compression;
 using System.Reflection;
 using Coffee.UIEffects;
 using Colorful;
@@ -254,8 +255,8 @@ public class Plugin : MonoBehaviour{
         }
     }
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
-    "Broken", "Maneken", "Black", "Dreamer", "Mila",
-    "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", "Mita", "Mita", "Mita", "Mita", "Mita", "Mita", "Mita" };
+    "Little", "Maneken", "Black", "Dreamer", "Mila",
+    "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", "Broken", "Mita", "Mita", "Mita", "Mita", "Mita", "Mita" };
 
     public static void FindMita()
     {
@@ -270,7 +271,7 @@ public class Plugin : MonoBehaviour{
 
             if (runtimeController != null)
             {
-                Debug.Log($"Found animator {runtimeController.name}|");
+                Debug.Log($"Found animator |{runtimeController.name}|");
 
                 for (int i = 0; i < 23; ++i)
                 {
@@ -299,11 +300,11 @@ public class Plugin : MonoBehaviour{
         mitaAnimators[13] = GameObject.Find("MitaPerson Mita");
         mitaAnimators[14] = GameObject.Find("Mita Dream");
         mitaAnimators[15] = GameObject.Find("Mita Future");
-        mitaAnimators[16] = GameObject.Find("MitaPerson Future");
+        mitaAnimators[17] = GameObject.Find("MitaPerson Future");
         mitaAnimators[36] = GameObject.Find("MitaPerson Mita(Clone)");
         mitaAnimators[37] = GameObject.Find("Mita Dream(Clone)");
-        mitaAnimators[38] = GameObject.Find("Mita Future(Clone)");
-        mitaAnimators[39] = GameObject.Find("MitaPerson Future(Clone)");
+        mitaAnimators[39] = GameObject.Find("Mita Future(Clone)");
+        mitaAnimators[40] = GameObject.Find("MitaPerson Future(Clone)");
 
         for (int i = 0; i < 46; ++i)
         {
@@ -353,8 +354,14 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 2)
                     {
-                        if (command.args[2].StartsWith("!") && mita.name.Contains(command.args[2])) { }
-                        else if (!mita.name.Contains(command.args[2])) continue;
+                        if (command.args[2].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[2].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[2].Skip(1)))) continue;
+                        }
                     }
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
@@ -373,8 +380,14 @@ public class Plugin : MonoBehaviour{
                 {
                     if(command.args.Length > 2)
                     {
-                        if (command.args[2].StartsWith("!") && mita.name.Contains(command.args[2])) { }
-                        else if (!mita.name.Contains(command.args[2])) continue;
+                        if (command.args[2].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[2].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[2].Skip(1)))) continue;
+                        }
                     }
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
@@ -393,8 +406,14 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 3 && command.args[3] != "all")
                     {
-                        if (command.args[3].StartsWith("!") && mita.name.Contains(command.args[3])) { }
-                        else if (!mita.name.Contains(command.args[3])) continue;
+                        if (command.args[3].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[3].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[3].Skip(1)))) continue;
+                        }
                     }
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
@@ -413,8 +432,14 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 4 && command.args[4] != "all")
                     {
-                        if (command.args[4].StartsWith("!") && mita.name.Contains(command.args[4])) { }
-                        else if (!mita.name.Contains(command.args[4])) continue;
+                        if (command.args[4].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[4].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[4].Skip(1)))) continue;
+                        }
                     }
                     Assimp.Mesh meshData = null;
                     if (command.args[2] != "null")
@@ -457,8 +482,14 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 3 && command.args[3] != "all")
                     {
-                        if (command.args[3].StartsWith("!") && mita.name.Contains(command.args[3])) { }
-                        else if (!mita.name.Contains(command.args[3])) continue;
+                        if (command.args[3].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[3].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[3].Skip(1)))) continue;
+                        }
                     }
                     var parent = renderers[mita.name + command.args[2]];
                     if (renderers.ContainsKey(mita.name + command.args[1]))
@@ -483,8 +514,14 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 3 && command.args[3] != "all")
                     {
-                        if (command.args[3].StartsWith("!") && mita.name.Contains(command.args[3])) { }
-                        else if (!mita.name.Contains(command.args[3])) continue;
+                        if (command.args[3].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[3].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[3].Skip(1)))) continue;
+                        }
                     }
                     if (staticRenderers.ContainsKey(mita.name + command.args[1]) && mita.name != "MitaPerson Mita")
                     {
@@ -556,14 +593,24 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 5 && command.args[5] != "all")
                     {
-                        if (command.args[5].StartsWith("!") && mita.name.Contains(command.args[5])) { }
-                        else if (!mita.name.Contains(command.args[5])) continue;
+                        if (command.args[5].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[5].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[5].Skip(1)))) continue;
+                        }
                     }
                     Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
                     if (obj)
                     {
-                        obj.localScale = new Vector3(float.Parse(command.args[2]),
-                            float.Parse(command.args[3]), float.Parse(command.args[4]));
+                        obj.localScale = new Vector3(float.Parse(
+                            command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
+                            float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
+                            float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture)
+                        );
+
                         Debug.Log("Set scale of " + mita.name + ' '
                             + command.args[1] + " to " + command.args[2]
                             + ", " + command.args[3] + ", " + command.args[4]);
@@ -573,14 +620,21 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 5 && command.args[5] != "all")
                     {
-                        if (command.args[5].StartsWith("!") && mita.name.Contains(command.args[5])) { }
-                        else if (!mita.name.Contains(command.args[5])) continue;
+                        if (command.args[5].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[5].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[5].Skip(1)))) continue;
+                        }
                     }
                     Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
                     if (obj)
                     {
                         obj.localPosition += new Vector3(float.Parse(command.args[2]),
-                            float.Parse(command.args[3]), float.Parse(command.args[4]));
+                            float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
+                            float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture));
                         Debug.Log("Changed the position of " + mita.name + ' '
                             + command.args[1] + " by " + command.args[2]
                             + ", " + command.args[3] + ", " + command.args[4]);
@@ -590,15 +644,25 @@ public class Plugin : MonoBehaviour{
                 {
                     if (command.args.Length > 6 && command.args[6] != "all")
                     {
-                        if (command.args[6].StartsWith("!") && mita.name.Contains(command.args[6])) { }
-                        else if (!mita.name.Contains(command.args[6])) continue;
+                        if (command.args[6].StartsWith("!"))
+                        {
+                            if (mita.name.Contains(string.Join("", command.args[6].Skip(1)))) continue;
+                        }
+                        else
+                        {
+                            if (!mita.name.Contains(string.Join("", command.args[6].Skip(1)))) continue;
+                        }
                     }
                     Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
                     if (obj)
                     {
-                        obj.localRotation = new Quaternion(float.Parse(command.args[2]),
-                            float.Parse(command.args[3]), float.Parse(command.args[4]),
-                            float.Parse(command.args[5]));
+                        obj.localRotation = new Quaternion(
+                            float.Parse(command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
+                            float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
+                            float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture),
+                            float.Parse(command.args[5].Replace(',', '.'), CultureInfo.InvariantCulture)
+                        );
+
                         Debug.Log("Changed the position of " + mita.name + ' '
                             + command.args[1] + " by " + command.args[2]
                             + ", " + command.args[3] + ", " + command.args[4] 
