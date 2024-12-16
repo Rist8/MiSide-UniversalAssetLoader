@@ -49,8 +49,49 @@ public class AssetLoader
     {
         public ArmatureData(SkinnedMeshRenderer source)
         {
-            for (int i = 0; i < source.bones.Length; i++) 
-                this[FixedBoneName(source.bones[i].name)] = (i, source.sharedMesh.bindposes[i]);
+            // Traverse the full hierarchy starting from the root bone
+            var allBones = new List<Transform>();
+            CollectBonesRecursively(source.rootBone.transform, allBones);
+
+            int nextIndex = source.bones.Length; // Start indexing additional bones after source.bones
+
+            // Map each bone to its index and bindpose if it exists in SkinnedMeshRenderer
+            for (int i = 0; i < source.bones.Length; i++)
+            {
+                string boneName = FixedBoneName(source.bones[i].name);
+                Matrix4x4 bindPose = source.sharedMesh.bindposes[i];
+                this[boneName] = (i, bindPose);
+                Debug.Log("Bone name (active SkinnedMeshRenderer bone): " + boneName);
+            }
+
+            // Ensure additional bones are also included (like MagicaBoneCloth)
+            foreach (var bone in allBones)
+            {
+                string boneName = FixedBoneName(bone.name);
+                if (!this.ContainsKey(boneName))
+                {
+                    // Assign a valid index and default bindpose for additional bones
+                    this[boneName] = (nextIndex, Matrix4x4.identity);
+                    nextIndex++;
+                    Debug.Log("Bone name (active in hierarchy): " + boneName);
+                }
+            }
+            Debug.Log(nextIndex);
+        }
+
+        private void CollectBonesRecursively(Transform current, List<Transform> boneList)
+        {
+            if (current == null || !current.gameObject.activeSelf || current.name.Contains("Collider")) return; // Skip inactive bones
+
+            Debug.Log("Adding active bone: " + current.name);
+            // Add current bone to the list
+            boneList.Add(current);
+
+            // Recursively collect child bones
+            for (int i = 0; i < current.childCount; ++i)
+            {
+                CollectBonesRecursively(current.GetChild(i), boneList);
+            }
         }
         public ArmatureData(GameObject source)
         {
@@ -62,85 +103,98 @@ public class AssetLoader
 
     public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null)
     {
-        var mesh = new UnityEngine.Mesh() {
+        var mesh = new UnityEngine.Mesh()
+        {
             indexFormat = (fbxMesh.VertexCount > 65535) ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16
         };
 
         mesh.name = fbxMesh.Name;
-        mesh.SetVertices(fbxMesh.Vertices.Select(vertex => new Vector3(-vertex.X, vertex.Y, vertex.Z)).ToArray());
-        mesh.SetNormals(fbxMesh.Normals.Select(normal => new Vector3(-normal.X, normal.Y, normal.Z)).ToArray());
 
-        if (fbxMesh.TextureCoordinateChannelCount >= 4)
-            mesh.SetUVs(3, fbxMesh.TextureCoordinateChannels[3].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
-        if (fbxMesh.TextureCoordinateChannelCount >= 3)
-            mesh.SetUVs(2, fbxMesh.TextureCoordinateChannels[2].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
-        if (fbxMesh.TextureCoordinateChannelCount >= 2)
-            mesh.SetUVs(1, fbxMesh.TextureCoordinateChannels[1].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
-        if (fbxMesh.TextureCoordinateChannelCount >= 1)
+        // Set vertices
+        var vertices = fbxMesh.Vertices.Select(vertex => new Vector3(-vertex.X, vertex.Y, vertex.Z)).ToArray();
+        mesh.SetVertices(vertices);
+
+        // Set normals
+        if (fbxMesh.Normals.Count == fbxMesh.VertexCount)
+            mesh.SetNormals(fbxMesh.Normals.Select(normal => new Vector3(-normal.X, normal.Y, normal.Z)).ToArray());
+
+        // Set UVs (ensure counts match)
+        if (fbxMesh.TextureCoordinateChannelCount >= 1 && fbxMesh.TextureCoordinateChannels[0].Count == fbxMesh.VertexCount)
             mesh.SetUVs(0, fbxMesh.TextureCoordinateChannels[0].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
 
-        mesh.SetTangents(fbxMesh.Tangents.Select(tangent => new Vector4(tangent.X, tangent.Y, tangent.Z)).ToArray());
+        if (fbxMesh.TextureCoordinateChannelCount >= 2 && fbxMesh.TextureCoordinateChannels[1].Count == fbxMesh.VertexCount)
+            mesh.SetUVs(1, fbxMesh.TextureCoordinateChannels[1].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
 
+        // Set tangents
+        if (fbxMesh.Tangents.Count == fbxMesh.VertexCount)
+            mesh.SetTangents(fbxMesh.Tangents.Select(tangent => new Vector4(tangent.X, tangent.Y, tangent.Z)).ToArray());
+
+        // Handle bones and weights
         if (armature != null)
         {
-            var bonesPerVertex = new List<BoneWeight1>[mesh.vertexCount];
-            var bindposes = new List<Matrix4x4>();
-            for (int i = 0; i < armature.Count; i++) bindposes.Add(Matrix4x4.identity);
+            var bonesPerVertex = new List<BoneWeight1>[vertices.Length];
+            var bindposes = new List<Matrix4x4>(armature.Count);
+
+            for (int i = 0; i < armature.Count; i++)
+                bindposes.Add(Matrix4x4.identity);
 
             foreach (var bone in fbxMesh.Bones)
             {
-                var armatureBone = armature[FixedBoneName(bone.Name)];
+                if (!armature.TryGetValue(FixedBoneName(bone.Name), out var armatureBone)) continue;
+
                 foreach (var vertex in bone.VertexWeights)
                 {
+                    if (vertex.VertexID >= bonesPerVertex.Length) continue;
+
                     if (bonesPerVertex[vertex.VertexID] == null)
                         bonesPerVertex[vertex.VertexID] = new List<BoneWeight1>();
 
-                    bonesPerVertex[vertex.VertexID].Add(new BoneWeight1() {
+                    bonesPerVertex[vertex.VertexID].Add(new BoneWeight1()
+                    {
                         boneIndex = armatureBone.index,
                         weight = vertex.Weight
                     });
                 }
-                bindposes[armatureBone.index] = armatureBone.bindpose;
+
+                if (armatureBone.index >= 0 && armatureBone.index < bindposes.Count)
+                    bindposes[armatureBone.index] = armatureBone.bindpose;
             }
 
             var bonesPerVertexArray = new NativeArray<byte>(bonesPerVertex.Length, Allocator.Temp);
             List<BoneWeight1> weights = new List<BoneWeight1>();
+
             for (int i = 0; i < bonesPerVertex.Length; i++)
             {
-                var bone = bonesPerVertex[i];
-                if (bone != null)
+                if (bonesPerVertex[i] != null)
                 {
-                    if (bone.Count >= 2)
-                        bone.Sort((a, b) => b.weight.CompareTo(a.weight));
-                    while (bone.Count > 1 && bone[bone.Count - 1].weight < 0.001)
-                        bone.RemoveAt(bone.Count - 1);
-                    float sum = bone.Sum(item => item.weight);
-                    for (int j = 0; j < bone.Count; j++)
-                        bone[j] = new BoneWeight1(){ weight = bone[j].weight / sum, boneIndex = bone[j].boneIndex };
-                    weights.AddRange(bone);
-                    bonesPerVertexArray[i] = (byte) bone.Count;
+                    weights.AddRange(bonesPerVertex[i]);
+                    bonesPerVertexArray[i] = (byte)bonesPerVertex[i].Count;
                 }
                 else
                 {
-                    weights.Add(new BoneWeight1(){ weight = 0, boneIndex = 0 });
+                    weights.Add(new BoneWeight1() { boneIndex = 0, weight = 0 });
                     bonesPerVertexArray[i] = 1;
                 }
             }
-            
+
             var weightsArray = new NativeArray<BoneWeight1>(weights.Count, Allocator.Temp);
-            for (int i = 0; i < weightsArray.Length; i++) weightsArray[i] = weights[i];
+            for (int i = 0; i < weights.Count; i++)
+                weightsArray[i] = weights[i];
 
             mesh.SetBoneWeights(bonesPerVertexArray, weightsArray);
             mesh.bindposes = bindposes.ToArray();
         }
+
+        // Set triangles
         mesh.triangles = fbxMesh.GetIndices();
-        
-        //recalculations
-        //Reflection.ForceUseMethod<object>(mesh, "RecalculateNormalsImpl", new object[]{ UnityEngine.Rendering.MeshUpdateFlags.Default });
-        Reflection.ForceUseMethod<object>(mesh, "RecalculateBoundsImpl", new object[]{ UnityEngine.Rendering.MeshUpdateFlags.Default });
+
+        // Recalculate bounds
+        mesh.RecalculateBounds();
 
         return mesh;
     }
+
+
 
     static string FixedBoneName(string name) => name.Replace(" ", "_").Replace(".", "_");
 

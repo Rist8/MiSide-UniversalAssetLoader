@@ -9,13 +9,39 @@
 //  - Sweater
 //Available commands:
 //	trailer - unique command, doesn't need disactivation command
-//	halloween - unique command, doesn't need disactivation command		
-//	create_static_appendix Mita Name ParentRenderer
-//	create_skinned_appendix Mita Name ParentRenderer
-//	replace_tex Mita Name TextureFilename
-//	replace_mesh Mita Name MeshFilename MeshName
-//	remove Mita Name
-//	recover Mita Name
+//	halloween - unique command, doesn't need disactivation command	
+//      christmas - unique command, doesn't need disactivation command
+	
+//	create_static_appendix Mita Name ParentRenderer KeyWord
+
+//	create_skinned_appendix Mita Name ParentRenderer KeyWord
+
+//	replace_tex Mita Name TextureFilename KeyWord
+
+//	replace_mesh Mita Name MeshFilename MeshName KeyWord
+
+//	remove Mita Name KeyWord     
+
+//	recover Mita Name KeyWord    
+
+//	set_scale Mita Name x y z KeyWord 
+//	 # KeyWord (use "all" for every Mita possible, logic can be inverted by 
+//       # putting ! in the beginning of Keyword example "!Core" will proceed 
+//       # the command for every Mita except containing Core in the name) is 
+//       # the word which the plugin will search for in Mita's name and will 
+//	 # change the scale only for that Mita;
+//       # KeyWord can be ommited, will act as "all" in such case;
+//       # x,y,z are scales for the corresponding axes
+
+//	move_position Mita Name x y z KeyWord
+//	 #x,y,z are distances for which the Name will be moved on
+//	 #corresponding axes
+
+//	set_rotation Mita Name x y z w KeyWord
+//	 #x,y,z,w are the angles of Quaternion the object will be rotated by
+
+
+
 //Usage:
 //	*ButtonName
 //	commands on activation
@@ -34,7 +60,38 @@ christmas
 create_static_appendix Mita CatEars Head
 replace_tex Mita CatEars CatEar_BaseColor
 replace_mesh Mita CatEars MitaCatMaid CatEars
+set_scale Mita CatEars 1.55 1.5 1.7 Core
+set_scale Mita CatEars 0.85 0.85 0.85 Maneken
+move_position Mita CatEars 0.00 -0.01 0.02 Maneken
 -remove Mita CatEars
+
+*MonikaHair
+create_static_appendix Mita JustMonika Head
+replace_tex Mita JustMonika HM_BaseColor
+replace_mesh Mita JustMonika MonikaHair JustMonika
+remove Mita Hair
+remove Mita Hairs
+replace_tex Mita Head Face !Small
+remove Mita Attribute
+-remove Mita JustMonika
+-recover Mita Hair
+-recover Mita Hairs
+-recover Mita Attribute
+
+*MitaCatMaidFix
+replace_tex Mita Hair Hair
+replace_mesh Mita Body MitaCatMaid Body
+replace_tex Mita Body BodyFixedHands
+remove Mita Skirt
+remove Mita Sweater
+-recover Mita Skirt
+-recover Mita Sweater
+
+*MitaDress
+create_skinned_appendix Mita MaidDress Sweater
+replace_mesh Mita MaidDress MitaCatMaid MaidDress
+replace_tex Mita MaidDress Cloth1
+-remove MaidDress
 
 *RemoveSkirt
 remove Mita Skirt
