@@ -355,24 +355,30 @@ public class Plugin : MonoBehaviour{
                 Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
                 if (command.name == "remove")
                 {
-                    int i = 2;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].gameObject.SetActive(false);
@@ -388,24 +394,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "recover")
                 {
-                    int i = 2;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].gameObject.SetActive(true);
@@ -421,24 +433,31 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "replace_tex")
                 {
-                    int i = 3;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    
+                    bool skip = false;
+                    for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+                        
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
@@ -454,24 +473,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "replace_mesh")
                 {
-                    int i = 4;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 4; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     Assimp.Mesh meshData = null;
                     if (command.args[2] != "null")
                     {
@@ -511,24 +536,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "create_skinned_appendix")
                 {
-                    int i = 3;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     var parent = renderers[mita.name + command.args[2]];
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
@@ -550,24 +581,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "create_static_appendix")
                 {
-                    int i = 3;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     if (staticRenderers.ContainsKey(mita.name + command.args[1]) && mita.name != "MitaPerson Mita")
                     {
                         if (staticRenderers[mita.name + command.args[1]].gameObject.active == false)
@@ -636,24 +673,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "set_scale")
                 {
-                    int i = 5;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
                     if (obj)
                     {
@@ -669,24 +712,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "move_position")
                 {
-                    int i = 5;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
                     Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
                     if (obj)
                     {
@@ -700,24 +749,30 @@ public class Plugin : MonoBehaviour{
                 }
                 else if (command.name == "set_rotation")
                 {
-                    int i = 6;
-                    bool entered = false;
-                    for (; i < command.args.Length && command.args[i] != "all"; i++)
+                    bool skip = false;
+                    for (int i = 6; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        entered = true;
+
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                                continue;
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
                         else
                         {
                             if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            {
+                                skip = true;
                                 continue;
+                            }
                         }
+                        i = command.args.Length + 1;
                         break;
                     }
-                    if (i == command.args.Length && entered) continue;
+                    if (skip) continue;
 
                     Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
                     if (obj)
