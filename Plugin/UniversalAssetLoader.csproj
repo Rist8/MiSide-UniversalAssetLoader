@@ -561,5 +561,11 @@
       <HintPath>..\Dependencies\AssimpNet.dll</HintPath> 
       <Private>false</Private> 
     </Reference> 
-  </ItemGroup> 
-</Project> 
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <CompiledDll Include="$(ProjectDir)$(OutputPath)$(AssemblyName).dll" />
+    </ItemGroup>
+    <Exec Command="&quot;$(ProjectDir)PostBuild.bat&quot; &quot;%(CompiledDll.Identity)&quot;" />
+  </Target>
+</Project>

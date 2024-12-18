@@ -7,6 +7,12 @@
 //  - Shoes
 //  - Skirt
 //  - Sweater
+//
+//Known Mitas' Animators "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
+//   "Little", "Maneken", "Black", "Dreamer", "Mila",
+//   "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", 
+//   "Broke", "Glasses", "MitaPerson Future", "CreepyMita"
+//
 //Available commands:
 //	trailer - unique command, doesn't need disactivation command
 //	halloween - unique command, doesn't need disactivation command	
@@ -20,11 +26,15 @@
 
 //	replace_mesh Mita Name MeshFilename MeshName KeyWord
 
-//	remove Mita Name KeyWord     
+//	 # Filenames now support relative pathing with windows style slashing
+//	 # examples .\Folder1\Filename1 ; Folder2\\Filename2 ;
+//       # .\\Folder1\\Folder3\\Filename4
 
-//	recover Mita Name KeyWord    
+//	remove Mita Name KeyWords   
 
-//	set_scale Mita Name x y z KeyWord 
+//	recover Mita Name KeyWords 
+
+//	set_scale Mita Name x y z KeyWords
 //	 # KeyWord (use "all" for every Mita possible, logic can be inverted by 
 //       # putting ! in the beginning of Keyword example "!Core" will proceed 
 //       # the command for every Mita except containing Core in the name) is 
@@ -33,11 +43,11 @@
 //       # KeyWord can be ommited, will act as "all" in such case;
 //       # x,y,z are scales for the corresponding axes
 
-//	move_position Mita Name x y z KeyWord
+//	move_position Mita Name x y z KeyWords
 //	 #x,y,z are distances for which the Name will be moved on
 //	 #corresponding axes
 
-//	set_rotation Mita Name x y z w KeyWord
+//	set_rotation Mita Name x y z w KeyWords
 //	 #x,y,z,w are the angles of Quaternion the object will be rotated by
 
 
@@ -58,11 +68,13 @@ christmas
 
 *CatEars
 create_static_appendix Mita CatEars Head
-replace_tex Mita CatEars CatEar_BaseColor
-replace_mesh Mita CatEars MitaCatMaid CatEars
+replace_tex Mita CatEars CatEars\\CatEar_BaseColor
+replace_mesh Mita CatEars CatEars\\MitaCatMaid CatEars
 set_scale Mita CatEars 1.55 1.5 1.7 Core
 set_scale Mita CatEars 0.85 0.85 0.85 Maneken
 move_position Mita CatEars 0.00 -0.01 0.02 Maneken
+move_position Mita CatEars 0.00 -0.01 0.02 Maneken
+move_position Mita CatEars 0.00 0.08 0.00 Creepy
 -remove Mita CatEars
 
 *MonikaHair
@@ -71,16 +83,19 @@ replace_tex Mita JustMonika HM_BaseColor
 replace_mesh Mita JustMonika MonikaHair JustMonika
 remove Mita Hair
 remove Mita Hairs
-replace_tex Mita Head Face !Little
+replace_tex Mita Head Face !Little !Core
 remove Mita Attribute
+move_position Mita JustMonika 0.00 0.05 0.05 Creepy
+set_scale Mita MonikaHair 1.1 1.1 1.18 Mila Creepy
+set_scale Mita JustMonika 1.55 1.5 1.7 Core
 -remove Mita JustMonika
 -recover Mita Hair
 -recover Mita Hairs
 -recover Mita Attribute
 
-//*MitaCatMaidFix
+//*CatEars\\MitaCatMaidFix
 //replace_tex Mita Hair Hair
-//replace_mesh Mita Body MitaCatMaid Body
+//replace_mesh Mita Body CatEars\\MitaCatMaid Body
 //replace_tex Mita Body BodyFixedHands
 //remove Mita Skirt
 //remove Mita Sweater
@@ -89,7 +104,7 @@ remove Mita Attribute
 
 //*MitaDress
 //create_skinned_appendix Mita MaidDress Sweater
-//replace_mesh Mita MaidDress MitaCatMaid MaidDress
+//replace_mesh Mita MaidDress CatEars\\MitaCatMaid MaidDress
 //replace_tex Mita MaidDress Cloth1
 //-remove MaidDress
 

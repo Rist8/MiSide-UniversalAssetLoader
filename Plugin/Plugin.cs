@@ -3,7 +3,6 @@ using System.IO.Compression;
 using System.Reflection;
 using Coffee.UIEffects;
 using Colorful;
-using Dummiesman;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using LibCpp2IL;
 using UnityEngine;
@@ -12,14 +11,21 @@ using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using UniversalAssetLoader.AddonLibrary;
 using static MagicaReductionMesh.MeshData;
 
 public class Plugin : MonoBehaviour{
 	public static string? currentSceneName;
 
 	private void Start(){
-		ReadAssetsConfig();
-		LoadAssetsForPatch();
+        //ReadAssetsConfig();
+        //LoadAssetsForPatch();
+        Debug.Log("Addons configs reading...");
+        List<Addon> addons = AddonManager.GetAllAddons();
+        foreach (Addon addon in addons)
+        {
+            Debug.Log(addon.ToString());
+        }
         ConsoleMain.active = true;
 		ConsoleMain.eventEnter = new UnityEvent();
         ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
@@ -207,25 +213,13 @@ public class Plugin : MonoBehaviour{
         }
     }
 
-    void LoadAssetsForPatch()
+    /*void LoadAssetsForPatch()
     {
         if (loadedModels != null) return;
 
         loadedModels = new Dictionary<string, Assimp.Mesh[]>();
         loadedTextures = new Dictionary<string, Texture2D>();
         loadedAudio = new Dictionary<string, AudioClip>();
-
-        // Load audio files
-        foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg"))
-        {
-            var audioFile = AssetLoader.LoadAudio(file);
-            var filename = Path.GetFileNameWithoutExtension(file);
-            if (!loadedAudio.ContainsKey(filename))
-            {
-                loadedAudio.Add(filename, audioFile);
-                PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
-            }
-        }
 
         // Load mesh files
         foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"))
@@ -253,7 +247,7 @@ public class Plugin : MonoBehaviour{
                 }
             }
         }
-    }
+    }*/
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
     "Little", "Maneken", "Black", "Dreamer", "Mila",
     "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "Mita", "Mita", "Mita" };
@@ -345,7 +339,7 @@ public class Plugin : MonoBehaviour{
         foreach (var renderer in staticRenderersList)
             staticRenderers[mita.name + renderer.name.Trim()] = renderer;
 
-        for(int c = 0; c < assetCommands.Count; ++c) {
+        for(int c = 0; c < assetCommands.Count; c++) {
             var command = assetCommands[c];
             if (command.args.Length == 0 || command.args[0] != "Mita")
                 continue;
@@ -898,7 +892,7 @@ public class Plugin : MonoBehaviour{
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
 		{
-            LoadAssetsForPatch();
+            //LoadAssetsForPatch();
 			FindMita();
 		}
 
@@ -992,7 +986,7 @@ public class Plugin : MonoBehaviour{
 	void OnSceneChanged(){
 		try{
             Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
-            LoadAssetsForPatch();
+            //LoadAssetsForPatch();
             FindMita();
 			if (currentSceneName == "SceneMenu")
 				PatchMenuScene();
