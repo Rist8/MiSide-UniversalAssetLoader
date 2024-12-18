@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Reflection;
 using Coffee.UIEffects;
 using Colorful;
+using Dummiesman;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using LibCpp2IL;
 using UnityEngine;
@@ -11,21 +12,14 @@ using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using UniversalAssetLoader.AddonLibrary;
 using static MagicaReductionMesh.MeshData;
 
 public class Plugin : MonoBehaviour{
 	public static string? currentSceneName;
 
 	private void Start(){
-        //ReadAssetsConfig();
-        //LoadAssetsForPatch();
-        Debug.Log("Addons configs reading...");
-        List<Addon> addons = AddonManager.GetAllAddons();
-        foreach (Addon addon in addons)
-        {
-            Debug.Log(addon.ToString());
-        }
+		ReadAssetsConfig();
+		LoadAssetsForPatch();
         ConsoleMain.active = true;
 		ConsoleMain.eventEnter = new UnityEvent();
         ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
@@ -187,7 +181,7 @@ public class Plugin : MonoBehaviour{
     private static Dictionary<string, AudioClip>? loadedAudio;
     public static List<(string name, string[] args)> assetCommands;
 
-    private static GameObject[] mitas = new GameObject[46];
+    private static GameObject[] mitas = new GameObject[50];
 
     void ReadAssetsConfig()
     {
@@ -213,7 +207,7 @@ public class Plugin : MonoBehaviour{
         }
     }
 
-    /*void LoadAssetsForPatch()
+    void LoadAssetsForPatch()
     {
         if (loadedModels != null) return;
 
@@ -221,11 +215,25 @@ public class Plugin : MonoBehaviour{
         loadedTextures = new Dictionary<string, Texture2D>();
         loadedAudio = new Dictionary<string, AudioClip>();
 
+        // Load audio files
+        foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg"))
+        {
+            var audioFile = AssetLoader.LoadAudio(file);
+            string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+            filename = Path.ChangeExtension(filename, null);
+            if (!loadedAudio.ContainsKey(filename))
+            {
+                loadedAudio.Add(filename, audioFile);
+                PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
+            }
+        }
+
         // Load mesh files
         foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"))
         {
             var meshes = AssetLoader.LoadFBX(file);
-            var filename = Path.GetFileNameWithoutExtension(file);
+            string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+            filename = Path.ChangeExtension(filename, null);
             if (!loadedModels.ContainsKey(filename))
             {
                 loadedModels.Add(filename, meshes);
@@ -239,7 +247,8 @@ public class Plugin : MonoBehaviour{
             var texture = AssetLoader.LoadTexture(file);
             if (texture != null)
             {
-                var filename = Path.GetFileNameWithoutExtension(file);
+                string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+                filename = Path.ChangeExtension(filename, null);
                 if (!loadedTextures.ContainsKey(filename))
                 {
                     loadedTextures.Add(filename, texture);
@@ -247,15 +256,16 @@ public class Plugin : MonoBehaviour{
                 }
             }
         }
-    }*/
+    }
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
     "Little", "Maneken", "Black", "Dreamer", "Mila",
-    "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "Mita", "Mita", "Mita" };
+    "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream",
+    "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "MitaPerson Know", "Mita", "Mita", "Mita", "Mita"};
 
     public static void FindMita()
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
-        GameObject[] mitaAnimators = new GameObject[46];
+        GameObject[] mitaAnimators = new GameObject[50];
         Array.Clear(mitaAnimators, 0, mitaAnimators.Length);
 
         foreach (var obj in animators)
@@ -267,7 +277,7 @@ public class Plugin : MonoBehaviour{
             {
                 Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
 
-                for (int i = 0; i < 23; ++i)
+                for (int i = 0; i < 25; ++i)
                 {
                     string mitaName = mitaNames[i];
                     string cloneName = mitaName + "(Clone)";
@@ -281,9 +291,9 @@ public class Plugin : MonoBehaviour{
                     }
                     else if (runtimeController.name.Contains(cloneName))
                     {
-                        if (mitaAnimators[i + 23] != null)
+                        if (mitaAnimators[i + 25] != null)
                             continue;
-                        mitaAnimators[i + 23] = anim.gameObject;
+                        mitaAnimators[i + 25] = anim.gameObject;
                         break;
                     }
                 }
@@ -296,16 +306,18 @@ public class Plugin : MonoBehaviour{
         mitaAnimators[15] = GameObject.Find("Mita Future");
         mitaAnimators[18] = GameObject.Find("MitaPerson Future");
         mitaAnimators[19] = GameObject.Find("CreepyMita");
-        mitaAnimators[36] = GameObject.Find("MitaPerson Mita(Clone)");
-        mitaAnimators[37] = GameObject.Find("Mita Dream(Clone)");
-        mitaAnimators[39] = GameObject.Find("Mita Future(Clone)");
-        mitaAnimators[41] = GameObject.Find("MitaPerson Future(Clone)");
-        mitaAnimators[42] = GameObject.Find("CreepyMita(Clone)");
+        mitaAnimators[20] = GameObject.Find("MitaPerson Know");
+        mitaAnimators[38] = GameObject.Find("MitaPerson Mita(Clone)");
+        mitaAnimators[39] = GameObject.Find("Mita Dream(Clone)");
+        mitaAnimators[41] = GameObject.Find("Mita Future(Clone)");
+        mitaAnimators[43] = GameObject.Find("MitaPerson Future(Clone)");
+        mitaAnimators[44] = GameObject.Find("CreepyMita(Clone)");
+        mitaAnimators[45] = GameObject.Find("MitaPerson Know(Clone)");
 
-        for (int i = 0; i < 46; ++i)
+        for (int i = 0; i < 50; ++i)
         {
-            string mitaName = mitaNames[i % 23];
-            string suffix = (i >= 23) ? "(Clone)" : string.Empty;
+            string mitaName = mitaNames[i % 25];
+            string suffix = (i >= 25) ? "(Clone)" : string.Empty;
             string fullName = mitaName + suffix;
 
             if (mitaAnimators[i] == null)
@@ -339,7 +351,7 @@ public class Plugin : MonoBehaviour{
         foreach (var renderer in staticRenderersList)
             staticRenderers[mita.name + renderer.name.Trim()] = renderer;
 
-        for(int c = 0; c < assetCommands.Count; c++) {
+        for(int c = 0; c < assetCommands.Count; ++c) {
             var command = assetCommands[c];
             if (command.args.Length == 0 || command.args[0] != "Mita")
                 continue;
@@ -352,7 +364,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -360,6 +372,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -368,8 +381,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -391,7 +404,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -399,6 +412,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -407,8 +421,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -431,7 +445,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -439,6 +453,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -447,11 +462,14 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
+                    command.args[2] = command.args[2].Replace(@"\\", @"\");
+                    command.args[2] = string.Join("", command.args[2].Replace(@".\", string.Empty).SkipWhile(c => c == '.' || c == '\\'));
+
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
@@ -470,7 +488,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 4; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -478,6 +496,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -486,16 +505,19 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
+                    command.args[2] = command.args[2].Replace(@"\\", @"\");
+                    command.args[2] = string.Join("", command.args[2].Replace(@".\", string.Empty).SkipWhile(c => c == '.' || c == '\\'));
+
                     Assimp.Mesh meshData = null;
                     if (command.args[2] != "null")
                     {
                         meshData = loadedModels[command.args[2]].First(mesh =>
-                            mesh.Name == (command.args.Length >= 4 ? command.args[3] : command.args[2]));
+                            mesh.Name == (command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2])));
 
                     }
                     if (renderers.ContainsKey(mita.name + command.args[1]))
@@ -533,7 +555,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -541,6 +563,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -549,8 +572,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -578,7 +601,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -586,6 +609,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -594,8 +618,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -670,7 +694,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -678,6 +702,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -686,8 +711,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -709,7 +734,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -717,6 +742,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -725,8 +751,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -746,7 +772,7 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 6; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-
+                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -754,6 +780,7 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 break;
                             }
+                            continue;
                         }
                         else
                         {
@@ -762,8 +789,8 @@ public class Plugin : MonoBehaviour{
                                 skip = true;
                                 continue;
                             }
+                            skip = false;
                         }
-                        i = command.args.Length + 1;
                         break;
                     }
                     if (skip) continue;
@@ -841,7 +868,7 @@ public class Plugin : MonoBehaviour{
 			foreach (var source in musicSources)
 				if (source.name == "Music"){
 					source.clip = loadedAudio[command.args[0]];
-					source.volume = 1;
+					source.volume = GlobalGame.VolumeGame;
 					source.Play();
 					break;
 				}
@@ -892,7 +919,7 @@ public class Plugin : MonoBehaviour{
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
 		{
-            //LoadAssetsForPatch();
+            LoadAssetsForPatch();
 			FindMita();
 		}
 
@@ -986,7 +1013,7 @@ public class Plugin : MonoBehaviour{
 	void OnSceneChanged(){
 		try{
             Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
-            //LoadAssetsForPatch();
+            LoadAssetsForPatch();
             FindMita();
 			if (currentSceneName == "SceneMenu")
 				PatchMenuScene();

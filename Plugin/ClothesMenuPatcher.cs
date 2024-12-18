@@ -132,6 +132,14 @@ public class ClothesMenuPatcher{
             Debug.Log("clicked: " + name);
             addonButtons[name].GetComponent<RectTransform>().Find("Text").GetComponent<Text>().text = name + ((!active) ? "" : "(*)");
         }
+        MitaClothesResource clothes =
+            Reflection.FindObjectsOfType<MenuClothes>()[0].resourceClothes.GetComponent<MitaClothesResource>();
+
+        Dictionary<string, DataClothMita> clothesDict = new Dictionary<string, DataClothMita>();
+        foreach (var cloth in clothes.clothes)
+            clothesDict[cloth.fileSave] = cloth;
+
+
         Debug.Log(name + " is active:" + active);
         Plugin.Active[name] = active;
         string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
