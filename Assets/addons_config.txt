@@ -9,9 +9,10 @@
 //  - Sweater
 //
 //Known Mitas' Animators "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
-//   "Little", "Maneken", "Black", "Dreamer", "Mila",
+//   "Little", "Maneken", "Black", "Dreamer", "Mila", "Washes",
 //   "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", 
 //   "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "Know", "Longer"
+//   "OnlyBody", "NewVersion"
 //
 //Available commands:
 //	trailer - unique command, doesn't need disactivation command
@@ -72,146 +73,6 @@ move_position Mita CatEars 0.00 -0.01 0.02 Maneken
 move_position Mita CatEars 0.00 0.01 0.00 Creepy
 -remove Mita CatEars
 
-*MonikaHair
-create_static_appendix Mita MonikaHair Head
-replace_tex Mita MonikaHair Dokis\HM_BaseColor
-replace_mesh Mita MonikaHair Dokis\JustDokis MonikaHair
-remove Mita Hair
-remove Mita Hairs
-remove Mita Attribute
-set_scale Mita MonikaHair 1.05 1.05 1.05 Little Broke Maneken
-set_scale Mita MonikaHair 1.08 1.08 1.08 Creepy
-move_position Mita MonikaHair 0.00 0.02 -0.02 Creepy
-set_scale Mita MonikaHair 1.1 1.1 1.18 Mila Glasss
-set_scale Mita MonikaHair 1.55 1.5 1.7 Core
--remove Mita MonikaHair
--recover Mita Hair
--recover Mita Hairs
--recover Mita Attribute
-
-*MonikaFace
-replace_tex Mita Head Dokis\FaceM !Mila !Glasses !Little !Broke !Core
-
-*MonikaClothes
-replace_tex Mita Sweater Dokis\ClothesM !Mila !Glasses
-replace_tex Mita Skirt Dokis\ClothesM !Mila !Glasses
-replace_tex Mita Pantyhose Dokis\ClothesM !Mila !Glasses
-replace_tex Mita Shoes Dokis\ClothesM !Mila !Glasses
-
-*NatsukiHair
-create_static_appendix Mita NatsukiHair Head
-replace_tex Mita NatsukiHair Dokis\HN_BaseColor
-replace_mesh Mita NatsukiHair Dokis\JustDokis NatsukiHair
-remove Mita Hair
-remove Mita Hairs
-remove Mita Attribute
-set_scale Mita NatsukiHair 1.05 1.05 1.05 Little Broke Maneken
-set_scale Mita NatsukiHair 1.08 1.08 1.08 Creepy
-move_position Mita NatsukiHair 0.00 0.02 -0.02 Creepy
-set_scale Mita NatsukiHair 1.1 1.1 1.18 Mila Glasss
-set_scale Mita NatsukiHair 1.55 1.5 1.7 Core
--remove Mita NatsukiHair
--recover Mita Hair
--recover Mita Hairs
--recover Mita Attribute
-
-*NatsukiFace
-replace_tex Mita Head Dokis\FaceN !Mila !Glasses !Little !Broke !Core
-
-*NatsukiClothes
-replace_tex Mita Sweater Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Skirt Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Pantyhose Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Shoes Dokis\ClothesD !Mila !Glasses
-
-*SayoriHair
-create_static_appendix Mita SayoriHair Head
-replace_tex Mita SayoriHair Dokis\HS_BaseColor
-replace_mesh Mita SayoriHair Dokis\JustDokis SayoriHair
-remove Mita Hair
-remove Mita Hairs
-remove Mita Attribute
-set_scale Mita SayoriHair 1.05 1.05 1.05 Little Broke Maneken
-set_scale Mita SayoriHair 1.08 1.08 1.08 Creepy
-move_position Mita SayoriHair 0.00 0.02 -0.02 Creepy
-set_scale Mita SayoriHair 1.1 1.1 1.18 Mila Glasss
-set_scale Mita SayoriHair 1.55 1.5 1.7 Core
--remove Mita SayoriHair
--recover Mita Hair
--recover Mita Hairs
--recover Mita Attribute
-
-*SayoriFace
-replace_tex Mita Head Dokis\FaceS !Mila !Glasses !Little !Broke !Core
-
-*SayoriClothes
-replace_tex Mita Sweater Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Skirt Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Pantyhose Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Shoes Dokis\ClothesD !Mila !Glasses
-
-*YuriHair
-create_static_appendix Mita YuriHair Head
-replace_tex Mita YuriHair Dokis\HY_BaseColor
-replace_mesh Mita YuriHair Dokis\JustDokis YuriHair
-remove Mita Hair
-remove Mita Hairs
-remove Mita Attribute
-set_scale Mita YuriHair 1.05 1.05 1.05 Little Broke Maneken
-set_scale Mita YuriHair 1.08 1.08 1.08 Creepy
-move_position Mita YuriHair 0.00 0.02 -0.02 Creepy
-set_scale Mita YuriHair 1.1 1.1 1.18 Mila Glasss
-set_scale Mita YuriHair 1.55 1.5 1.7 Core
--remove Mita YuriHair
--recover Mita Hair
--recover Mita Hairs
--recover Mita Attribute
-
-*YuriFace
-replace_tex Mita Head Dokis\FaceY !Mila !Glasses !Little !Broke !Core
-
-*YuriClothes
-replace_tex Mita Sweater Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Skirt Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Pantyhose Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Shoes Dokis\ClothesD !Mila !Glasses
-
-*DokisHair
-create_static_appendix Mita DokiHair Head
-replace_tex Mita DokiHair Dokis\HM_BaseColor MitaPerson Usual MitaTrue Core
-replace_mesh Mita DokiHair Dokis\JustDokis MonikaHair MitaPerson Usual MitaTrue Core
-replace_tex Mita DokiHair Dokis\HN_BaseColor ShortHairs Cap Know Little Broke Mila Glasses
-replace_mesh Mita DokiHair Dokis\JustDokis NatsukiHair ShortHairs Cap Know Little Broke
-replace_tex Mita DokiHair Dokis\HS_BaseColor Kind Future Dream
-replace_mesh Mita DokiHair Dokis\JustDokis SayoriHair Kind Future Dream
-replace_tex Mita DokiHair Dokis\HY_BaseColor Mila Glasses Creepy Longer
-replace_mesh Mita DokiHair Dokis\JustDokis YuriHair Mila Glasses Creepy Longer
-remove Mita Hair
-remove Mita Hairs
-remove Mita Attribute
-set_scale Mita DokiHair 1.05 1.05 1.05 Little Broke Maneken
-set_scale Mita DokiHair 1.08 1.08 1.08 Creepy
-move_position Mita DokiHair 0.00 0.02 -0.02 Creepy
-set_scale Mita DokiHair 1.1 1.1 1.18 Mila Glasss
-set_scale Mita DokiHair 1.55 1.5 1.7 Core
--remove Mita DokiHair
--recover Mita Hair
--recover Mita Hairs
--recover Mita Attribute
-
-*DokisFace
-replace_tex Mita Head Dokis\FaceM MitaPerson Usual MitaTrue
-replace_tex Mita Head Dokis\FaceN ShortHairs Cap Know
-replace_tex Mita Head Dokis\FaceS Kind Future Dream
-replace_tex Mita Head Dokis\FaceY Creepy Longer
-
-*DokisClothes
-replace_tex Mita Sweater Dokis\ClothesD
-replace_tex Mita Skirt Dokis\ClothesD !Mila !Glasses
-replace_tex Mita Pantyhose Dokis\ClothesD
-replace_tex Mita Shoes Dokis\ClothesD
-replace_tex Mita Shoes Dokis\ClothesM MitaPerson Usual MitaTrue
-
 *RemoveSkirt
 remove Mita Skirt
 -recover Mita Skirt
@@ -247,9 +108,9 @@ remove Mita Shoes
 -recover Mita Shoes
 
 *MilaBathTowel
-remove Mita Body Mila Glasses
-remove Mita Skirt Mila Glasses
-recover Mita BodyTowel Mila Glasses
--recover Mita Body Mila Glasses
--recover Mita Skirt Mila Glasses
--remove Mita BodyTowel Mila Glasses
+remove Mita Body !Washes !Clone Mila Glasses
+remove Mita Skirt !Washes !Clone Mila Glasses
+recover Mita BodyTowel !Washes !Clone Mila Glasses
+-recover Mita Body !Washes !Clone Mila Glasses
+-recover Mita Skirt !Washes !Clone Mila Glasses
+-remove Mita BodyTowel !Washes !Clone Mila Glasses
