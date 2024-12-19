@@ -7,11 +7,14 @@
 //  - Shoes
 //  - Skirt
 //  - Sweater
+//  - GlassesObject (Mila)
+//  - BodyTowel (Mila)
 //
 //Known Mitas' Animators "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
-//   "Little", "Maneken", "Black", "Dreamer", "Mila",
+//   "Little", "Maneken", "Black", "Dreamer", "Mila", "Washes",
 //   "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", 
 //   "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "Know", "Longer"
+//   "OnlyBody", "NewVersion"
 //
 //Available commands:
 //	trailer - unique command, doesn't need disactivation command
@@ -112,10 +115,14 @@ remove Mita Pantyhose
 remove Mita Shoes
 -recover Mita Shoes
 
+*MilaRemoveGlasses
+remove Mita GlassesObject Mila Glasses
+-recover Mita GlassesObject Mila Glasses
+
 *MilaBathTowel
-remove Mita Body Mila Glasses
-remove Mita Skirt Mila Glasses
-recover Mita BodyTowel Mila Glasses
--recover Mita Body Mila Glasses
--recover Mita Skirt Mila Glasses
--remove Mita BodyTowel Mila Glasses
+remove Mita Body !Washes !Clone Mila Glasses
+remove Mita Skirt !Washes !Clone Mila Glasses
+recover Mita BodyTowel !Washes !Clone Mila Glasses
+-recover Mita Body !Washes !Clone Mila Glasses
+-recover Mita Skirt !Washes !Clone Mila Glasses
+-remove Mita BodyTowel !Washes !Clone Mila Glasses
