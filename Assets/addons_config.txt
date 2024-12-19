@@ -63,9 +63,15 @@ halloween
 christmas
 
 *CatEars
+<<<<<<< HEAD
 create_static_appendix Mita CatEars\CatEars Head !Cap !Know
 replace_tex Mita CatEars CatEarsCatEar_BaseColor
 replace_mesh Mita CatEars MitaCatMaid CatEars
+=======
+create_static_appendix Mita CatEars Head !Cap !Know
+replace_tex Mita CatEars CatEars\CatEar_BaseColor
+replace_mesh Mita CatEars CatEars\MitaCatMaid CatEars
+>>>>>>> 079a0e3db5996f80ceb70ab9b6d8bd783460eb31
 set_scale Mita CatEars 1.55 1.5 1.7 Core
 set_scale Mita CatEars 0.85 0.85 0.85 Maneken
 move_position Mita CatEars 0.00 -0.01 0.02 Maneken
