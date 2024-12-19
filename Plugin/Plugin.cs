@@ -181,7 +181,7 @@ public class Plugin : MonoBehaviour{
     private static Dictionary<string, AudioClip>? loadedAudio;
     public static List<(string name, string[] args)> assetCommands;
 
-    private static GameObject[] mitas = new GameObject[50];
+    private static GameObject[] mitas = new GameObject[70];
 
     void ReadAssetsConfig()
     {
@@ -260,12 +260,15 @@ public class Plugin : MonoBehaviour{
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
     "Little", "Maneken", "Black", "Dreamer", "Mila",
     "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream",
-    "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "MitaPerson Know", "Mita", "Mita", "Mita", "Mita"};
+    "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita",
+    "Old", "MitaPerson Old", "Mita", "Mita", "Mita",
+    "Mita", "Mita", "Mita", "Mita", "Mita",
+    "Mita", "Mita", "Mita", "Mita", "Mita"};
 
     public static void FindMita()
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
-        GameObject[] mitaAnimators = new GameObject[50];
+        GameObject[] mitaAnimators = new GameObject[70];
         Array.Clear(mitaAnimators, 0, mitaAnimators.Length);
 
         foreach (var obj in animators)
@@ -275,9 +278,9 @@ public class Plugin : MonoBehaviour{
 
             if (runtimeController != null)
             {
-                Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
+                //Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
 
-                for (int i = 0; i < 25; ++i)
+                for (int i = 0; i < 35; ++i)
                 {
                     string mitaName = mitaNames[i];
                     string cloneName = mitaName + "(Clone)";
@@ -291,9 +294,9 @@ public class Plugin : MonoBehaviour{
                     }
                     else if (runtimeController.name.Contains(cloneName))
                     {
-                        if (mitaAnimators[i + 25] != null)
+                        if (mitaAnimators[i + 35] != null)
                             continue;
-                        mitaAnimators[i + 25] = anim.gameObject;
+                        mitaAnimators[i + 35] = anim.gameObject;
                         break;
                     }
                 }
@@ -306,31 +309,31 @@ public class Plugin : MonoBehaviour{
         mitaAnimators[15] = GameObject.Find("Mita Future");
         mitaAnimators[18] = GameObject.Find("MitaPerson Future");
         mitaAnimators[19] = GameObject.Find("CreepyMita");
-        mitaAnimators[20] = GameObject.Find("MitaPerson Know");
-        mitaAnimators[38] = GameObject.Find("MitaPerson Mita(Clone)");
-        mitaAnimators[39] = GameObject.Find("Mita Dream(Clone)");
-        mitaAnimators[41] = GameObject.Find("Mita Future(Clone)");
-        mitaAnimators[43] = GameObject.Find("MitaPerson Future(Clone)");
-        mitaAnimators[44] = GameObject.Find("CreepyMita(Clone)");
-        mitaAnimators[45] = GameObject.Find("MitaPerson Know(Clone)");
+        mitaAnimators[21] = GameObject.Find("MitaPerson Old");
+        mitaAnimators[48] = GameObject.Find("MitaPerson Mita(Clone)");
+        mitaAnimators[49] = GameObject.Find("Mita Dream(Clone)");
+        mitaAnimators[50] = GameObject.Find("Mita Future(Clone)");
+        mitaAnimators[53] = GameObject.Find("MitaPerson Future(Clone)");
+        mitaAnimators[54] = GameObject.Find("CreepyMita(Clone)");
+        mitaAnimators[56] = GameObject.Find("MitaPerson Old(Clone)");
 
-        for (int i = 0; i < 50; ++i)
+        for (int i = 0; i < 70; ++i)
         {
-            string mitaName = mitaNames[i % 25];
-            string suffix = (i >= 25) ? "(Clone)" : string.Empty;
+            string mitaName = mitaNames[i % 35];
+            string suffix = (i >= 35) ? "(Clone)" : string.Empty;
             string fullName = mitaName + suffix;
 
             if (mitaAnimators[i] == null)
             {
-                Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
+                //Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
                 mitas[i] = null;
             }
             else
             {
                 mitas[i] = mitaAnimators[i];
-                Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
+                //Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
                 PatchMita(mitas[i]);
-                Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
+                //Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
             }
         }
     }
@@ -358,13 +361,12 @@ public class Plugin : MonoBehaviour{
             try
             {
                 Debug.Log($"[INFO] Mita's name: {mita.name} |");
-                Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
+                //Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
                 if (command.name == "remove")
                 {
                     bool skip = false;
                     for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -404,7 +406,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -445,7 +446,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -488,7 +488,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 4; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -555,7 +554,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -601,7 +599,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -694,7 +691,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -734,7 +730,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
@@ -772,7 +767,6 @@ public class Plugin : MonoBehaviour{
                     bool skip = false;
                     for (int i = 6; i < command.args.Length && command.args[i] != "all"; i++)
                     {
-                        Debug.Log(command.name + " " + command.args[i]);
                         if (command.args[i].StartsWith("!"))
                         {
                             if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
