@@ -7,6 +7,8 @@
 //  - Shoes
 //  - Skirt
 //  - Sweater
+//  - GlassesObject (Mila)
+//  - BodyTowel (Mila)
 //
 //Known Mitas' Animators "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
 //   "Little", "Maneken", "Black", "Dreamer", "Mila", "Washes",
@@ -106,6 +108,10 @@ remove Mita Pantyhose
 *RemoveShoes
 remove Mita Shoes
 -recover Mita Shoes
+
+*MilaRemoveGlasses
+remove Mita GlassesObject Mila Glasses
+-recover Mita GlassesObject Mila Glasses
 
 *MilaBathTowel
 remove Mita Body !Washes !Clone Mila Glasses
