@@ -25,9 +25,9 @@ public class AssetLoader
         AudioClip audioClip = null;
         using (var vorbis = new NVorbis.VorbisReader(new MemoryStream(ReadStream(stream), false)))
         {
-            float[] _audioBuffer = new float[vorbis.TotalSamples]; // Just dump everything
-            int read = vorbis.ReadSamples(_audioBuffer, 0, (int)vorbis.TotalSamples);
-            audioClip = AudioClip.Create(name, (int)(vorbis.TotalSamples / vorbis.Channels), vorbis.Channels, vorbis.SampleRate, false);
+            float[] _audioBuffer = new float[vorbis.Channels * vorbis.TotalSamples]; // Just dump everything
+            int read = vorbis.ReadSamples(_audioBuffer, 0, _audioBuffer.Length);
+            audioClip = AudioClip.Create(name, (int)vorbis.TotalSamples, vorbis.Channels, vorbis.SampleRate, false);
             AudioClip.SetData(audioClip, _audioBuffer, ((System.Array)_audioBuffer).Length / audioClip.channels, 0);
         }
         if (audioClip == null) return null;

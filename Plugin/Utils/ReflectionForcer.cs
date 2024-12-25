@@ -83,4 +83,27 @@ public class Reflection
 		).Select(obj => obj.Cast<T>()).ToArray();
     }
 
+    public static T GetComponentInChildren<T>(GameObject obj, bool includeInactive = false)
+        where T : Il2CppSystem.Object
+    {
+        var result = ForceUseMethod<UnityEngine.Component>(
+            obj,
+            "GetComponentInChildren",
+            typeof(T),
+            includeInactive
+        );
+        return result != null ? result.Cast<T>() : null;
+    }
+
+    public static T FindObjectOfType<T>(bool includeInactive = false)
+            where T : Component
+    {
+        var result = ForceUseStaticMethod<UnityEngine.Object>(
+            typeof(UnityEngine.Object),
+            "FindObjectOfType",
+            typeof(T),
+            true
+        );
+        return result != null ? result.Cast<T>() : null;
+    }
 }
