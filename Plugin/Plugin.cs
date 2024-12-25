@@ -916,18 +916,6 @@ public class Plugin : MonoBehaviour{
             LoadAssetsForPatch();
 			FindMita();
 		}
-
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Slash))
-        {
-            if (Reflection.FindObjectsOfType<ConsoleCall>(true).Length > 0)
-            {
-                ConsoleCall camerafly = Reflection.FindObjectsOfType<ConsoleCall>(true)[0];
-                if (camerafly)
-                {
-                    camerafly.CameraFly();
-                }
-            }
-        }
         if (UnityEngine.Input.GetKeyDown(KeyCode.F9))
         {
             if (Time.timeScale != 0.0f)
