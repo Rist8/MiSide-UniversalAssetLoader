@@ -70,11 +70,13 @@ For a complete list of features, refer to the `readme.txt` file.
 
 #### **Plugin Installation**
 
-1. **Download** `UniversalAssetLoaderRelease-0.9.4.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.4).  
-   > **Скачайте** `UniversalAssetLoaderRelease-0.9.4.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.4).
+1. **Download** `UniversalAssetLoaderRelease-0.9.5.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.5).  
+   > **Скачайте** `UniversalAssetLoaderRelease-0.9.5.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/tag/Release-0.9.5).
 
-2. **Extract the folder** `OuterFolder\UniversalAssetLoader` into `...\MiSide\BepInEx\plugins`. Then move the `assimp.dll` file to the main MiSide folder manually.  
-   > **Извлеките папку** `OuterFolder\UniversalAssetLoader` в `...\MiSide\BepInEx\plugins`. Затем вручную переместите файл `assimp.dll` в основную папку MiSide.
+2. **Open** the `OuterFolder` inside the downloaded archive, and **extract** the `UniversalAssetLoader` folder into the `...\MiSide\BepInEx\plugins` directory of your game (so that `plugins\UniversalAssetLoader` path exists).
+   **Locate** the `assimp.dll` file in `plugins\UniversalAssetLoader` and move it to the root folder of your game (where the game executable is located).
+   > **Откройте** папку OuterFolder внутри загруженного архива и **распакуйте** папку UniversalAssetLoader в каталог `...\MiSide\BepInEx\plugins` вашей игры (так чтобы появился путь `plugins\UniversalAssetLoader`).
+   > **Найдите** файл `assimp.dll` в `plugins\UniversalAssetLoader` и переместите его в корневую папку вашей игры (где находится исполняемый файл игры).
 
    **OR / ИЛИ**
 
