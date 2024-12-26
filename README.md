@@ -5,16 +5,8 @@ This project is based on a fork of the original [MiSide-AssetLoader](https://git
 
 ---
 
-**Important:** This mod **will conflict** with ConsoleUnlocker's key bindings.  
-> Важно: Этот мод **будет конфликтовать** с биндами ConsoleUnlocker.
-
-You have to delete ConsoleUnlocker before using UniversalAssetLoader for full functionality.  
-> Необходимо удалить ConsoleUnlocker перед использованием UniversalAssetLoader для полной функциональности.
-
-Path to delete ConsoleUnlocker:  
-`...\MiSide\BepInEx\plugins\ConsoleUnlocker`  
-> Путь для удаления ConsoleUnlocker:  
-> `...\MiSide\BepInEx\plugins\ConsoleUnlocker`  
+**Important:** This mod **will conflict** with ConsoleUnlocker's f9 key binding(you can rebind it in the new version of Unlocker) .  
+> Важно: Этот мод **будет конфликтовать** с биндом f9 из ConsoleUnlocker(в новой версии Unlocker вы можете изменить этот бинд) .
 
 ---
 
@@ -26,8 +18,8 @@ Path to delete ConsoleUnlocker:
 - **Supports custom configurations** for adding new buttons through the **Addons** tab.  
   > Поддерживает пользовательские конфигурации для добавления новых кнопок через вкладку **Addons**.
 
-- **Includes all features** from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
-  > Включает все функции из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).
+- **Includes all features except freecamera bind** from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
+  > Включает все функции кроме бинда на свободную камеру из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).
 
 - **Adds a free camera** with greenscreen support (note: greenscreen currently has issues).
   > Добавляет свободную камеру с поддержкой зеленого экрана *(зелёный экран пока работает некорректно)*.
