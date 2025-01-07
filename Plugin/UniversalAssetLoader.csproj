@@ -49,6 +49,9 @@
       <HintPath>..\Dependencies\AssetRipper.VersionUtilities.dll</HintPath>   
       <Private>false</Private>   
     </Reference>   
+    <Reference Include="AssimpNet">
+      <HintPath>..\Dependencies\AssimpNet.dll</HintPath>
+    </Reference>   
     <Reference Include="BepInEx.Core">   
       <HintPath>..\Dependencies\BepInEx.Core.dll</HintPath>   
       <Private>false</Private>   
@@ -556,10 +559,6 @@
     <Reference Include="UnityEngine.UI">  
       <HintPath>..\Dependencies\UnityEngine.UI.dll</HintPath>  
       <Private>false</Private>  
-    </Reference>  
-    <Reference Include="AssimpNet"> 
-      <HintPath>..\Dependencies\AssimpNet.dll</HintPath> 
-      <Private>false</Private> 
     </Reference> 
   </ItemGroup> 
 </Project> 

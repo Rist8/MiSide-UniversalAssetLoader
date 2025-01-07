@@ -137,8 +137,39 @@ public class AssetLoader
         }
         mesh.triangles = fbxMesh.GetIndices();
 
-        //recalculations
-        //Reflection.ForceUseMethod<object>(mesh, "RecalculateNormalsImpl", new object[]{ UnityEngine.Rendering.MeshUpdateFlags.Default });
+        // Add Blendshape Processing
+        if (fbxMesh.HasMeshAnimationAttachments)
+        {
+            foreach (var blendShape in fbxMesh.MeshAnimationAttachments)
+            {
+                string name = blendShape.Name;
+
+                Vector3[] deltaVerts = new Vector3[mesh.vertexCount];
+                Vector3[] deltaNormals = new Vector3[mesh.normals.Length];
+
+                if (blendShape.HasVertices)
+                {
+                    for (int i = 0; i < blendShape.VertexCount; i++)
+                    {
+                        var blendVertex = blendShape.Vertices[i];
+                        deltaVerts[i] = new Vector3(-blendVertex.X, blendVertex.Y, blendVertex.Z) - mesh.vertices[i];
+                    }
+                }
+
+                if (blendShape.HasNormals)
+                {
+                    for (int i = 0; i < blendShape.Normals.Count; i++)
+                    {
+                        var blendNormal = blendShape.Normals[i];
+                        deltaNormals[i] = new Vector3(-blendNormal.X, blendNormal.Y, blendNormal.Z) - mesh.normals[i];
+                    }
+                }
+
+                mesh.AddBlendShapeFrame(name, 100.0f, deltaVerts, deltaNormals, null);
+            }
+        }
+
+        // Recalculations
         Reflection.ForceUseMethod<object>(mesh, "RecalculateBoundsImpl", new object[] { UnityEngine.Rendering.MeshUpdateFlags.Default });
 
         return mesh;
