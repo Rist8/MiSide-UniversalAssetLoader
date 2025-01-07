@@ -166,6 +166,7 @@ public class AssetLoader
                 }
 
                 mesh.AddBlendShapeFrame(name, 100.0f, deltaVerts, deltaNormals, null);
+                Debug.Log($"New blendshape loaded: {name}");
             }
         }
 
