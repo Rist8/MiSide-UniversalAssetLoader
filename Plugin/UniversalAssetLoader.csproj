@@ -51,6 +51,7 @@
     </Reference>   
     <Reference Include="AssimpNet">
       <HintPath>..\Dependencies\AssimpNet.dll</HintPath>
+      <Private>false</Private>
     </Reference>   
     <Reference Include="BepInEx.Core">   
       <HintPath>..\Dependencies\BepInEx.Core.dll</HintPath>   
