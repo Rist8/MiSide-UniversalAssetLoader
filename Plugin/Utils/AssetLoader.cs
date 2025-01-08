@@ -140,28 +140,36 @@ public class AssetLoader
         // Add Blendshape Processing
         if (fbxMesh.HasMeshAnimationAttachments)
         {
+            int vertexCount = mesh.vertexCount;
+            int normalCount = mesh.normals.Length;
+
+            Vector3[] deltaVerts = new Vector3[vertexCount];
+            Vector3[] deltaNormals = new Vector3[normalCount];
+
+            Vector3[] vertices = mesh.vertices;
+            Vector3[] normals = mesh.normals;
+
             foreach (var blendShape in fbxMesh.MeshAnimationAttachments)
             {
                 string name = blendShape.Name;
 
-                Vector3[] deltaVerts = new Vector3[mesh.vertexCount];
-                Vector3[] deltaNormals = new Vector3[mesh.normals.Length];
+                Array.Clear(deltaVerts, 0, vertexCount);
+                Array.Clear(deltaNormals, 0, normalCount);
 
-                if (blendShape.HasVertices)
+                int maxCount = Math.Max(blendShape.VertexCount, blendShape.Normals.Count);
+
+                for (int i = 0; i < maxCount; i++)
                 {
-                    for (int i = 0; i < blendShape.VertexCount; i++)
+                    if (blendShape.HasVertices && i < blendShape.VertexCount)
                     {
                         var blendVertex = blendShape.Vertices[i];
-                        deltaVerts[i] = new Vector3(-blendVertex.X, blendVertex.Y, blendVertex.Z) - mesh.vertices[i];
+                        deltaVerts[i] = new Vector3(-blendVertex.X, blendVertex.Y, blendVertex.Z) - vertices[i];
                     }
-                }
 
-                if (blendShape.HasNormals)
-                {
-                    for (int i = 0; i < blendShape.Normals.Count; i++)
+                    if (blendShape.HasNormals && i < blendShape.Normals.Count)
                     {
                         var blendNormal = blendShape.Normals[i];
-                        deltaNormals[i] = new Vector3(-blendNormal.X, blendNormal.Y, blendNormal.Z) - mesh.normals[i];
+                        deltaNormals[i] = new Vector3(-blendNormal.X, blendNormal.Y, blendNormal.Z) - normals[i];
                     }
                 }
 
