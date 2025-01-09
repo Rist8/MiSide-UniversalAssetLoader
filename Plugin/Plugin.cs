@@ -13,20 +13,24 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using static MagicaReductionMesh.MeshData;
+using System.Diagnostics;
+using System.Collections.Concurrent;
 
-public class Plugin : MonoBehaviour{
-	public static string? currentSceneName;
+public class Plugin : MonoBehaviour
+{
+    public static string? currentSceneName;
 
-	private void Start(){
-		ReadAssetsConfig();
-		LoadAssetsForPatch();
+    private void Start()
+    {
+        ReadAssetsConfig();
+        LoadAssetsForPatch();
         ConsoleMain.active = true;
-		ConsoleMain.eventEnter = new UnityEvent();
+        ConsoleMain.eventEnter = new UnityEvent();
         ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
     }
-	static GameObject greenScreenCameraObject = null;
-	static Camera greenScreenCamera = null;
-	public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
+    static GameObject greenScreenCameraObject = null;
+    static Camera greenScreenCamera = null;
+    public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
     private static float dx = 0.0f, dy = 0.0f, dz = 0.0f, rdx = 0.0f, rdy = 0.0f;
     public static void ConsoleEnter(string s)
     {
@@ -56,7 +60,7 @@ public class Plugin : MonoBehaviour{
             }
         }
 
-        Debug.Log("Console in: " + s);
+        UnityEngine.Debug.Log("Console in: " + s);
 
         assetCommands.RemoveAll(command =>
             command.name == parts[0] && command.args.SequenceEqual(parts.Skip(1)));
@@ -215,6 +219,9 @@ public class Plugin : MonoBehaviour{
         loadedTextures = new Dictionary<string, Texture2D>();
         loadedAudio = new Dictionary<string, AudioClip>();
 
+        PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
+        var stopwatch = Stopwatch.StartNew();
+
         // Load audio files
         foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg"))
         {
@@ -227,21 +234,39 @@ public class Plugin : MonoBehaviour{
                 PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
             }
         }
+        stopwatch.Stop();
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all audio in {stopwatch.ElapsedMilliseconds}ms");
 
-        // Load mesh files
-        foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"))
+        // Load model files
+        stopwatch.Restart();
+        var loadedModelsLocal = new ConcurrentDictionary<string, Assimp.Mesh[]>();
+
+        Parallel.ForEach(AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"),
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount - 1
+            }
+        , file =>
         {
             var meshes = AssetLoader.LoadFBX(file);
             string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
             filename = Path.ChangeExtension(filename, null);
-            if (!loadedModels.ContainsKey(filename))
+            loadedModelsLocal.TryAdd(filename, meshes);
+            PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
+        });
+        foreach (var kvp in loadedModelsLocal)
+        {
+            if (!loadedModels.ContainsKey(kvp.Key))
             {
-                loadedModels.Add(filename, meshes);
-                PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
+                loadedModels.Add(kvp.Key, kvp.Value);
             }
         }
+        loadedModelsLocal.Clear();
+        stopwatch.Stop();
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all meshes in {stopwatch.ElapsedMilliseconds}ms");
 
         // Load texture files
+        stopwatch.Restart();
         foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg"))
         {
             var texture = AssetLoader.LoadTexture(file);
@@ -256,6 +281,8 @@ public class Plugin : MonoBehaviour{
                 }
             }
         }
+        stopwatch.Stop();
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
     }
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
     "Little", "Maneken", "Black", "Dreamer", "Mila",
@@ -278,7 +305,7 @@ public class Plugin : MonoBehaviour{
 
             if (runtimeController != null)
             {
-                //Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
+                //UnityEngine.Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
 
                 for (int i = 0; i < 35; ++i)
                 {
@@ -325,21 +352,22 @@ public class Plugin : MonoBehaviour{
 
             if (mitaAnimators[i] == null)
             {
-                //Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
+                //UnityEngine.Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
                 mitas[i] = null;
             }
             else
             {
                 mitas[i] = mitaAnimators[i];
-                //Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
+                //UnityEngine.Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
                 PatchMita(mitas[i]);
-                //Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
+                //UnityEngine.Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
             }
         }
     }
 
 
-    public static void PatchMita(GameObject mita, bool recursive = false){
+    public static void PatchMita(GameObject mita, bool recursive = false)
+    {
         if (mita.name == "MitaTrue(Clone)" && !recursive)
         {
             PatchMita(mita.transform.Find("MitaUsual").gameObject, true);
@@ -354,14 +382,15 @@ public class Plugin : MonoBehaviour{
         foreach (var renderer in staticRenderersList)
             staticRenderers[mita.name + renderer.name.Trim()] = renderer;
 
-        for(int c = 0; c < assetCommands.Count; ++c) {
+        for (int c = 0; c < assetCommands.Count; ++c)
+        {
             var command = assetCommands[c];
             if (command.args.Length == 0 || command.args[0] != "Mita")
                 continue;
             try
             {
-                Debug.Log($"[INFO] Mita's name: {mita.name} |");
-                //Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
+                UnityEngine.Debug.Log($"[INFO] Mita's name: {mita.name} |");
+                //UnityEngine.Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
                 if (command.name == "remove")
                 {
                     bool skip = false;
@@ -391,15 +420,15 @@ public class Plugin : MonoBehaviour{
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].gameObject.SetActive(false);
-                        Debug.Log($"[INFO] Removed skinned appendix: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Removed skinned appendix: {mita.name} {command.args[1]}.");
                     }
                     else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
                     {
                         staticRenderers[mita.name + command.args[1]].gameObject.SetActive(false);
-                        Debug.Log($"[INFO] Removed static appendix: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Removed static appendix: {mita.name} {command.args[1]}.");
                     }
                     else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
                 }
                 else if (command.name == "recover")
                 {
@@ -430,19 +459,19 @@ public class Plugin : MonoBehaviour{
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].gameObject.SetActive(true);
-                        Debug.Log($"[INFO] Recovered skinned appendix: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Recovered skinned appendix: {mita.name} {command.args[1]}.");
                     }
                     else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
                     {
                         staticRenderers[mita.name + command.args[1]].gameObject.SetActive(true);
-                        Debug.Log($"[INFO] Recovered static appendix: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Recovered static appendix: {mita.name} {command.args[1]}.");
                     }
                     else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
                 }
                 else if (command.name == "replace_tex")
                 {
-                    
+
                     bool skip = false;
                     for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                     {
@@ -473,15 +502,15 @@ public class Plugin : MonoBehaviour{
                     if (renderers.ContainsKey(mita.name + command.args[1]))
                     {
                         renderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
-                        Debug.Log($"[INFO] Replaced texture of skinned: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Replaced texture of skinned: {mita.name} {command.args[1]}.");
                     }
                     else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
                     {
                         staticRenderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
-                        Debug.Log($"[INFO] Replaced texture of static: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Replaced texture of static: {mita.name} {command.args[1]}.");
                     }
                     else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
                 }
                 else if (command.name == "replace_mesh")
                 {
@@ -527,7 +556,7 @@ public class Plugin : MonoBehaviour{
                                 sk.sharedMesh = new Mesh();
                             else
                                 sk.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(sk));
-                            Debug.Log($"[INFO] Replaced mesh of skinned: {mita.name} {command.args[1]}.");
+                            UnityEngine.Debug.Log($"[INFO] Replaced mesh of skinned: {mita.name} {command.args[1]}.");
                         }
                         else
                         {
@@ -535,7 +564,7 @@ public class Plugin : MonoBehaviour{
                                 renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
                             else
                                 renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
-                            Debug.Log($"[INFO] Replaced mesh of skinned (static method): {mita.name} {command.args[1]}.");
+                            UnityEngine.Debug.Log($"[INFO] Replaced mesh of skinned (static method): {mita.name} {command.args[1]}.");
                         }
                     }
                     else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
@@ -544,10 +573,10 @@ public class Plugin : MonoBehaviour{
                             staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
                         else
                             staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
-                        Debug.Log($"[INFO] Replaced mesh of static: {mita.name} {command.args[1]}.");
+                        UnityEngine.Debug.Log($"[INFO] Replaced mesh of static: {mita.name} {command.args[1]}.");
                     }
                     else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
                 }
                 else if (command.name == "create_skinned_appendix")
                 {
@@ -592,7 +621,7 @@ public class Plugin : MonoBehaviour{
                     obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
                     obj.gameObject.SetActive(true);
                     renderers[mita.name + command.args[1]] = obj;
-                    Debug.Log($"[INFO] Added skinned appendix: {obj.name}.");
+                    UnityEngine.Debug.Log($"[INFO] Added skinned appendix: {obj.name}.");
                 }
                 else if (command.name == "create_static_appendix")
                 {
@@ -684,7 +713,7 @@ public class Plugin : MonoBehaviour{
                     obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
                     obj.gameObject.SetActive(true);
                     staticRenderers[mita.name + command.args[1]] = obj;
-                    Debug.Log($"[INFO] Added static appendix: {mita.name} {obj.name}.");
+                    UnityEngine.Debug.Log($"[INFO] Added static appendix: {mita.name} {obj.name}.");
                 }
                 else if (command.name == "set_scale")
                 {
@@ -721,7 +750,7 @@ public class Plugin : MonoBehaviour{
                             float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture)
                         );
 
-                        Debug.Log($"[INFO] Set scale of {mita.name} {command.args[1]}" +
+                        UnityEngine.Debug.Log($"[INFO] Set scale of {mita.name} {command.args[1]}" +
                             $" to ({command.args[2]}, {command.args[3]}, {command.args[4]}).");
                     }
                 }
@@ -758,7 +787,7 @@ public class Plugin : MonoBehaviour{
                             float.Parse(command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
                             float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
                             float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture));
-                        Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
+                        UnityEngine.Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
                             $"by ({command.args[2]}, {command.args[3]}, {command.args[4]}).");
                     }
                 }
@@ -799,78 +828,88 @@ public class Plugin : MonoBehaviour{
                             float.Parse(command.args[5].Replace(',', '.'), CultureInfo.InvariantCulture)
                         );
 
-                        Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
+                        UnityEngine.Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
                             $"by ({command.args[2]}, {command.args[3]}, {command.args[4]}, {command.args[5]}).");
                     }
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ERROR] Error while processing command: {command.name} {string.Join(' ', command.args)}\n{e}");
+                UnityEngine.Debug.LogError($"[ERROR] Error while processing command: {command.name} {string.Join(' ', command.args)}\n{e}");
             }
         }
     }
 
-	static Transform RecursiveFindChild(Transform parent, string childName){
-		for (int i = 0; i < parent.childCount; i++){
-			var child = parent.GetChild(i);
-			if(child.name == childName) return child;
-			else {
-				Transform found = RecursiveFindChild(child, childName);
-				if (found != null) return found;
-			}
-		}
-		return null;
-	}
+    static Transform RecursiveFindChild(Transform parent, string childName)
+    {
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            if (child.name == childName) return child;
+            else
+            {
+                Transform found = RecursiveFindChild(child, childName);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
 
-	VideoPlayer currentVideoPlayer = null;
-	Action onCurrentVideoEnded = null;
-	Image logo = null;
+    VideoPlayer currentVideoPlayer = null;
+    Action onCurrentVideoEnded = null;
+    Image logo = null;
 
-	void PatchMenuScene(){
-        Debug.Log($"[INFO] Patching game scene.");
+    void PatchMenuScene()
+    {
+        UnityEngine.Debug.Log($"[INFO] Patching game scene.");
         var command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
-		if (command.name != null){
-			var animators = Reflection.FindObjectsOfType<Animator>(true);
-			GameObject gameName = null;
-			foreach (var obj in animators) 
-				if (obj.name == "NameGame"){ 
-					gameName = obj.Cast<Animator>().gameObject; 
-					Destroy(obj);
-					break;
-				}
+        if (command.name != null)
+        {
+            var animators = Reflection.FindObjectsOfType<Animator>(true);
+            GameObject gameName = null;
+            foreach (var obj in animators)
+                if (obj.name == "NameGame")
+                {
+                    gameName = obj.Cast<Animator>().gameObject;
+                    Destroy(obj);
+                    break;
+                }
 
-			for (int i = 0; i < gameName.transform.childCount; i++){
-				var tr = gameName.transform.GetChild(i);
-				if (tr.name == "Background"){
-					Texture2D tex = loadedTextures[command.args[0]];
-					Destroy(Reflection.GetComponent<UIShiny>(tr));
+            for (int i = 0; i < gameName.transform.childCount; i++)
+            {
+                var tr = gameName.transform.GetChild(i);
+                if (tr.name == "Background")
+                {
+                    Texture2D tex = loadedTextures[command.args[0]];
+                    Destroy(Reflection.GetComponent<UIShiny>(tr));
 
-					logo = Reflection.GetComponent<Image>(tr);
-					logo.preserveAspect = true;
-					logo.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one / 2.0f);
-					Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
-				}
-				else
-					tr.gameObject.SetActive(false);
-			}
-		}
-		
-		command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
-		if (command.name != null){
-			var musicSources = Reflection.FindObjectsOfType<AudioSource>(true);
-			foreach (var source in musicSources)
-				if (source.name == "Music"){
-					source.clip = loadedAudio[command.args[0]];
-					source.volume = GlobalGame.VolumeGame;
-					source.Play();
-					break;
-				}
-		}
+                    logo = Reflection.GetComponent<Image>(tr);
+                    logo.preserveAspect = true;
+                    logo.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one / 2.0f);
+                    Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
+                }
+                else
+                    tr.gameObject.SetActive(false);
+            }
+        }
+
+        command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
+        if (command.name != null)
+        {
+            var musicSources = Reflection.FindObjectsOfType<AudioSource>(true);
+            foreach (var source in musicSources)
+                if (source.name == "Music")
+                {
+                    source.clip = loadedAudio[command.args[0]];
+                    source.volume = GlobalGame.VolumeGame;
+                    source.Play();
+                    break;
+                }
+        }
 
         ClothesMenuPatcher.Run();
 
-        Debug.Log($"[INFO] Game scene patching completed.");
+        UnityEngine.Debug.Log($"[INFO] Game scene patching completed.");
     }
 
     private static float baseMovementSpeed = 0.03f;
@@ -878,13 +917,14 @@ public class Plugin : MonoBehaviour{
     private static float mouseSensitivity = 0.7f;
     private static int unlocked = 0;
 
-    void Update(){
+    void Update()
+    {
         if (unlocked == 1)
         {
             Application.targetFrameRate = -1;
             QualitySettings.vSyncCount = 0;
         }
-        else if(unlocked == 2)
+        else if (unlocked == 2)
         {
             Application.targetFrameRate = 60;
             QualitySettings.vSyncCount = 1;
@@ -894,10 +934,11 @@ public class Plugin : MonoBehaviour{
         {
             ConsoleMain.liteVersion = false;
         }
-        if (currentSceneName != SceneManager.GetActiveScene().name){
-			currentSceneName = SceneManager.GetActiveScene().name;
+        if (currentSceneName != SceneManager.GetActiveScene().name)
+        {
+            currentSceneName = SceneManager.GetActiveScene().name;
             OnSceneChanged();
-		}
+        }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.U))
         {
@@ -912,10 +953,10 @@ public class Plugin : MonoBehaviour{
         }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
-		{
+        {
             LoadAssetsForPatch();
-			FindMita();
-		}
+            FindMita();
+        }
         if (UnityEngine.Input.GetKeyDown(KeyCode.F9))
         {
             if (Time.timeScale != 0.0f)
@@ -923,7 +964,8 @@ public class Plugin : MonoBehaviour{
             else
                 Time.timeScale = 1.0f;
         }
-        if (UnityEngine.Input.GetKeyDown(KeyCode.F10)){
+        if (UnityEngine.Input.GetKeyDown(KeyCode.F10))
+        {
             if (greenScreenCameraObject == null || !greenScreenCameraObject.active)
                 ConsoleEnter("greenscreen");
             else
@@ -978,54 +1020,62 @@ public class Plugin : MonoBehaviour{
             greenScreenCamera.transform.SetPositionAndRotation(newPosition, newRotation);
         }
 
-        if (currentVideoPlayer != null){
-			if ((ulong) currentVideoPlayer.frame + 5 > currentVideoPlayer.frameCount){
-                Debug.Log($"[INFO] Video playback ended.");
+        if (currentVideoPlayer != null)
+        {
+            if ((ulong)currentVideoPlayer.frame + 5 > currentVideoPlayer.frameCount)
+            {
+                UnityEngine.Debug.Log($"[INFO] Video playback ended.");
                 Destroy(currentVideoPlayer.transform.parent.gameObject);
-				currentVideoPlayer = null;
-				onCurrentVideoEnded?.Invoke();
-				onCurrentVideoEnded = null;
-			}
-		}
-		if (currentSceneName == "SceneMenu"){
-			if (logo != null)
-				logo.color = Color.white;
-		}
-	}
-	void OnSceneChanged(){
-		try{
-            Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
+                currentVideoPlayer = null;
+                onCurrentVideoEnded?.Invoke();
+                onCurrentVideoEnded = null;
+            }
+        }
+        if (currentSceneName == "SceneMenu")
+        {
+            if (logo != null)
+                logo.color = Color.white;
+        }
+    }
+    void OnSceneChanged()
+    {
+        try
+        {
+            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
             LoadAssetsForPatch();
             FindMita();
-			if (currentSceneName == "SceneMenu")
-				PatchMenuScene();
-        } catch (Exception e){
-            Debug.LogError($"[ERROR] {e}");
+            if (currentSceneName == "SceneMenu")
+                PatchMenuScene();
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[ERROR] {e}");
             enabled = false;
-		}
-	}
+        }
+    }
 
-	void PlayFullscreenVideo(Action onVideoEnd){
-		var rootGO = SceneManager.GetActiveScene().GetRootGameObjects();
-		foreach (var go in rootGO)
-			if (go != gameObject) go.gameObject.SetActive(false);
+    void PlayFullscreenVideo(Action onVideoEnd)
+    {
+        var rootGO = SceneManager.GetActiveScene().GetRootGameObjects();
+        foreach (var go in rootGO)
+            if (go != gameObject) go.gameObject.SetActive(false);
 
-		Camera camera = new GameObject("VideoCamera").AddComponent<Camera>();
-		VideoPlayer videoPlayer = new GameObject("VideoPlayer").AddComponent<VideoPlayer>();
-		videoPlayer.transform.parent = camera.transform;
-		camera.backgroundColor = Color.black;
-		camera.gameObject.AddComponent<AudioListener>();
-		videoPlayer.playOnAwake = false;
-		videoPlayer.targetCamera = camera;
-		videoPlayer.renderMode = VideoRenderMode.CameraNearPlane;
-		videoPlayer.url = "file://" + PluginInfo.AssetsFolder + "/intro.mp4";
-		videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
-		videoPlayer.SetTargetAudioSource(0, videoPlayer.gameObject.AddComponent<AudioSource>());
-		
-		currentVideoPlayer = videoPlayer;
-		onCurrentVideoEnded = onVideoEnd;
+        Camera camera = new GameObject("VideoCamera").AddComponent<Camera>();
+        VideoPlayer videoPlayer = new GameObject("VideoPlayer").AddComponent<VideoPlayer>();
+        videoPlayer.transform.parent = camera.transform;
+        camera.backgroundColor = Color.black;
+        camera.gameObject.AddComponent<AudioListener>();
+        videoPlayer.playOnAwake = false;
+        videoPlayer.targetCamera = camera;
+        videoPlayer.renderMode = VideoRenderMode.CameraNearPlane;
+        videoPlayer.url = "file://" + PluginInfo.AssetsFolder + "/intro.mp4";
+        videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
+        videoPlayer.SetTargetAudioSource(0, videoPlayer.gameObject.AddComponent<AudioSource>());
 
-		videoPlayer.Play();
-        Debug.Log($"[INFO] Video playback started.");
+        currentVideoPlayer = videoPlayer;
+        onCurrentVideoEnded = onVideoEnd;
+
+        videoPlayer.Play();
+        UnityEngine.Debug.Log($"[INFO] Video playback started.");
     }
 }
