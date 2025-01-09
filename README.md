@@ -5,8 +5,8 @@ This project is based on a fork of the original [MiSide-AssetLoader](https://git
 
 ---
 
-**Important:** This mod **will conflict** with ConsoleUnlocker's f9 key binding(you can rebind it in the new version of Unlocker) .  
-> Важно: Этот мод **будет конфликтовать** с биндом f9 из ConsoleUnlocker(в новой версии Unlocker вы можете изменить этот бинд) .
+**Important:** This mod **doesn't have** ConsoleUnlocker's features in it no more, install ConsoleUnlocker in order to use them.  
+> Важно: Этот мод больше **не содержит** в себе возможностей ConsoleUnlocker, установите ConsoleUnlocker чтобы их использовать.
 
 ---
 
@@ -18,11 +18,8 @@ This project is based on a fork of the original [MiSide-AssetLoader](https://git
 - **Supports custom configurations** for adding new buttons through the **Addons** tab.  
   > Поддерживает пользовательские конфигурации для добавления новых кнопок через вкладку **Addons**.
 
-- **Includes all features except freecamera bind** from [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).  
-  > Включает все функции кроме бинда на свободную камеру из [MiSide-Console-Unlocker](https://github.com/Rist8/MiSide-Console-Unlocker).
-
-- **Adds a free camera** with greenscreen support (note: greenscreen currently has issues).
-  > Добавляет свободную камеру с поддержкой зеленого экрана *(зелёный экран пока работает некорректно)*.
+- **Adds a free camera** with greenscreen support on f10 (note: greenscreen currently has issues).
+  > Добавляет свободную камеру с поддержкой зеленого экрана на f10 *(зелёный экран пока работает неполноценно)*.
 
 - By default has **CatEars** config, which adds cat ears to all Mitas except Chibi.  
   > По умолчанию имеет **CatEars** конфиг, который добавляет кошачьи уши всем Митам, кроме Чиби.
