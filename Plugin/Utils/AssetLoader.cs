@@ -4,6 +4,7 @@ using UnityEngine;
 using Matrix4x4 = UnityEngine.Matrix4x4;
 using Unity.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Newtonsoft.Json;
 
 public class AssetLoader
 {
@@ -60,7 +61,7 @@ public class AssetLoader
         }
     }
 
-    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null)
+    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, string blendShapeName = "Mita")
     {
         var mesh = new UnityEngine.Mesh()
         {
@@ -140,6 +141,29 @@ public class AssetLoader
         // Add Blendshape Processing
         if (fbxMesh.HasMeshAnimationAttachments)
         {
+            string blendShapeOrdersPath = Path.Combine(PluginInfo.AssetsFolder, "blendshape_orders.json");
+
+            Dictionary<string, List<string>> blendShapeOrders = new Dictionary<string, List<string>>();
+
+            if (File.Exists(blendShapeOrdersPath))
+            {
+                string jsonContent = File.ReadAllText(blendShapeOrdersPath);
+                blendShapeOrders = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(jsonContent);
+            }
+
+            List<string> blendShapeOrder = blendShapeOrders.ContainsKey(blendShapeName) ? blendShapeOrders[blendShapeName] : new List<string>();
+
+            Dictionary<string, int> blendShapeIndex = new Dictionary<string, int>();
+            for (int i = 0; i < blendShapeOrder.Count; i++)
+            {
+                blendShapeIndex[blendShapeOrder[i]] = i;
+            }
+
+            var blendShapes = fbxMesh.MeshAnimationAttachments
+                .Where(bs => blendShapeIndex.ContainsKey(bs.Name))
+                .OrderBy(bs => blendShapeIndex[bs.Name])
+                .ToList();
+
             int vertexCount = mesh.vertexCount;
             int normalCount = mesh.normals.Length;
 
@@ -149,7 +173,13 @@ public class AssetLoader
             Vector3[] vertices = mesh.vertices;
             Vector3[] normals = mesh.normals;
 
-            foreach (var blendShape in fbxMesh.MeshAnimationAttachments)
+            int missingBlendShapesCount = blendShapeOrder.Count - blendShapes.Count;
+            for (int i = 0; i < missingBlendShapesCount; i++)
+            {
+                blendShapes.Add(new MeshAnimationAttachment { Name = $"DummyBlendShape_{i}" });
+            }
+
+            foreach (var blendShape in blendShapes)
             {
                 string name = blendShape.Name;
 

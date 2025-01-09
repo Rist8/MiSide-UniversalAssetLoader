@@ -78,6 +78,8 @@ if defined path2 (
 
 copy ".\Dependencies\AssimpNet.dll" ".\Compiled"
 copy ".\Dependencies\AssimpNet.pdb" ".\Compiled"
+copy ".\Dependencies\Newtonsoft.Json.dll" ".\Compiled"
+copy ".\Dependencies\Newtonsoft.Json.pdb" ".\Compiled"
 
 set readme_file=".\Compiled\README.txt"
 del %readme_file%

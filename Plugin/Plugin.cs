@@ -13,20 +13,24 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using static MagicaReductionMesh.MeshData;
+using System.Diagnostics;
+using System.Collections.Concurrent;
 
-public class Plugin : MonoBehaviour{
-	public static string? currentSceneName;
+public class Plugin : MonoBehaviour
+{
+    public static string? currentSceneName;
 
-	private void Start(){
-		ReadAssetsConfig();
-		LoadAssetsForPatch();
+    private void Start()
+    {
+        ReadAssetsConfig();
+        LoadAssetsForPatch();
         ConsoleMain.active = true;
-		ConsoleMain.eventEnter = new UnityEvent();
+        ConsoleMain.eventEnter = new UnityEvent();
         ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
     }
-	static GameObject greenScreenCameraObject = null;
-	static Camera greenScreenCamera = null;
-	public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
+    static GameObject greenScreenCameraObject = null;
+    static Camera greenScreenCamera = null;
+    public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
     private static float dx = 0.0f, dy = 0.0f, dz = 0.0f, rdx = 0.0f, rdy = 0.0f;
     public static void ConsoleEnter(string s)
     {
@@ -56,7 +60,7 @@ public class Plugin : MonoBehaviour{
             }
         }
 
-        Debug.Log("Console in: " + s);
+        UnityEngine.Debug.Log("Console in: " + s);
 
         assetCommands.RemoveAll(command =>
             command.name == parts[0] && command.args.SequenceEqual(parts.Skip(1)));
@@ -215,6 +219,9 @@ public class Plugin : MonoBehaviour{
         loadedTextures = new Dictionary<string, Texture2D>();
         loadedAudio = new Dictionary<string, AudioClip>();
 
+        PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
+        var stopwatch = Stopwatch.StartNew();
+
         // Load audio files
         foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg"))
         {
@@ -227,21 +234,39 @@ public class Plugin : MonoBehaviour{
                 PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
             }
         }
+        stopwatch.Stop();
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all audio in {stopwatch.ElapsedMilliseconds}ms");
 
-        // Load mesh files
-        foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"))
+        // Load model files
+        stopwatch.Restart();
+        var loadedModelsLocal = new ConcurrentDictionary<string, Assimp.Mesh[]>();
+
+        Parallel.ForEach(AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"),
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount - 1
+            }
+        , file =>
         {
             var meshes = AssetLoader.LoadFBX(file);
             string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
             filename = Path.ChangeExtension(filename, null);
-            if (!loadedModels.ContainsKey(filename))
+            loadedModelsLocal.TryAdd(filename, meshes);
+            PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
+        });
+        foreach (var kvp in loadedModelsLocal)
+        {
+            if (!loadedModels.ContainsKey(kvp.Key))
             {
-                loadedModels.Add(filename, meshes);
-                PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
+                loadedModels.Add(kvp.Key, kvp.Value);
             }
         }
+        loadedModelsLocal.Clear();
+        stopwatch.Stop();
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all meshes in {stopwatch.ElapsedMilliseconds}ms");
 
         // Load texture files
+        stopwatch.Restart();
         foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg"))
         {
             var texture = AssetLoader.LoadTexture(file);
@@ -256,6 +281,8 @@ public class Plugin : MonoBehaviour{
                 }
             }
         }
+        stopwatch.Stop();
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
     }
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
     "Little", "Maneken", "Black", "Dreamer", "Mila",
@@ -278,7 +305,7 @@ public class Plugin : MonoBehaviour{
 
             if (runtimeController != null)
             {
-                //Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
+                //UnityEngine.Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
 
                 for (int i = 0; i < 35; ++i)
                 {
@@ -325,21 +352,24 @@ public class Plugin : MonoBehaviour{
 
             if (mitaAnimators[i] == null)
             {
-                //Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
+                //UnityEngine.Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
                 mitas[i] = null;
             }
             else
             {
                 mitas[i] = mitaAnimators[i];
-                //Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
+                //UnityEngine.Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
                 PatchMita(mitas[i]);
-                //Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
+                //UnityEngine.Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
             }
         }
     }
 
 
-    public static void PatchMita(GameObject mita, bool recursive = false){
+    public static void PatchMita(GameObject mita, bool recursive = false)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
         if (mita.name == "MitaTrue(Clone)" && !recursive)
         {
             PatchMita(mita.transform.Find("MitaUsual").gameObject, true);
@@ -354,523 +384,525 @@ public class Plugin : MonoBehaviour{
         foreach (var renderer in staticRenderersList)
             staticRenderers[mita.name + renderer.name.Trim()] = renderer;
 
-        for(int c = 0; c < assetCommands.Count; ++c) {
+        for (int c = 0; c < assetCommands.Count; ++c)
+        {
             var command = assetCommands[c];
             if (command.args.Length == 0 || command.args[0] != "Mita")
                 continue;
             try
             {
-                Debug.Log($"[INFO] Mita's name: {mita.name} |");
-                //Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
-                if (command.name == "remove")
-                {
-                    bool skip = false;
-                    for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                break;
-                            }
-                            continue;
-                        }
-                        else
-                        {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                continue;
-                            }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    if (renderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        renderers[mita.name + command.args[1]].gameObject.SetActive(false);
-                        Debug.Log($"[INFO] Removed skinned appendix: {mita.name} {command.args[1]}.");
-                    }
-                    else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        staticRenderers[mita.name + command.args[1]].gameObject.SetActive(false);
-                        Debug.Log($"[INFO] Removed static appendix: {mita.name} {command.args[1]}.");
-                    }
-                    else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
-                }
-                else if (command.name == "recover")
-                {
-                    bool skip = false;
-                    for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                break;
-                            }
-                            continue;
-                        }
-                        else
-                        {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                continue;
-                            }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    if (renderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        renderers[mita.name + command.args[1]].gameObject.SetActive(true);
-                        Debug.Log($"[INFO] Recovered skinned appendix: {mita.name} {command.args[1]}.");
-                    }
-                    else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        staticRenderers[mita.name + command.args[1]].gameObject.SetActive(true);
-                        Debug.Log($"[INFO] Recovered static appendix: {mita.name} {command.args[1]}.");
-                    }
-                    else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
-                }
-                else if (command.name == "replace_tex")
-                {
-                    
-                    bool skip = false;
-                    for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                break;
-                            }
-                            continue;
-                        }
-                        else
-                        {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                continue;
-                            }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    command.args[2] = command.args[2].Replace(@"\\", @"\");
-                    command.args[2] = string.Join("", command.args[2].Replace(@".\", string.Empty).SkipWhile(c => c == '.' || c == '\\'));
+                UnityEngine.Debug.Log($"[INFO] Mita's name: {mita.name} |");
+                //UnityEngine.Debug.Log($"[INFO] Static renderers already present: {staticRenderers.Keys.ToStringEnumerable()}.");
 
-                    if (renderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        renderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
-                        Debug.Log($"[INFO] Replaced texture of skinned: {mita.name} {command.args[1]}.");
-                    }
-                    else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        staticRenderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
-                        Debug.Log($"[INFO] Replaced texture of static: {mita.name} {command.args[1]}.");
-                    }
-                    else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
-                }
-                else if (command.name == "replace_mesh")
+                bool skip = false;
+                switch (command.name)
                 {
-                    bool skip = false;
-                    for (int i = 4; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
+                    case "remove":
+                        for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                         {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            if (command.args[i].StartsWith("!"))
                             {
-                                skip = true;
-                                break;
-                            }
-                            continue;
-                        }
-                        else
-                        {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
                                 continue;
                             }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    command.args[2] = command.args[2].Replace(@"\\", @"\");
-                    command.args[2] = string.Join("", command.args[2].Replace(@".\", string.Empty).SkipWhile(c => c == '.' || c == '\\'));
-
-                    Assimp.Mesh meshData = null;
-                    if (command.args[2] != "null")
-                    {
-                        meshData = loadedModels[command.args[2]].First(mesh =>
-                            mesh.Name == (command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2])));
-
-                    }
-                    if (renderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        if (renderers[mita.name + command.args[1]] is SkinnedMeshRenderer sk)
-                        {
-                            if (command.args[2] == "null" && command.args[3] == "null")
-                                sk.sharedMesh = new Mesh();
                             else
-                                sk.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(sk));
-                            Debug.Log($"[INFO] Replaced mesh of skinned: {mita.name} {command.args[1]}.");
-                        }
-                        else
-                        {
-                            if (command.args[2] == "null" && command.args[3] == "null")
-                                renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
-                            else
-                                renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
-                            Debug.Log($"[INFO] Replaced mesh of skinned (static method): {mita.name} {command.args[1]}.");
-                        }
-                    }
-                    else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        if (command.args[2] == "null" && command.args[3] == "null")
-                            staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
-                        else
-                            staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
-                        Debug.Log($"[INFO] Replaced mesh of static: {mita.name} {command.args[1]}.");
-                    }
-                    else
-                        Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
-                }
-                else if (command.name == "create_skinned_appendix")
-                {
-                    bool skip = false;
-                    for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
                             {
-                                skip = true;
-                                break;
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
                             }
-                            continue;
+                            break;
+                        }
+                        if (skip) continue;
+                        if (renderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            renderers[mita.name + command.args[1]].gameObject.SetActive(false);
+                            UnityEngine.Debug.Log($"[INFO] Removed skinned appendix: {mita.name} {command.args[1]}.");
+                        }
+                        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            staticRenderers[mita.name + command.args[1]].gameObject.SetActive(false);
+                            UnityEngine.Debug.Log($"[INFO] Removed static appendix: {mita.name} {command.args[1]}.");
                         }
                         else
+                            UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        break;
+                    case "recover":
+                        for (int i = 2; i < command.args.Length && command.args[i] != "all"; i++)
                         {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            if (command.args[i].StartsWith("!"))
                             {
-                                skip = true;
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
                                 continue;
                             }
-                            skip = false;
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    if (skip) continue;
-                    var parent = renderers[mita.name + command.args[2]];
-                    if (renderers.ContainsKey(mita.name + command.args[1]))
-                    {
-                        if (renderers[mita.name + command.args[1]].gameObject.active == false)
+                        if (skip) continue;
+                        if (renderers.ContainsKey(mita.name + command.args[1]))
+                        {
                             renderers[mita.name + command.args[1]].gameObject.SetActive(true);
-                        continue;
-                    }
-                    SkinnedMeshRenderer obj = UnityEngine.Object.Instantiate(
-                        parent,
-                        parent.transform.position,
-                        parent.transform.rotation,
-                        parent.transform.parent).Cast<SkinnedMeshRenderer>();
-                    obj.name = command.args[1];
-                    obj.material = new Material(parent.material);
-                    obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
-                    obj.gameObject.SetActive(true);
-                    renderers[mita.name + command.args[1]] = obj;
-                    Debug.Log($"[INFO] Added skinned appendix: {obj.name}.");
-                }
-                else if (command.name == "create_static_appendix")
-                {
-                    bool skip = false;
-                    for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                break;
-                            }
-                            continue;
+                            UnityEngine.Debug.Log($"[INFO] Recovered skinned appendix: {mita.name} {command.args[1]}.");
                         }
-                        else
+                        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
                         {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                continue;
-                            }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    if (staticRenderers.ContainsKey(mita.name + command.args[1]) && mita.name != "MitaPerson Mita")
-                    {
-                        if (staticRenderers[mita.name + command.args[1]].gameObject.active == false)
                             staticRenderers[mita.name + command.args[1]].gameObject.SetActive(true);
-                        continue;
-                    }
-                    else if (mita.name == "MitaPerson Mita")
-                    {
-                        if (RecursiveFindChild(mita.transform.Find("Armature"), command.args[1]))
+                            UnityEngine.Debug.Log($"[INFO] Recovered static appendix: {mita.name} {command.args[1]}.");
+                        }
+                        else
+                            UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        break;
+                    case "replace_tex":
+                        for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                         {
-                            if (RecursiveFindChild(mita.transform.Find("Armature"), command.args[1]).gameObject.active == false)
-                                RecursiveFindChild(mita.transform.Find("Armature"), command.args[1]).gameObject.SetActive(true);
+                            if (command.args[i].StartsWith("!"))
+                            {
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                                continue;
+                            }
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
+                        command.args[2] = command.args[2].Replace(@"\\", @"\");
+                        command.args[2] = string.Join("", command.args[2].Replace(@".\", string.Empty).SkipWhile(c => c == '.' || c == '\\'));
+
+                        if (renderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            renderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
+                            UnityEngine.Debug.Log($"[INFO] Replaced texture of skinned: {mita.name} {command.args[1]}.");
+                        }
+                        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            staticRenderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
+                            UnityEngine.Debug.Log($"[INFO] Replaced texture of static: {mita.name} {command.args[1]}.");
+                        }
+                        else
+                            UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        break;
+                    case "replace_mesh":
+                        for (int i = 4; i < command.args.Length && command.args[i] != "all"; i++)
+                        {
+                            if (command.args[i].StartsWith("!"))
+                            {
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                                continue;
+                            }
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
+                        command.args[2] = command.args[2].Replace(@"\\", @"\");
+                        command.args[2] = string.Join("", command.args[2].Replace(@".\", string.Empty).SkipWhile(c => c == '.' || c == '\\'));
+
+                        Assimp.Mesh meshData = null;
+                        if (command.args[2] != "null")
+                        {
+                            meshData = loadedModels[command.args[2]].First(mesh =>
+                                mesh.Name == (command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2])));
+
+                        }
+                        if (renderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            if (renderers[mita.name + command.args[1]] is SkinnedMeshRenderer sk)
+                            {
+                                if (command.args[2] == "null" && command.args[3] == "null")
+                                    sk.sharedMesh = new Mesh();
+                                else
+                                    sk.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(sk));
+                                UnityEngine.Debug.Log($"[INFO] Replaced mesh of skinned: {mita.name} {command.args[1]}.");
+                            }
+                            else
+                            {
+                                if (command.args[2] == "null" && command.args[3] == "null")
+                                    renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
+                                else
+                                    renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
+                                UnityEngine.Debug.Log($"[INFO] Replaced mesh of skinned (static method): {mita.name} {command.args[1]}.");
+                            }
+                        }
+                        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            if (command.args[2] == "null" && command.args[3] == "null")
+                                staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
+                            else
+                                staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
+                            UnityEngine.Debug.Log($"[INFO] Replaced mesh of static: {mita.name} {command.args[1]}.");
+                        }
+                        else
+                            UnityEngine.Debug.Log($"[ERROR] {mita.name} {command.args[1]} not found.");
+                        break;
+                    case "create_skinned_appendix":
+                        for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
+                        {
+                            if (command.args[i].StartsWith("!"))
+                            {
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                                continue;
+                            }
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
+                        var parent = renderers[mita.name + command.args[2]];
+                        if (renderers.ContainsKey(mita.name + command.args[1]))
+                        {
+                            if (renderers[mita.name + command.args[1]].gameObject.active == false)
+                                renderers[mita.name + command.args[1]].gameObject.SetActive(true);
                             continue;
                         }
-                    }
-                    MeshRenderer obj = new GameObject().AddComponent<MeshRenderer>();
-                    obj.name = command.args[1];
-                    if (mita.transform.Find("Attribute"))
-                    {
-                        obj.material = new Material(mita.transform.Find("Attribute").GetComponent<SkinnedMeshRenderer>().material);
-                    }
-                    else if (mita.transform.Find("Body"))
-                    {
-                        //obj.material = new Material(origMaterial);
-                        obj.material = new Material(mita.transform.Find("Body").GetComponent<SkinnedMeshRenderer>().material);
-                    }
-                    else if (mita.transform.Find("Head"))
-                    {
-                        //obj.material = new Material(origMaterial);
-                        obj.material = new Material(mita.transform.Find("Head").GetComponent<SkinnedMeshRenderer>().material);
-                    }
-                    else
-                    {
-                        MeshRenderer.Destroy(obj);
-                        continue;
-                    }
-
-                    obj.gameObject.AddComponent<MeshFilter>();
-
-                    if (mita.name == "NewVersionMita Head")
-                    {
-                        obj.transform.parent = RecursiveFindChild(mita.transform.Find("ArmatureHead"), command.args[2]);
-                    }
-                    else if (RecursiveFindChild(mita.transform.Find("Armature"), command.args[2]))
-                    {
-                        obj.transform.parent = RecursiveFindChild(mita.transform.Find("Armature"), command.args[2]);
-                    }
-                    else
-                    {
-                        MeshRenderer.Destroy(obj.gameObject);
-                        continue;
-                    }
-
-                    if (obj.transform.parent == null)
-                    {
-                        MeshRenderer.Destroy(obj.gameObject);
-                        continue;
-                    }
-
-                    obj.transform.localPosition = Vector3.zero;
-                    obj.transform.localScale = Vector3.one;
-                    obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
-                    obj.gameObject.SetActive(true);
-                    staticRenderers[mita.name + command.args[1]] = obj;
-                    Debug.Log($"[INFO] Added static appendix: {mita.name} {obj.name}.");
-                }
-                else if (command.name == "set_scale")
-                {
-                    bool skip = false;
-                    for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
+                        SkinnedMeshRenderer objSkinned = UnityEngine.Object.Instantiate(
+                            parent,
+                            parent.transform.position,
+                            parent.transform.rotation,
+                            parent.transform.parent).Cast<SkinnedMeshRenderer>();
+                        objSkinned.name = command.args[1];
+                        objSkinned.material = new Material(parent.material);
+                        objSkinned.transform.localEulerAngles = new Vector3(-90f, 0, 0);
+                        objSkinned.gameObject.SetActive(true);
+                        renderers[mita.name + command.args[1]] = objSkinned;
+                        UnityEngine.Debug.Log($"[INFO] Added skinned appendix: {objSkinned.name}.");
+                        break;
+                    case "create_static_appendix":
+                        for (int i = 3; i < command.args.Length && command.args[i] != "all"; i++)
                         {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            if (command.args[i].StartsWith("!"))
                             {
-                                skip = true;
-                                break;
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                                continue;
                             }
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
+                        if (staticRenderers.ContainsKey(mita.name + command.args[1]) && mita.name != "MitaPerson Mita")
+                        {
+                            if (staticRenderers[mita.name + command.args[1]].gameObject.active == false)
+                                staticRenderers[mita.name + command.args[1]].gameObject.SetActive(true);
                             continue;
+                        }
+                        else if (mita.name == "MitaPerson Mita")
+                        {
+                            if (RecursiveFindChild(mita.transform.Find("Armature"), command.args[1]))
+                            {
+                                if (RecursiveFindChild(mita.transform.Find("Armature"), command.args[1]).gameObject.active == false)
+                                    RecursiveFindChild(mita.transform.Find("Armature"), command.args[1]).gameObject.SetActive(true);
+                                continue;
+                            }
+                        }
+                        MeshRenderer obj = new GameObject().AddComponent<MeshRenderer>();
+                        obj.name = command.args[1];
+                        if (mita.transform.Find("Attribute"))
+                        {
+                            obj.material = new Material(mita.transform.Find("Attribute").GetComponent<SkinnedMeshRenderer>().material);
+                        }
+                        else if (mita.transform.Find("Body"))
+                        {
+                            //obj.material = new Material(origMaterial);
+                            obj.material = new Material(mita.transform.Find("Body").GetComponent<SkinnedMeshRenderer>().material);
+                        }
+                        else if (mita.transform.Find("Head"))
+                        {
+                            //obj.material = new Material(origMaterial);
+                            obj.material = new Material(mita.transform.Find("Head").GetComponent<SkinnedMeshRenderer>().material);
                         }
                         else
                         {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                continue;
-                            }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
-                    if (obj)
-                    {
-                        obj.localScale = new Vector3(float.Parse(
-                            command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture)
-                        );
-
-                        Debug.Log($"[INFO] Set scale of {mita.name} {command.args[1]}" +
-                            $" to ({command.args[2]}, {command.args[3]}, {command.args[4]}).");
-                    }
-                }
-                else if (command.name == "move_position")
-                {
-                    bool skip = false;
-                    for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                break;
-                            }
+                            MeshRenderer.Destroy(obj);
                             continue;
+                        }
+
+                        obj.gameObject.AddComponent<MeshFilter>();
+
+                        if (mita.name == "NewVersionMita Head")
+                        {
+                            obj.transform.parent = RecursiveFindChild(mita.transform.Find("ArmatureHead"), command.args[2]);
+                        }
+                        else if (RecursiveFindChild(mita.transform.Find("Armature"), command.args[2]))
+                        {
+                            obj.transform.parent = RecursiveFindChild(mita.transform.Find("Armature"), command.args[2]);
                         }
                         else
                         {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                continue;
-                            }
-                            skip = false;
-                        }
-                        break;
-                    }
-                    if (skip) continue;
-                    Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
-                    if (obj)
-                    {
-                        obj.localPosition += new Vector3(
-                            float.Parse(command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture));
-                        Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
-                            $"by ({command.args[2]}, {command.args[3]}, {command.args[4]}).");
-                    }
-                }
-                else if (command.name == "set_rotation")
-                {
-                    bool skip = false;
-                    for (int i = 6; i < command.args.Length && command.args[i] != "all"; i++)
-                    {
-                        if (command.args[i].StartsWith("!"))
-                        {
-                            if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
-                            {
-                                skip = true;
-                                break;
-                            }
+                            MeshRenderer.Destroy(obj.gameObject);
                             continue;
                         }
-                        else
+
+                        if (obj.transform.parent == null)
                         {
-                            if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                            MeshRenderer.Destroy(obj.gameObject);
+                            continue;
+                        }
+
+                        obj.transform.localPosition = Vector3.zero;
+                        obj.transform.localScale = Vector3.one;
+                        obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
+                        obj.gameObject.SetActive(true);
+                        staticRenderers[mita.name + command.args[1]] = obj;
+                        UnityEngine.Debug.Log($"[INFO] Added static appendix: {mita.name} {obj.name}.");
+                        break;
+                    case "set_scale":
+                        for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
+                        {
+                            if (command.args[i].StartsWith("!"))
                             {
-                                skip = true;
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
                                 continue;
                             }
-                            skip = false;
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
+                        Transform objRecrusive = RecursiveFindChild(mita.transform, command.args[1]);
+                        if (objRecrusive)
+                        {
+                            objRecrusive.localScale = new Vector3(float.Parse(
+                                command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture)
+                            );
+
+                            UnityEngine.Debug.Log($"[INFO] Set scale of {mita.name} {command.args[1]}" +
+                                $" to ({command.args[2]}, {command.args[3]}, {command.args[4]}).");
                         }
                         break;
-                    }
-                    if (skip) continue;
+                    case "move_position":
+                        for (int i = 5; i < command.args.Length && command.args[i] != "all"; i++)
+                        {
+                            if (command.args[i].StartsWith("!"))
+                            {
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                                continue;
+                            }
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
+                        Transform objMoved = RecursiveFindChild(mita.transform, command.args[1]);
+                        if (objMoved)
+                        {
+                            objMoved.localPosition += new Vector3(
+                                float.Parse(command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture));
+                            UnityEngine.Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
+                                $"by ({command.args[2]}, {command.args[3]}, {command.args[4]}).");
+                        }
+                        break;
+                    case "set_rotation":
+                        for (int i = 6; i < command.args.Length && command.args[i] != "all"; i++)
+                        {
+                            if (command.args[i].StartsWith("!"))
+                            {
+                                if (mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                                continue;
+                            }
+                            else
+                            {
+                                if (!mita.name.Contains(string.Join("", command.args[i].Skip(1))))
+                                {
+                                    skip = true;
+                                    continue;
+                                }
+                                skip = false;
+                            }
+                            break;
+                        }
+                        if (skip) continue;
 
-                    Transform obj = RecursiveFindChild(mita.transform, command.args[1]);
-                    if (obj)
-                    {
-                        obj.localRotation = new Quaternion(
-                            float.Parse(command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture),
-                            float.Parse(command.args[5].Replace(',', '.'), CultureInfo.InvariantCulture)
-                        );
+                        Transform objRotate = RecursiveFindChild(mita.transform, command.args[1]);
+                        if (objRotate)
+                        {
+                            objRotate.localRotation = new Quaternion(
+                                float.Parse(command.args[2].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[3].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[4].Replace(',', '.'), CultureInfo.InvariantCulture),
+                                float.Parse(command.args[5].Replace(',', '.'), CultureInfo.InvariantCulture)
+                            );
 
-                        Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
-                            $"by ({command.args[2]}, {command.args[3]}, {command.args[4]}, {command.args[5]}).");
-                    }
+                            UnityEngine.Debug.Log($"[INFO] Changed position of {mita.name} {command.args[1]} " +
+                                $"by ({command.args[2]}, {command.args[3]}, {command.args[4]}, {command.args[5]}).");
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ERROR] Error while processing command: {command.name} {string.Join(' ', command.args)}\n{e}");
+                UnityEngine.Debug.LogError($"[ERROR] Error while processing command: {command.name} {string.Join(' ', command.args)}\n{e}");
             }
         }
+
+        stopwatch.Stop();
+        UnityEngine.Debug.Log($"[INFO] Patched Mita in {stopwatch.ElapsedMilliseconds}ms.");
     }
 
-	static Transform RecursiveFindChild(Transform parent, string childName){
-		for (int i = 0; i < parent.childCount; i++){
-			var child = parent.GetChild(i);
-			if(child.name == childName) return child;
-			else {
-				Transform found = RecursiveFindChild(child, childName);
-				if (found != null) return found;
-			}
-		}
-		return null;
-	}
+    static Transform RecursiveFindChild(Transform parent, string childName)
+    {
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            if (child.name == childName) return child;
+            else
+            {
+                Transform found = RecursiveFindChild(child, childName);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
 
-	VideoPlayer currentVideoPlayer = null;
-	Action onCurrentVideoEnded = null;
-	Image logo = null;
+    VideoPlayer currentVideoPlayer = null;
+    Action onCurrentVideoEnded = null;
+    Image logo = null;
 
-	void PatchMenuScene(){
-        Debug.Log($"[INFO] Patching game scene.");
+    void PatchMenuScene()
+    {
+        UnityEngine.Debug.Log($"[INFO] Patching game scene.");
         var command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
-		if (command.name != null){
-			var animators = Reflection.FindObjectsOfType<Animator>(true);
-			GameObject gameName = null;
-			foreach (var obj in animators) 
-				if (obj.name == "NameGame"){ 
-					gameName = obj.Cast<Animator>().gameObject; 
-					Destroy(obj);
-					break;
-				}
+        if (command.name != null)
+        {
+            var animators = Reflection.FindObjectsOfType<Animator>(true);
+            GameObject gameName = null;
+            foreach (var obj in animators)
+                if (obj.name == "NameGame")
+                {
+                    gameName = obj.Cast<Animator>().gameObject;
+                    Destroy(obj);
+                    break;
+                }
 
-			for (int i = 0; i < gameName.transform.childCount; i++){
-				var tr = gameName.transform.GetChild(i);
-				if (tr.name == "Background"){
-					Texture2D tex = loadedTextures[command.args[0]];
-					Destroy(Reflection.GetComponent<UIShiny>(tr));
+            for (int i = 0; i < gameName.transform.childCount; i++)
+            {
+                var tr = gameName.transform.GetChild(i);
+                if (tr.name == "Background")
+                {
+                    Texture2D tex = loadedTextures[command.args[0]];
+                    Destroy(Reflection.GetComponent<UIShiny>(tr));
 
-					logo = Reflection.GetComponent<Image>(tr);
-					logo.preserveAspect = true;
-					logo.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one / 2.0f);
-					Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
-				}
-				else
-					tr.gameObject.SetActive(false);
-			}
-		}
-		
-		command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
-		if (command.name != null){
-			var musicSources = Reflection.FindObjectsOfType<AudioSource>(true);
-			foreach (var source in musicSources)
-				if (source.name == "Music"){
-					source.clip = loadedAudio[command.args[0]];
-					source.volume = GlobalGame.VolumeGame;
-					source.Play();
-					break;
-				}
-		}
+                    logo = Reflection.GetComponent<Image>(tr);
+                    logo.preserveAspect = true;
+                    logo.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one / 2.0f);
+                    Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
+                }
+                else
+                    tr.gameObject.SetActive(false);
+            }
+        }
+
+        command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
+        if (command.name != null)
+        {
+            var musicSources = Reflection.FindObjectsOfType<AudioSource>(true);
+            foreach (var source in musicSources)
+                if (source.name == "Music")
+                {
+                    source.clip = loadedAudio[command.args[0]];
+                    source.volume = GlobalGame.VolumeGame;
+                    source.Play();
+                    break;
+                }
+        }
 
         ClothesMenuPatcher.Run();
 
-        Debug.Log($"[INFO] Game scene patching completed.");
+        UnityEngine.Debug.Log($"[INFO] Game scene patching completed.");
     }
 
     private static float baseMovementSpeed = 0.03f;
@@ -878,13 +910,14 @@ public class Plugin : MonoBehaviour{
     private static float mouseSensitivity = 0.7f;
     private static int unlocked = 0;
 
-    void Update(){
+    void Update()
+    {
         if (unlocked == 1)
         {
             Application.targetFrameRate = -1;
             QualitySettings.vSyncCount = 0;
         }
-        else if(unlocked == 2)
+        else if (unlocked == 2)
         {
             Application.targetFrameRate = 60;
             QualitySettings.vSyncCount = 1;
@@ -894,10 +927,11 @@ public class Plugin : MonoBehaviour{
         {
             ConsoleMain.liteVersion = false;
         }
-        if (currentSceneName != SceneManager.GetActiveScene().name){
-			currentSceneName = SceneManager.GetActiveScene().name;
+        if (currentSceneName != SceneManager.GetActiveScene().name)
+        {
+            currentSceneName = SceneManager.GetActiveScene().name;
             OnSceneChanged();
-		}
+        }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.U))
         {
@@ -912,10 +946,10 @@ public class Plugin : MonoBehaviour{
         }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
-		{
+        {
             LoadAssetsForPatch();
-			FindMita();
-		}
+            FindMita();
+        }
         if (UnityEngine.Input.GetKeyDown(KeyCode.F9))
         {
             if (Time.timeScale != 0.0f)
@@ -923,7 +957,8 @@ public class Plugin : MonoBehaviour{
             else
                 Time.timeScale = 1.0f;
         }
-        if (UnityEngine.Input.GetKeyDown(KeyCode.F10)){
+        if (UnityEngine.Input.GetKeyDown(KeyCode.F10))
+        {
             if (greenScreenCameraObject == null || !greenScreenCameraObject.active)
                 ConsoleEnter("greenscreen");
             else
@@ -978,54 +1013,62 @@ public class Plugin : MonoBehaviour{
             greenScreenCamera.transform.SetPositionAndRotation(newPosition, newRotation);
         }
 
-        if (currentVideoPlayer != null){
-			if ((ulong) currentVideoPlayer.frame + 5 > currentVideoPlayer.frameCount){
-                Debug.Log($"[INFO] Video playback ended.");
+        if (currentVideoPlayer != null)
+        {
+            if ((ulong)currentVideoPlayer.frame + 5 > currentVideoPlayer.frameCount)
+            {
+                UnityEngine.Debug.Log($"[INFO] Video playback ended.");
                 Destroy(currentVideoPlayer.transform.parent.gameObject);
-				currentVideoPlayer = null;
-				onCurrentVideoEnded?.Invoke();
-				onCurrentVideoEnded = null;
-			}
-		}
-		if (currentSceneName == "SceneMenu"){
-			if (logo != null)
-				logo.color = Color.white;
-		}
-	}
-	void OnSceneChanged(){
-		try{
-            Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
+                currentVideoPlayer = null;
+                onCurrentVideoEnded?.Invoke();
+                onCurrentVideoEnded = null;
+            }
+        }
+        if (currentSceneName == "SceneMenu")
+        {
+            if (logo != null)
+                logo.color = Color.white;
+        }
+    }
+    void OnSceneChanged()
+    {
+        try
+        {
+            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
             LoadAssetsForPatch();
             FindMita();
-			if (currentSceneName == "SceneMenu")
-				PatchMenuScene();
-        } catch (Exception e){
-            Debug.LogError($"[ERROR] {e}");
+            if (currentSceneName == "SceneMenu")
+                PatchMenuScene();
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[ERROR] {e}");
             enabled = false;
-		}
-	}
+        }
+    }
 
-	void PlayFullscreenVideo(Action onVideoEnd){
-		var rootGO = SceneManager.GetActiveScene().GetRootGameObjects();
-		foreach (var go in rootGO)
-			if (go != gameObject) go.gameObject.SetActive(false);
+    void PlayFullscreenVideo(Action onVideoEnd)
+    {
+        var rootGO = SceneManager.GetActiveScene().GetRootGameObjects();
+        foreach (var go in rootGO)
+            if (go != gameObject) go.gameObject.SetActive(false);
 
-		Camera camera = new GameObject("VideoCamera").AddComponent<Camera>();
-		VideoPlayer videoPlayer = new GameObject("VideoPlayer").AddComponent<VideoPlayer>();
-		videoPlayer.transform.parent = camera.transform;
-		camera.backgroundColor = Color.black;
-		camera.gameObject.AddComponent<AudioListener>();
-		videoPlayer.playOnAwake = false;
-		videoPlayer.targetCamera = camera;
-		videoPlayer.renderMode = VideoRenderMode.CameraNearPlane;
-		videoPlayer.url = "file://" + PluginInfo.AssetsFolder + "/intro.mp4";
-		videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
-		videoPlayer.SetTargetAudioSource(0, videoPlayer.gameObject.AddComponent<AudioSource>());
-		
-		currentVideoPlayer = videoPlayer;
-		onCurrentVideoEnded = onVideoEnd;
+        Camera camera = new GameObject("VideoCamera").AddComponent<Camera>();
+        VideoPlayer videoPlayer = new GameObject("VideoPlayer").AddComponent<VideoPlayer>();
+        videoPlayer.transform.parent = camera.transform;
+        camera.backgroundColor = Color.black;
+        camera.gameObject.AddComponent<AudioListener>();
+        videoPlayer.playOnAwake = false;
+        videoPlayer.targetCamera = camera;
+        videoPlayer.renderMode = VideoRenderMode.CameraNearPlane;
+        videoPlayer.url = "file://" + PluginInfo.AssetsFolder + "/intro.mp4";
+        videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
+        videoPlayer.SetTargetAudioSource(0, videoPlayer.gameObject.AddComponent<AudioSource>());
 
-		videoPlayer.Play();
-        Debug.Log($"[INFO] Video playback started.");
+        currentVideoPlayer = videoPlayer;
+        onCurrentVideoEnded = onVideoEnd;
+
+        videoPlayer.Play();
+        UnityEngine.Debug.Log($"[INFO] Video playback started.");
     }
 }
