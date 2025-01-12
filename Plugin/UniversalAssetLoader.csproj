@@ -565,9 +565,5 @@
       <HintPath>..\Dependencies\Newtonsoft.Json.dll</HintPath>  
       <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEditor.CoreModule">  
-      <HintPath>..\Dependencies\UnityEditor.CoreModule.dll</HintPath>  
-      <Private>false</Private>
-    </Reference>
   </ItemGroup> 
 </Project> 
