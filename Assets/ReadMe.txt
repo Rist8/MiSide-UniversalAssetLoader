@@ -1,4 +1,5 @@
-This mod adds Addons tab to clothes menu and adds new console commands(greenscreen[1], halloween, christmas, all buttons added to addons tab names, all commands listed in addon_config.txt), also adds binds for pause(f9) and greenscreen camera(f10), refresh all assets, find all Mitas and try to patch them (f5), unlock FPS limit(U), turn on/off free camera(/), also you can change main menu music or logo using assets_config.txt
+This mod adds Addons tab to clothes menu and adds new console commands(greenscreen[1], halloween, christmas, all buttons added to addons tab names, all commands listed in addon_config.txt), also adds binds for greenscreen camera(f10); refresh all assets, find all Mitas and try to patch them (f5); also you can change main menu music or logo using assets_config.txt
+
 [1] greenscreen - turns on greenscreen with default position and rotation parameteres
     greenscreen off - turns off greenscreen
     greenscreen pos 0,1 0,2 0,3 turns on greenscreen with default position + vector(0.1,0.2,0.3) and default rotation parameteres

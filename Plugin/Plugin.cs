@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO.Compression;
 using System.Reflection;
 using Coffee.UIEffects;
@@ -946,41 +946,19 @@ public class Plugin : MonoBehaviour
     private static float baseMovementSpeed = 0.03f;
     private static float maxMovementSpeed = 0.1f;
     private static float mouseSensitivity = 0.7f;
-    private static int unlocked = 0;
 
     void Update()
     {
-        if (unlocked == 1)
-        {
-            Application.targetFrameRate = -1;
-            QualitySettings.vSyncCount = 0;
-        }
-        else if (unlocked == 2)
-        {
-            Application.targetFrameRate = 60;
-            QualitySettings.vSyncCount = 1;
-            unlocked = 0;
-        }
+
         if (ConsoleMain.liteVersion)
         {
             ConsoleMain.liteVersion = false;
         }
+
         if (currentSceneName != SceneManager.GetActiveScene().name)
         {
             currentSceneName = SceneManager.GetActiveScene().name;
             OnSceneChanged();
-        }
-
-        if (UnityEngine.Input.GetKeyDown(KeyCode.U))
-        {
-            if (unlocked == 1)
-            {
-                unlocked = 2;
-            }
-            else
-            {
-                unlocked = 1;
-            }
         }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
@@ -988,13 +966,7 @@ public class Plugin : MonoBehaviour
             LoadAssetsForPatch();
             FindMita();
         }
-        if (UnityEngine.Input.GetKeyDown(KeyCode.F9))
-        {
-            if (Time.timeScale != 0.0f)
-                Time.timeScale = 0.0f;
-            else
-                Time.timeScale = 1.0f;
-        }
+
         if (UnityEngine.Input.GetKeyDown(KeyCode.F10))
         {
             if (greenScreenCameraObject == null || !greenScreenCameraObject.active)
@@ -1002,6 +974,7 @@ public class Plugin : MonoBehaviour
             else
                 ConsoleEnter("greenscreen off");
         }
+
         if (greenScreenCameraObject != null && greenScreenCameraObject.active)
         {
             // Mouse Input for Rotation
@@ -1062,6 +1035,7 @@ public class Plugin : MonoBehaviour
                 onCurrentVideoEnded = null;
             }
         }
+
         if (currentSceneName == "SceneMenu")
         {
             if (logo != null)

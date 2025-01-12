@@ -7,13 +7,13 @@ public static class PluginInfo
 {
 	public const string PLUGIN_GUID = "UniversalAssetLoader";
 	public const string PLUGIN_NAME = "Universal Asset Loader";
-	public const string PLUGIN_VERSION = "0.10.1";
+	public const string PLUGIN_VERSION = "0.10.2";
 
 	public static PluginLoader Instance;
 	public static string AssetsFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Assets";
 }
 
-[BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.10.1")]
+[BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.10.2")]
 public class PluginLoader : BasePlugin
 {
 	public ManualLogSource Logger { get; private set; }
