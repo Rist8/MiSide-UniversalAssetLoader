@@ -6,7 +6,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class ClothesMenuPatcher{
+public class ClothesMenuPatcher
+{
     public static void Run()
     {
         try
@@ -21,8 +22,39 @@ public class ClothesMenuPatcher{
 
     private static GameObject _addonButtonPrefab;
     private static Dictionary<string, GameObject> addonButtons = new Dictionary<string, GameObject>();
+    public static void ClickAddonButton(string name)
+    {
+        if (addonButtons.ContainsKey(name))
+        {
+            var button = addonButtons[name].GetComponent<Button>();
+            if (button != null)
+            {
+                button.onClick.Invoke();
+            }
+        }
+    }
 
-    private static void CreateMenuTab(){
+    private static void UpdateActiveAddons()
+    {
+        if (Plugin.startup)
+        {
+            return;
+        }
+        string filePath = Path.Combine(PluginInfo.AssetsFolder, "active_mods.txt");
+
+        using (StreamWriter sw = new StreamWriter(filePath))
+        {
+            foreach (var kvp in Plugin.Active)
+            {
+                if (kvp.Value)
+                {
+                    sw.WriteLine(kvp.Key);
+                }
+            }
+        }
+    }
+    private static void CreateMenuTab()
+    {
         var clothesMenu = Reflection.FindObjectsOfType<MenuClothes>()[0].gameObject;
 
         var tabs = new GameObject("Tabs");
@@ -49,7 +81,7 @@ public class ClothesMenuPatcher{
         UnityEngine.Object.Destroy(text.GetComponent<UI_Colors>());
         var button1 = clothesButton.AddComponent<UnityEngine.UI.Button>();
         button1.targetGraphic = button1.gameObject.AddComponent<UnityEngine.UI.Image>();
-        button1.targetGraphic.color = new UnityEngine.Color(1,1,1, 0.005f);
+        button1.targetGraphic.color = new UnityEngine.Color(1, 1, 1, 0.005f);
 
         var addonsButton = GameObject.Instantiate(clothesButton, tabs.transform);
         addonsButton.name = "AddonsTabButton";
@@ -89,11 +121,13 @@ public class ClothesMenuPatcher{
         layout.childForceExpandHeight = false;
         content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         addonsList.SetActive(false);
-        
-        void ShowClothesTab(){
+
+        void ShowClothesTab()
+        {
             button1.interactable = false;
             button2.interactable = true;
-            for (int i = 0; i < clothesMenu.transform.childCount; i++){
+            for (int i = 0; i < clothesMenu.transform.childCount; i++)
+            {
                 var cloth = clothesMenu.transform.GetChild(i);
                 if (cloth.name.StartsWith("CaseCloth"))
                     cloth.gameObject.SetActive(true);
@@ -101,10 +135,12 @@ public class ClothesMenuPatcher{
             addonsList.SetActive(false);
         }
 
-        void ShowAddonsTab(){
+        void ShowAddonsTab()
+        {
             button1.interactable = true;
             button2.interactable = false;
-            for (int i = 0; i < clothesMenu.transform.childCount; i++){
+            for (int i = 0; i < clothesMenu.transform.childCount; i++)
+            {
                 var cloth = clothesMenu.transform.GetChild(i);
                 if (cloth.name.StartsWith("CaseCloth"))
                     cloth.gameObject.SetActive(false);
@@ -112,8 +148,8 @@ public class ClothesMenuPatcher{
             addonsList.SetActive(true);
         }
 
-        button1.onClick.AddListener((UnityAction) ShowClothesTab);
-        button2.onClick.AddListener((UnityAction) ShowAddonsTab);
+        button1.onClick.AddListener((UnityAction)ShowClothesTab);
+        button2.onClick.AddListener((UnityAction)ShowAddonsTab);
 
         var uiColors = tabs.AddComponent<UI_Colors>();
         uiColors.ui_images = new();
@@ -125,7 +161,8 @@ public class ClothesMenuPatcher{
         ml.objects.Clear();
         ml.objects.Add(tabs.GetComponent<RectTransform>());
     }
-    public static void LogOnClick(string name){
+    public static void LogOnClick(string name)
+    {
         bool active = !Plugin.Active[name];
         if (Plugin.currentSceneName == "SceneMenu")
         {
@@ -143,51 +180,65 @@ public class ClothesMenuPatcher{
         Debug.Log(name + " is active:" + active);
         Plugin.Active[name] = active;
         string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
-        try{
-            using (StreamReader sr = new StreamReader(filePath)){
+        try
+        {
+            using (StreamReader sr = new StreamReader(filePath))
+            {
                 string line, currentName = "";
-                while ((line = sr.ReadLine()) != null){
+                while ((line = sr.ReadLine()) != null)
+                {
                     // Ignore empty lines
                     if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
                         continue;
-                    if (line.StartsWith("*")){
+                    if (line.StartsWith("*"))
+                    {
                         currentName = line.Substring(1);
                         continue;
                     }
-                    if (currentName == name){
-                        if (line == "trailer") {
+                    if (currentName == name)
+                    {
+                        if (line == "trailer")
+                        {
                             if (!active)
                                 GlobalGame.trailer = false;
                             else
                                 GlobalGame.trailer = true;
                             continue;
                         }
-                        if (line == "halloween"){
+                        if (line == "halloween")
+                        {
                             if (!active)
                                 GlobalGame.halloween = false;
                             else
                                 GlobalGame.halloween = true;
                             continue;
-                        }if (line == "christmas"){
+                        }
+                        if (line == "christmas")
+                        {
                             if (!active)
                                 GlobalGame.christmas = false;
                             else
                                 GlobalGame.christmas = true;
                             continue;
                         }
-                        if (line.StartsWith("$")){
+                        if (line.StartsWith("$"))
+                        {
                             Plugin.ConsoleEnter(line.Substring(1));
                             continue;
                         }
-                        if (!active){
-                            if (!line.StartsWith("-")){
+                        if (!active)
+                        {
+                            if (!line.StartsWith("-"))
+                            {
                                 string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                                 Plugin.assetCommands.RemoveAll(command =>
                                     command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
                                 continue;
                             }
                             line = line.Substring(1);
-                        } else if (line.StartsWith("-")){
+                        }
+                        else if (line.StartsWith("-"))
+                        {
                             string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             Plugin.assetCommands.RemoveAll(command =>
                                 command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
@@ -196,23 +247,28 @@ public class ClothesMenuPatcher{
                         // Split line on commands with arguments list
                         string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         Plugin.assetCommands.RemoveAll(command =>
-                            command.name == parts[0] && Enumerable.SequenceEqual(command.args,parts.Skip(1).ToArray()));
+                            command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                         Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
                     }
                 }
                 Plugin.FindMita();
             }
         }
-        catch (Exception e){
+        catch (Exception e)
+        {
             Console.WriteLine("Error: " + e.Message);
         }
     }
-    static void CreateAddonButtons() {
+    static void CreateAddonButtons()
+    {
         string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
-        try{
-            using (StreamReader sr = new StreamReader(filePath)){
+        try
+        {
+            using (StreamReader sr = new StreamReader(filePath))
+            {
                 string line;
-                while ((line = sr.ReadLine()) != null){
+                while ((line = sr.ReadLine()) != null)
+                {
                     if (!line.StartsWith("*"))
                         continue;
                     addonButtons[line.Substring(1)] = GameObject.Instantiate(_addonButtonPrefab, _addonButtonPrefab.transform.parent);
@@ -220,8 +276,8 @@ public class ClothesMenuPatcher{
                     var button = addonButtons[line.Substring(1)].AddComponent<UnityEngine.UI.Button>();
 
                     string line1 = line.Substring(1);
-                    button.onClick.AddListener((UnityAction)(() => { LogOnClick(line1); }));
-                    if(!Plugin.Active.ContainsKey(line1))
+                    button.onClick.AddListener((UnityAction)(() => { LogOnClick(line1); UpdateActiveAddons(); }));
+                    if (!Plugin.Active.ContainsKey(line1))
                         Plugin.Active.Add(line1, false);
                     if (line1 == "TrailerMode")
                         Plugin.Active[line1] = GlobalGame.trailer;
@@ -236,7 +292,8 @@ public class ClothesMenuPatcher{
                 }
             }
         }
-        catch (Exception e){
+        catch (Exception e)
+        {
             Console.WriteLine("Error: " + e.Message);
         }
     }

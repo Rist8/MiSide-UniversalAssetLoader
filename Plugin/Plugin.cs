@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 public class Plugin : MonoBehaviour
 {
     public static string? currentSceneName;
+    public static bool startup = true;
 
     private void Start()
     {
@@ -203,6 +204,37 @@ public class Plugin : MonoBehaviour
                 // Split line on commands with arguments list
                 string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error: " + e.Message);
+        }
+    }
+
+    void ReadActiveAddons()
+    {
+        string filePath = Path.Combine(PluginInfo.AssetsFolder, "active_mods.txt");
+
+        if (!File.Exists(filePath))
+        {
+            File.WriteAllText(filePath, "");
+            return;
+        }
+
+        try
+        {
+            foreach (var line in File.ReadLines(filePath))
+            {
+                UnityEngine.Debug.Log($"[INFO] Active mod: {line}");
+                try
+                {
+                    ClothesMenuPatcher.ClickAddonButton(line);
+                }
+                catch (System.Exception)
+                {
+                    UnityEngine.Debug.Log($"[ERROR] Failed to load mod: {line}");
+                }
             }
         }
         catch (Exception e)
@@ -903,6 +935,12 @@ public class Plugin : MonoBehaviour
         ClothesMenuPatcher.Run();
 
         UnityEngine.Debug.Log($"[INFO] Game scene patching completed.");
+
+        if (startup)
+        {
+            ReadActiveAddons();
+            startup = false;
+        }
     }
 
     private static float baseMovementSpeed = 0.03f;
