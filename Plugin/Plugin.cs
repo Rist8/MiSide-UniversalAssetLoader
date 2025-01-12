@@ -532,12 +532,16 @@ public class Plugin : MonoBehaviour
 
                         if (renderers.ContainsKey(mita.name + command.args[1]))
                         {
-                            renderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
+                            Material material = renderers[mita.name + command.args[1]].material;
+                            material.mainTexture = loadedTextures[command.args[2]];
+                            material.SetFloat("_EnableTextureTransparent", 1.0f);
                             UnityEngine.Debug.Log($"[INFO] Replaced texture of skinned: {mita.name} {command.args[1]}.");
                         }
                         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
                         {
-                            staticRenderers[mita.name + command.args[1]].material.mainTexture = loadedTextures[command.args[2]];
+                            Material material = staticRenderers[mita.name + command.args[1]].material;
+                            material.mainTexture = loadedTextures[command.args[2]];
+                            material.SetFloat("_EnableTextureTransparent", 1.0f);
                             UnityEngine.Debug.Log($"[INFO] Replaced texture of static: {mita.name} {command.args[1]}.");
                         }
                         else
