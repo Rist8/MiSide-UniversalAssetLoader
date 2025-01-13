@@ -449,6 +449,7 @@ public class Plugin : MonoBehaviour
         for (int c = 0; c < assetCommands.Count; ++c)
         {
             var command = assetCommands[c];
+            // UnityEngine.Debug.Log($"[INFO] Command Name: {command.name} | Command Args: {string.Join(", ", command.args)}");
             if (command.args.Length == 0 || command.args[0] != "Mita")
                 continue;
             try
@@ -530,7 +531,7 @@ public class Plugin : MonoBehaviour
                                 if (command.args[2] == "null" && command.args[3] == "null")
                                     sk.sharedMesh = new Mesh();
                                 else
-                                    sk.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(sk));
+                                    sk.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(sk), (command.args[1] == "Head"), mita.name);
                                 UnityEngine.Debug.Log($"[INFO] Replaced mesh of skinned: {mita.name} {command.args[1]}.");
                             }
                             else
@@ -538,7 +539,7 @@ public class Plugin : MonoBehaviour
                                 if (command.args[2] == "null" && command.args[3] == "null")
                                     renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
                                 else
-                                    renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
+                                    renderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null, (command.args[1] == "Head"), mita.name);
                                 UnityEngine.Debug.Log($"[INFO] Replaced mesh of skinned (static method): {mita.name} {command.args[1]}.");
                             }
                         }
@@ -547,7 +548,7 @@ public class Plugin : MonoBehaviour
                             if (command.args[2] == "null" && command.args[3] == "null")
                                 staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = new Mesh();
                             else
-                                staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
+                                staticRenderers[mita.name + command.args[1]].GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null, (command.args[1] == "Head"), mita.name);
                             UnityEngine.Debug.Log($"[INFO] Replaced mesh of static: {mita.name} {command.args[1]}.");
                         }
                         else

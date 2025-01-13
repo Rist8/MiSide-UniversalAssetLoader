@@ -61,8 +61,9 @@ public class AssetLoader
         }
     }
 
-    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, string blendShapeName = "Mita")
+    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, bool addBlendShape = false, string blendShapeName = "Mita")
     {
+        blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "");
         var mesh = new UnityEngine.Mesh()
         {
             indexFormat = (fbxMesh.VertexCount > 65535) ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16
@@ -139,11 +140,13 @@ public class AssetLoader
         mesh.triangles = fbxMesh.GetIndices();
 
         // Add Blendshape Processing
-        if (fbxMesh.HasMeshAnimationAttachments)
+        if (addBlendShape)
         {
+            UnityEngine.Debug.Log($"[INFO] Blendshape name: {blendShapeName}");
+
             string blendShapeOrdersPath = Path.Combine(PluginInfo.AssetsFolder, "blendshape_orders.json");
 
-            Dictionary<string, List<string>> blendShapeOrders = new Dictionary<string, List<string>>();
+            var blendShapeOrders = new Dictionary<string, List<string>>();
 
             if (File.Exists(blendShapeOrdersPath))
             {
@@ -151,13 +154,15 @@ public class AssetLoader
                 blendShapeOrders = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(jsonContent);
             }
 
-            List<string> blendShapeOrder = blendShapeOrders.ContainsKey(blendShapeName) ? blendShapeOrders[blendShapeName] : new List<string>();
-
-            Dictionary<string, int> blendShapeIndex = new Dictionary<string, int>();
-            for (int i = 0; i < blendShapeOrder.Count; i++)
+            if (!blendShapeOrders.TryGetValue(blendShapeName, out var blendShapeOrder) || blendShapeOrder.Count == 0)
             {
-                blendShapeIndex[blendShapeOrder[i]] = i;
+                UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default fbx order");
+                blendShapeOrder = fbxMesh.MeshAnimationAttachments.Select(bs => bs.Name).ToList();
             }
+
+            var blendShapeIndex = blendShapeOrder
+                .Select((name, index) => new { name, index })
+                .ToDictionary(x => x.name, x => x.index);
 
             var blendShapes = fbxMesh.MeshAnimationAttachments
                 .Where(bs => blendShapeIndex.ContainsKey(bs.Name))
@@ -167,11 +172,11 @@ public class AssetLoader
             int vertexCount = mesh.vertexCount;
             int normalCount = mesh.normals.Length;
 
-            Vector3[] deltaVerts = new Vector3[vertexCount];
-            Vector3[] deltaNormals = new Vector3[normalCount];
+            var deltaVerts = new Vector3[vertexCount];
+            var deltaNormals = new Vector3[normalCount];
 
-            Vector3[] vertices = mesh.vertices;
-            Vector3[] normals = mesh.normals;
+            var vertices = mesh.vertices;
+            var normals = mesh.normals;
 
             int missingBlendShapesCount = blendShapeOrder.Count - blendShapes.Count;
             for (int i = 0; i < missingBlendShapesCount; i++)
@@ -204,7 +209,7 @@ public class AssetLoader
                 }
 
                 mesh.AddBlendShapeFrame(name, 100.0f, deltaVerts, deltaNormals, null);
-                Debug.Log($"New blendshape loaded: {name}");
+                Debug.Log($"[INFO] New blendshape loaded: {name}");
             }
         }
 
