@@ -514,8 +514,103 @@ public class Plugin : MonoBehaviour
         UnityEngine.Debug.Log($"[INFO] Patched '{mita.name}' in {stopwatch.ElapsedMilliseconds}ms.");
     }
 
+    public static void FindPlayer()
+    {
+        var animators = Reflection.FindObjectsOfType<Animator>(true);
+        foreach (var animator in animators)
+        {
+            // this is "Player"
+            if (animator.name == "Person")
+            {
+                GameObject personObject = animator.gameObject;
+                UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {personObject.name}");
+                PatchPlayer(personObject);
+                return;
+            }
+        }
+    }
 
+    public static void PatchPlayer(GameObject player)
+    {
+        var stopwatch = Stopwatch.StartNew();
 
+        // Ensure the object is tracked in the global dictionary
+        if (!Plugin.globalAppliedCommands.ContainsKey(player))
+            Plugin.globalAppliedCommands[player] = new HashSet<string>();
+
+        var renderers = new Dictionary<string, SkinnedMeshRenderer>();
+        var staticRenderers = new Dictionary<string, MeshRenderer>();
+
+        var skinnedRenderers = player.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        foreach (var renderer in skinnedRenderers)
+            renderers[player.name + renderer.name.Trim()] = renderer;
+
+        var meshRenderers = player.GetComponentsInChildren<MeshRenderer>(true);
+        foreach (var renderer in meshRenderers)
+            staticRenderers[player.name + renderer.name.Trim()] = renderer;
+
+        foreach (var command in Plugin.assetCommands)
+        {
+            if (command.args.Length == 0 || command.args[0] != "Player")
+                continue;
+
+            string commandKey = $"{command.name} {string.Join(" ", command.args)}";
+
+            // Check the globalAppliedCommands dictionary to skip already applied commands
+            if (Plugin.globalAppliedCommands[player].Contains(commandKey))
+            {
+                UnityEngine.Debug.Log($"[INFO] Skipping already applied command: {commandKey} on '{player.name}'.");
+                continue;
+            }
+
+            try
+            {
+                switch (command.name)
+                {
+                    case "remove":
+                        Commands.ApplyRemoveCommand(command, player, renderers, staticRenderers);
+                        break;
+                    case "recover":
+                        Commands.ApplyRecoverCommand(command, player, renderers, staticRenderers);
+                        break;
+                    case "replace_tex":
+                        Commands.ApplyReplaceTexCommand(command, player, renderers, staticRenderers);
+                        break;
+                    case "replace_mesh":
+                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers);
+                        break;
+                    case "create_skinned_appendix":
+                        Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers);
+                        break;
+                    case "create_static_appendix":
+                        Commands.ApplyCreateStaticAppendixCommand(command, player, staticRenderers);
+                        break;
+                    case "set_scale":
+                        Commands.ApplySetScaleCommand(command, player);
+                        break;
+                    case "move_position":
+                        Commands.ApplyMovePositionCommand(command, player);
+                        break;
+                    case "set_rotation":
+                        Commands.ApplySetRotationCommand(command, player);
+                        break;
+                    default:
+                        UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
+                        break;
+                }
+
+                // Mark command as applied in the global dictionary
+                Plugin.globalAppliedCommands[player].Add(commandKey);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError($"[ERROR] Error processing command: {commandKey} on '{player.name}'.\n{e}");
+            }
+
+            stopwatch.Stop();
+            UnityEngine.Debug.Log($"[INFO] Patched '{player.name}' in {stopwatch.ElapsedMilliseconds}ms.");
+        }
+    }
 
     VideoPlayer currentVideoPlayer = null;
     Action onCurrentVideoEnded = null;
@@ -602,6 +697,7 @@ public class Plugin : MonoBehaviour
         {
             LoadAssetsForPatch();
             FindMita();
+            FindPlayer();
         }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F10))
@@ -687,6 +783,7 @@ public class Plugin : MonoBehaviour
             LoadAssetsForPatch();
             globalAppliedCommands.Clear();
             FindMita();
+            FindPlayer();
             if (currentSceneName == "SceneMenu")
                 PatchMenuScene();
         }
