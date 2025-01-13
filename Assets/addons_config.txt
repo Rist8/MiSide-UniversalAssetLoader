@@ -65,16 +65,6 @@ halloween
 *Christmas
 christmas
 
-*CatEars
-create_static_appendix Mita CatEars Head !Cap !Know
-replace_tex Mita CatEars CatEars\CatEar_BaseColor
-replace_mesh Mita CatEars CatEars\MitaCatMaid CatEars
-set_scale Mita CatEars 1.55 1.5 1.7 Core
-set_scale Mita CatEars 0.85 0.85 0.85 Maneken
-move_position Mita CatEars 0.00 -0.01 0.02 Maneken
-move_position Mita CatEars 0.00 0.01 0.00 Creepy
--remove Mita CatEars
-
 *RemoveSkirt
 remove Mita Skirt
 -recover Mita Skirt

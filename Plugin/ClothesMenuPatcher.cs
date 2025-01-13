@@ -34,6 +34,7 @@ public class ClothesMenuPatcher
         }
     }
 
+
     private static void UpdateActiveAddons()
     {
         if (Plugin.startup)
@@ -41,6 +42,7 @@ public class ClothesMenuPatcher
             return;
         }
         string filePath = Path.Combine(PluginInfo.AssetsFolder, "active_mods.txt");
+
 
         using (StreamWriter sw = new StreamWriter(filePath))
         {
@@ -180,6 +182,7 @@ public class ClothesMenuPatcher
         Debug.Log($"[INFO] {name} is active: {active}");
         Plugin.Active[name] = active;
 
+
         try
         {
             string currentName = "";
@@ -220,7 +223,6 @@ public class ClothesMenuPatcher
                         Plugin.ConsoleEnter(line.Substring(1));
                         continue;
                     }
-
                     // Handle active/inactive commands
                     if (!active)
                     {
