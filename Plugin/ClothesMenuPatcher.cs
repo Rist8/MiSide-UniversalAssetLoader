@@ -179,80 +179,77 @@ public class ClothesMenuPatcher
 
         Debug.Log(name + " is active:" + active);
         Plugin.Active[name] = active;
-        string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
         try
         {
-            using (StreamReader sr = new StreamReader(filePath))
+            string currentName = "";
+            foreach (string addonline in Plugin.AddonsConfig)
             {
-                string line, currentName = "";
-                while ((line = sr.ReadLine()) != null)
+                string line = addonline;
+                // Ignore empty lines
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                    continue;
+                if (line.StartsWith("*"))
                 {
-                    // Ignore empty lines
-                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
-                        continue;
-                    if (line.StartsWith("*"))
+                    currentName = line.Substring(1);
+                    continue;
+                }
+                if (currentName == name)
+                {
+                    if (line == "trailer")
                     {
-                        currentName = line.Substring(1);
+                        if (!active)
+                            GlobalGame.trailer = false;
+                        else
+                            GlobalGame.trailer = true;
                         continue;
                     }
-                    if (currentName == name)
+                    if (line == "halloween")
                     {
-                        if (line == "trailer")
-                        {
-                            if (!active)
-                                GlobalGame.trailer = false;
-                            else
-                                GlobalGame.trailer = true;
-                            continue;
-                        }
-                        if (line == "halloween")
-                        {
-                            if (!active)
-                                GlobalGame.halloween = false;
-                            else
-                                GlobalGame.halloween = true;
-                            continue;
-                        }
-                        if (line == "christmas")
-                        {
-                            if (!active)
-                                GlobalGame.christmas = false;
-                            else
-                                GlobalGame.christmas = true;
-                            continue;
-                        }
-                        if (line.StartsWith("$"))
-                        {
-                            Plugin.ConsoleEnter(line.Substring(1));
-                            continue;
-                        }
                         if (!active)
-                        {
-                            if (!line.StartsWith("-"))
-                            {
-                                string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                Plugin.assetCommands.RemoveAll(command =>
-                                    command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
-                                continue;
-                            }
-                            line = line.Substring(1);
-                        }
-                        else if (line.StartsWith("-"))
+                            GlobalGame.halloween = false;
+                        else
+                            GlobalGame.halloween = true;
+                        continue;
+                    }
+                    if (line == "christmas")
+                    {
+                        if (!active)
+                            GlobalGame.christmas = false;
+                        else
+                            GlobalGame.christmas = true;
+                        continue;
+                    }
+                    if (line.StartsWith("$"))
+                    {
+                        Plugin.ConsoleEnter(line.Substring(1));
+                        continue;
+                    }
+                    if (!active)
+                    {
+                        if (!line.StartsWith("-"))
                         {
                             string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             Plugin.assetCommands.RemoveAll(command =>
                                 command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
                             continue;
                         }
-                        // Split line on commands with arguments list
-                        string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        Plugin.assetCommands.RemoveAll(command =>
-                            command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
-                        Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
+                        line = line.Substring(1);
                     }
+                    else if (line.StartsWith("-"))
+                    {
+                        string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        Plugin.assetCommands.RemoveAll(command =>
+                            command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
+                        continue;
+                    }
+                    // Split line on commands with arguments list
+                    string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    Plugin.assetCommands.RemoveAll(command =>
+                        command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
+                    Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
                 }
-                Plugin.FindMita();
             }
+            Plugin.FindMita();
         }
         catch (Exception e)
         {
@@ -261,35 +258,30 @@ public class ClothesMenuPatcher
     }
     static void CreateAddonButtons()
     {
-        string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
         try
         {
-            using (StreamReader sr = new StreamReader(filePath))
+            foreach (string line in Plugin.AddonsConfig)
             {
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (!line.StartsWith("*"))
-                        continue;
-                    addonButtons[line.Substring(1)] = GameObject.Instantiate(_addonButtonPrefab, _addonButtonPrefab.transform.parent);
-                    addonButtons[line.Substring(1)].SetActive(true);
-                    var button = addonButtons[line.Substring(1)].AddComponent<UnityEngine.UI.Button>();
+                if (!line.StartsWith("*"))
+                    continue;
+                addonButtons[line.Substring(1)] = GameObject.Instantiate(_addonButtonPrefab, _addonButtonPrefab.transform.parent);
+                addonButtons[line.Substring(1)].SetActive(true);
+                var button = addonButtons[line.Substring(1)].AddComponent<UnityEngine.UI.Button>();
 
-                    string line1 = line.Substring(1);
-                    button.onClick.AddListener((UnityAction)(() => { LogOnClick(line1); UpdateActiveAddons(); }));
-                    if (!Plugin.Active.ContainsKey(line1))
-                        Plugin.Active.Add(line1, false);
-                    if (line1 == "TrailerMode")
-                        Plugin.Active[line1] = GlobalGame.trailer;
-                    if (line1 == "Halloween")
-                        Plugin.Active[line1] = GlobalGame.halloween;
-                    if (line1 == "Christmas")
-                        Plugin.Active[line1] = GlobalGame.christmas;
+                string line1 = line.Substring(1);
+                button.onClick.AddListener((UnityAction)(() => { LogOnClick(line1); UpdateActiveAddons(); }));
+                if (!Plugin.Active.ContainsKey(line1))
+                    Plugin.Active.Add(line1, false);
+                if (line1 == "TrailerMode")
+                    Plugin.Active[line1] = GlobalGame.trailer;
+                if (line1 == "Halloween")
+                    Plugin.Active[line1] = GlobalGame.halloween;
+                if (line1 == "Christmas")
+                    Plugin.Active[line1] = GlobalGame.christmas;
 
-                    var rect = addonButtons[line.Substring(1)].GetComponent<RectTransform>();
-                    rect.anchoredPosition3D += new Vector3(0, 40 * (addonButtons.Count - 1), 0);
-                    addonButtons[line.Substring(1)].GetComponent<RectTransform>().Find("Text").GetComponent<UnityEngine.UI.Text>().text = line.Substring(1) + ((!Plugin.Active[line1]) ? "" : "(*)");
-                }
+                var rect = addonButtons[line.Substring(1)].GetComponent<RectTransform>();
+                rect.anchoredPosition3D += new Vector3(0, 40 * (addonButtons.Count - 1), 0);
+                addonButtons[line.Substring(1)].GetComponent<RectTransform>().Find("Text").GetComponent<UnityEngine.UI.Text>().text = line.Substring(1) + ((!Plugin.Active[line1]) ? "" : "(*)");
             }
         }
         catch (Exception e)

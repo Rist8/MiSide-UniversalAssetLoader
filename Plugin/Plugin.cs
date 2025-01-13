@@ -25,6 +25,7 @@ public class Plugin : MonoBehaviour
     {
         ReadAssetsConfig();
         LoadAssetsForPatch();
+        GetsAddonConfig();
         ConsoleMain.active = true;
         ConsoleMain.eventEnter = new UnityEvent();
         ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
@@ -33,6 +34,7 @@ public class Plugin : MonoBehaviour
     static Camera greenScreenCamera = null;
     public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
     private static float dx = 0.0f, dy = 0.0f, dz = 0.0f, rdx = 0.0f, rdy = 0.0f;
+    public static List<string> AddonsConfig = new List<string>();
     public static void ConsoleEnter(string s)
     {
         if (string.IsNullOrWhiteSpace(s))
@@ -157,13 +159,33 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    private static void HandleAddonConfig(string s)
+    public static void GetsAddonConfig()
     {
-        string filePath = Path.Combine(PluginInfo.AssetsFolder, "addons_config.txt");
-
         try
         {
-            foreach (var line in File.ReadLines(filePath))
+            AddonsConfig.Clear();
+            foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "txt"))
+            {
+                if (file.ToLower().Contains("addons_config.txt"))
+                {
+                    UnityEngine.Debug.Log($"[INFO] Found addons config file: {Path.GetRelativePath(PluginInfo.AssetsFolder, file)}");
+                    var lines = File.ReadAllLines(file).ToList();
+                    AddonsConfig.AddRange(lines);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error: " + e.Message);
+        }
+    }
+
+    private static void HandleAddonConfig(string s)
+    {
+        try
+        {
+            foreach (var line in AddonsConfig)
             {
                 if (line.StartsWith("*"))
                 {
