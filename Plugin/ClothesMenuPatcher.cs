@@ -34,6 +34,7 @@ public class ClothesMenuPatcher
         }
     }
 
+
     private static void UpdateActiveAddons()
     {
         if (Plugin.startup)
@@ -41,6 +42,7 @@ public class ClothesMenuPatcher
             return;
         }
         string filePath = Path.Combine(PluginInfo.AssetsFolder, "active_mods.txt");
+
 
         using (StreamWriter sw = new StreamWriter(filePath))
         {
@@ -166,9 +168,10 @@ public class ClothesMenuPatcher
         bool active = !Plugin.Active[name];
         if (Plugin.currentSceneName == "SceneMenu")
         {
-            Debug.Log("clicked: " + name);
+            Debug.Log($"[INFO] Clicked: {name}");
             addonButtons[name].GetComponent<RectTransform>().Find("Text").GetComponent<Text>().text = name + ((!active) ? "" : "(*)");
         }
+
         MitaClothesResource clothes =
             Reflection.FindObjectsOfType<MenuClothes>()[0].resourceClothes.GetComponent<MitaClothesResource>();
 
@@ -176,47 +179,43 @@ public class ClothesMenuPatcher
         foreach (var cloth in clothes.clothes)
             clothesDict[cloth.fileSave] = cloth;
 
-
-        Debug.Log(name + " is active:" + active);
+        Debug.Log($"[INFO] {name} is active: {active}");
         Plugin.Active[name] = active;
+
+
         try
         {
             string currentName = "";
+            List<string> oneTimeCommands = new();
             foreach (string addonline in Plugin.AddonsConfig)
             {
                 string line = addonline;
-                // Ignore empty lines
+
+                // Ignore empty or commented lines
                 if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
                     continue;
+
                 if (line.StartsWith("*"))
                 {
                     currentName = line.Substring(1);
                     continue;
                 }
+
                 if (currentName == name)
                 {
                     if (line == "trailer")
                     {
-                        if (!active)
-                            GlobalGame.trailer = false;
-                        else
-                            GlobalGame.trailer = true;
+                        GlobalGame.trailer = active;
                         continue;
                     }
                     if (line == "halloween")
                     {
-                        if (!active)
-                            GlobalGame.halloween = false;
-                        else
-                            GlobalGame.halloween = true;
+                        GlobalGame.halloween = active;
                         continue;
                     }
                     if (line == "christmas")
                     {
-                        if (!active)
-                            GlobalGame.christmas = false;
-                        else
-                            GlobalGame.christmas = true;
+                        GlobalGame.christmas = active;
                         continue;
                     }
                     if (line.StartsWith("$"))
@@ -224,38 +223,83 @@ public class ClothesMenuPatcher
                         Plugin.ConsoleEnter(line.Substring(1));
                         continue;
                     }
+                    // Handle active/inactive commands
                     if (!active)
                     {
                         if (!line.StartsWith("-"))
                         {
                             string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            // Remove commands from assetCommands and globalAppliedCommands
+
                             Plugin.assetCommands.RemoveAll(command =>
                                 command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
+                            RemoveCommandFromGlobal(parts1[0], parts1.Skip(1).ToArray());
                             continue;
                         }
-                        line = line.Substring(1);
+
+                        line = line.Substring(1); // Remove the leading "-" for the actual command
+                        oneTimeCommands.Add(line);
                     }
                     else if (line.StartsWith("-"))
                     {
+                        line = line.Substring(1);
                         string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // Remove commands from assetCommands and globalAppliedCommands
+
                         Plugin.assetCommands.RemoveAll(command =>
                             command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
+                        RemoveCommandFromGlobal(parts1[0], parts1.Skip(1).ToArray());
                         continue;
                     }
-                    // Split line on commands with arguments list
+
+                    // Add or remove commands based on the active state
                     string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
                     Plugin.assetCommands.RemoveAll(command =>
                         command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                     Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
                 }
             }
+
             Plugin.FindMita();
+
+            foreach (string line in oneTimeCommands)
+            {
+                string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); 
+                Plugin.assetCommands.RemoveAll(command =>
+                    command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
+                RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
+            }
         }
         catch (Exception e)
         {
-            Console.WriteLine("Error: " + e.Message);
+            Console.WriteLine($"Error: {e.Message}");
         }
     }
+
+    // Helper Method to Remove Commands from globalAppliedCommands
+    private static void RemoveCommandFromGlobal(string commandName, IEnumerable<string> args)
+    {
+        string commandKey = $"{commandName} {string.Join(" ", args)}";
+        bool empty = true;
+
+        foreach (var objectCommands in Plugin.globalAppliedCommands.Values)
+        {
+            if (objectCommands.Contains(commandKey))
+            {
+                objectCommands.Remove(commandKey);
+                empty = false;
+            }
+        }
+
+        if (!empty)
+        {
+            Debug.Log($"[INFO] Removed command '{commandKey}' from commands buffer");
+        }
+    }
+
     static void CreateAddonButtons()
     {
         try
