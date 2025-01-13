@@ -1,4 +1,5 @@
 {
+  // shared between all mitas
   "Mita": [
     "ManiacPupils",
     "Blink",
@@ -43,53 +44,129 @@
     "w"
   ],
   "Mila": [
-    "JUST AN EXAMPLE, PLEASE REPLACE IN THE FUTURE",
-    "Smile :>",
+    "Blink",
     "RightEyeBlink",
     "LeftEyeBlink",
     "CozyBlink",
     "EyesSquints",
     "YandereSquints",
-    "EyesCat",
     "EyesWonder",
     "EyesAngry",
-    "Smile :3",
-    "Blink",
     "EyeBrowsUp",
-    "ManiacPupils",
     "EyeBrowsDown",
     "EyeBrowLeftUp",
     "EyeBrowRightUp",
     "SmileSmall",
     "SmileMiddle",
+    "Smile :>",
     "SmileBig",
-    "AkwardSmile",
-    "A",
     "SmileStrange",
-    "SmileManiacBig",
-    "TongueA",
     "SmileTricky",
+    "AkwardSmile",
     "AkwardSmile2",
     "A Smile",
     "AnnoySmall",
-    "AnnoyToLeft",
     "AnnoyMiddle",
     "AnnoyBig",
-    "SmileManiac",
     "Annoy8",
+    "A",
     "O",
     "Sniff",
     "PuffCheeks",
+    "AnnoyToLeft",
+    "TongueA",
     "TongueSide",
     "TongueSmile",
     "TongueTricky",
-    "ScaryFace",
-    "w"
+    "BigEyesSparkles"
   ],
-  "MC": [
-    "JUST AN EXAMPLE, PLEASE REPLACE IN THE FUTURE",
+  //She's in CarSpace minigame for some reason?
+  "Chibi": [
+    "LittleSmile",
+    "A",
+    "Blink"
+  ],
+  "Little": [
+    "Blink",
+    "Smile",
+    "A",
+    "O"
+  ],
+  "Core": [
+    "Blink",
+    "Angry",
+    "Disgust 1",
+    "Disgust 2"
+  ],
+  //Mita at the end of the game
+  //... are devs rush the ending? everything is almost all placeholder...
+  "True": [
     "ManiacPupils",
     "Blink",
+    "Key 17",
+    "Key 18",
+    "Key 19",
+    "EyesSquints",
+    "Key 20",
+    "Key 22",
+    "EyesAngry",
+    "Key 23",
+    "Key 24",
+    "Key 25",
+    "Key 27",
+    "SmileSmall",
+    "SmileMiddle",
+    "Key 28",
+    "Smile :>",
+    "SmileBig",
+    "SmileStrange",
+    "SmileManiac",
+    "SmileManiacBig",
+    "SmileTricky",
+    "Key 26",
+    "Key 29",
+    "A Smile",
+    "Key 30",
+    "AnnoyMiddle",
+    "Key 31",
+    "Key 32",
+    "A",
+    "O",
+    "Key 33",
+    "Key 34",
+    "Key 35",
+    "Key 36",
+    "Key 37",
+    "Key 38",
+    "Key 39",
+    "Key 40",
+    "Key 41",
+  ],
+  //also shared with LimpingPerson (sharedassets9.assets)
+  "Player": [
+    "Blink",
+    "ScaredFace1 (need fix)", //it is seperated mesh in game files.
+    "Thinking1  (need fix)", //notice the 2 spaces!
+    "SmileLittle  (need fix)", //notice the 2 spaces!
+    "A1",
+    "O1"
+  ],
+  //sharedassets9.assets
+  //the lost mita at the backrooms
+  "Longer": [
+    "Blink",
+    "SmileStrange"
+  ],
+  //sharedassets16.assets
+  "BlackScreen": [
+    "ManiacPupils",
+    "Blink",
+    "RightEyeBlink",
+    "LeftEyeBlink",
+    "CozyBlink",
+    "EyesSquints",
+    "YandereSquints",
+    "EyesWonder",
     "EyesAngry",
     "EyeBrowsUp",
     "EyeBrowsDown",
@@ -99,16 +176,28 @@
     "SmileMiddle",
     "Smile :3",
     "Smile :>",
+    "SmileBig",
+    "SmileStrange",
+    "SmileManiac",
+    "SmileManiacBig",
     "SmileTricky",
     "AkwardSmile",
     "AkwardSmile2",
+    "A Smile",
+    "AnnoySmall",
     "AnnoyMiddle",
     "AnnoyBig",
     "Annoy8",
+    "A",
+    "O",
+    "Sniff",
     "PuffCheeks",
     "AnnoyToLeft",
+    "TongueA",
+    "TongueSide",
+    "TongueSmile",
     "TongueTricky",
-    "ScaryFace",
-    "w"
+    "ScaryFace"
+    //notice there isn't "w" blendshape!
   ]
 }
