@@ -25,7 +25,7 @@ public class Plugin : MonoBehaviour
     {
         ReadAssetsConfig();
         LoadAssetsForPatch();
-        GetsAddonConfig();
+        ReadAddonsConfigs();
         ConsoleMain.active = true;
         ConsoleMain.eventEnter = new UnityEvent();
         ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
@@ -159,7 +159,7 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    public static void GetsAddonConfig()
+    public static void ReadAddonsConfigs()
     {
         try
         {
