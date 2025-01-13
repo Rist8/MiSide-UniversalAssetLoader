@@ -1,5 +1,4 @@
 {
-  // shared between all mitas
   "Mita": [
     "ManiacPupils",
     "Blink",
@@ -80,7 +79,6 @@
     "TongueTricky",
     "BigEyesSparkles"
   ],
-  //She's in CarSpace minigame for some reason?
   "Chibi": [
     "LittleSmile",
     "A",
@@ -98,8 +96,6 @@
     "Disgust 1",
     "Disgust 2"
   ],
-  //Mita at the end of the game
-  //... are devs rush the ending? everything is almost all placeholder...
   "True": [
     "ManiacPupils",
     "Blink",
@@ -142,22 +138,18 @@
     "Key 40",
     "Key 41",
   ],
-  //also shared with LimpingPerson (sharedassets9.assets)
   "Player": [
     "Blink",
-    "ScaredFace1 (need fix)", //it is seperated mesh in game files.
-    "Thinking1  (need fix)", //notice the 2 spaces!
-    "SmileLittle  (need fix)", //notice the 2 spaces!
+    "ScaredFace1 (need fix)",
+    "Thinking1  (need fix)",
+    "SmileLittle  (need fix)",
     "A1",
     "O1"
   ],
-  //sharedassets9.assets
-  //the lost mita at the backrooms
   "Longer": [
     "Blink",
     "SmileStrange"
   ],
-  //sharedassets16.assets
   "BlackScreen": [
     "ManiacPupils",
     "Blink",
@@ -198,6 +190,5 @@
     "TongueSmile",
     "TongueTricky",
     "ScaryFace"
-    //notice there isn't "w" blendshape!
   ]
 }
