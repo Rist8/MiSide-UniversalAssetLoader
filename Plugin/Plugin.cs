@@ -441,7 +441,6 @@ public class Plugin : MonoBehaviour
             var skinnedAppendix = new HashSet<string>();
             var staticAppendix = new HashSet<string>();
             var replacedMeshes = new HashSet<string>();
-            var replacedTextures = new HashSet<string>();
 
             bool found = false;
             string currentName = "";
@@ -478,10 +477,10 @@ public class Plugin : MonoBehaviour
                                 break;
                             case "replace_tex":
                                 if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]))
-                                    replacedTextures.Add(parts1[2]);
+                                    replacedMeshes.Add(parts1[2]);
                                 break;
                             case "remove":
-                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]) && !replacedMeshes.Contains(parts1[2]) && !replacedTextures.Contains(parts1[2]))
+                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
                                     replacedMeshes.Add(parts1[2]);
                                 break;
                         }
