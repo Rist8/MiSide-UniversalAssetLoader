@@ -100,19 +100,23 @@ public class Commands
     public static void ApplyReplaceTexCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(3, command, mita.name)) 
+        if (ShouldSkip(3, command, mita.name))
             return;
 
         string textureKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
 
         if (renderers.ContainsKey(mita.name + command.args[1]))
         {
-            renderers[mita.name + command.args[1]].material.mainTexture = Plugin.loadedTextures[textureKey];
+            Material material = renderers[mita.name + command.args[1]].material;
+            material.mainTexture = Plugin.loadedTextures[command.args[2]];
+            material.SetFloat("_EnableTextureTransparent", 1.0f);
             UnityEngine.Debug.Log($"[INFO] Replaced texture for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
         {
-            staticRenderers[mita.name + command.args[1]].material.mainTexture = Plugin.loadedTextures[textureKey];
+            Material material = staticRenderers[mita.name + command.args[1]].material;
+            material.mainTexture = Plugin.loadedTextures[command.args[2]];
+            material.SetFloat("_EnableTextureTransparent", 1.0f);
             UnityEngine.Debug.Log($"[INFO] Replaced texture for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -124,7 +128,7 @@ public class Commands
     public static void ApplyReplaceMeshCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(4, command, mita.name)) 
+        if (ShouldSkip(4, command, mita.name))
             return;
 
         string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
@@ -134,13 +138,13 @@ public class Commands
         if (renderers.ContainsKey(mita.name + command.args[1]))
         {
             var skinnedRenderer = renderers[mita.name + command.args[1]];
-            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer));
+            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer), (command.args[1] == "Head"), mita.name);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
         {
             var staticRenderer = staticRenderers[mita.name + command.args[1]];
-            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData);
+            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null, (command.args[1] == "Head"), mita.name);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -152,7 +156,7 @@ public class Commands
     public static void ApplyCreateSkinnedAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers)
     {
-        if (ShouldSkip(3, command, mita.name)) 
+        if (ShouldSkip(3, command, mita.name))
             return;
 
         if (!renderers.ContainsKey(mita.name + command.args[2]))
@@ -175,7 +179,7 @@ public class Commands
     public static void ApplyCreateStaticAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(3, command, mita.name)) 
+        if (ShouldSkip(3, command, mita.name))
             return;
 
         if (staticRenderers.ContainsKey(mita.name + command.args[1]))
@@ -210,7 +214,7 @@ public class Commands
 
     public static void ApplySetScaleCommand((string name, string[] args) command, GameObject mita)
     {
-        if (ShouldSkip(5, command, mita.name)) 
+        if (ShouldSkip(5, command, mita.name))
             return;
 
         var obj = Utility.RecursiveFindChild(mita.transform, command.args[1]);
