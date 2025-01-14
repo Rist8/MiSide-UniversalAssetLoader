@@ -108,14 +108,14 @@ public class Commands
         if (renderers.ContainsKey(mita.name + command.args[1]))
         {
             Material material = renderers[mita.name + command.args[1]].material;
-            material.mainTexture = Plugin.loadedTextures[command.args[2]];
+            material.mainTexture = Plugin.loadedTextures[textureKey];
             material.SetFloat("_EnableTextureTransparent", 1.0f);
             UnityEngine.Debug.Log($"[INFO] Replaced texture for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
         {
             Material material = staticRenderers[mita.name + command.args[1]].material;
-            material.mainTexture = Plugin.loadedTextures[command.args[2]];
+            material.mainTexture = Plugin.loadedTextures[textureKey];
             material.SetFloat("_EnableTextureTransparent", 1.0f);
             UnityEngine.Debug.Log($"[INFO] Replaced texture for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
