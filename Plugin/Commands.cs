@@ -134,7 +134,7 @@ public class Commands
         if (renderers.ContainsKey(mita.name + command.args[1]))
         {
             var skinnedRenderer = renderers[mita.name + command.args[1]];
-            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer));
+            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer), true, mita.name);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))

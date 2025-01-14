@@ -1,18 +1,9 @@
-using System.Globalization;
-using System.IO.Compression;
-using System.Reflection;
 using Coffee.UIEffects;
-using Colorful;
-using Dummiesman;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using LibCpp2IL;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using static MagicaReductionMesh.MeshData;
 using System.Diagnostics;
 using System.Collections.Concurrent;
 
@@ -193,7 +184,7 @@ public class Plugin : MonoBehaviour
                     string command = line.Substring(1).ToLower();
                     if (s == command)
                     {
-                        ClothesMenuPatcher.LogOnClick(command);
+                        ClothesMenuPatcher.LogOnClick(line.Substring(1));
                     }
                 }
             }
