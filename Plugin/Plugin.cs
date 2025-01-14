@@ -430,9 +430,7 @@ public class Plugin : MonoBehaviour
             var objSkinned = UnityEngine.Object.Instantiate(renderer.Value, renderer.Value.transform.position, renderer.Value.transform.rotation, renderer.Value.transform.parent);
             objSkinned.name = renderer.Value.name + "_backup";
             objSkinned.material = new Material(renderer.Value.material);
-            objSkinned.transform.localEulerAngles = new Vector3(-90f, 0, 0);
             objSkinned.gameObject.SetActive(false);
-            renderers[renderer.Key] = objSkinned;
         }
     }
 
