@@ -263,11 +263,11 @@ public class ClothesMenuPatcher
                 }
             }
 
-            Plugin.FindMita();
+            Plugin.FindMita(name, !active);
 
             foreach (string line in oneTimeCommands)
             {
-                string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); 
+                string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 Plugin.assetCommands.RemoveAll(command =>
                     command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                 RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());

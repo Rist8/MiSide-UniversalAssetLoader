@@ -243,8 +243,11 @@ public class AssetLoader
 
             if (!blendShapeOrders.TryGetValue(blendShapeName, out var blendShapeOrder) || blendShapeOrder.Count == 0)
             {
-                UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default fbx order");
-                blendShapeOrder = fbxMesh.MeshAnimationAttachments.Select(bs => bs.Name).ToList();
+                // UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default fbx order");
+                // blendShapeOrder = fbxMesh.MeshAnimationAttachments.Select(bs => bs.Name).ToList();
+                // use Mita as default
+                blendShapeOrder = blendShapeOrders["Mita"];
+                UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default Mita order");
             }
 
             var blendShapeIndex = blendShapeOrder

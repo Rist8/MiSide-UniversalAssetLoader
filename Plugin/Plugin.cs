@@ -338,7 +338,7 @@ public class Plugin : MonoBehaviour
     "Mita", "Mita", "Mita", "Mita", "Mita",
     "Mita", "Mita", "Mita", "Mita", "Mita"};
 
-    public static void FindMita()
+    public static void FindMita(string modName = "", bool disactivation = false)
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
         GameObject[] mitaAnimators = new GameObject[70];
@@ -405,17 +405,129 @@ public class Plugin : MonoBehaviour
             {
                 mitas[i] = mitaAnimators[i];
                 //UnityEngine.Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
-                PatchMita(mitas[i]);
+                PatchMita(modName, mitas[i], false, disactivation);
                 //UnityEngine.Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
             }
         }
     }
 
+    public static void CreateMeshBackup(Dictionary<string, SkinnedMeshRenderer> renderers)
+    {
+        foreach (var renderer in renderers)
+        {
+            if (renderer.Value.transform.parent.Find(renderer.Value.name + "_backup") != null)
+                return;
+
+            var objSkinned = UnityEngine.Object.Instantiate(renderer.Value, renderer.Value.transform.position, renderer.Value.transform.rotation, renderer.Value.transform.parent);
+            objSkinned.name = renderer.Value.name + "_backup";
+            objSkinned.material = new Material(renderer.Value.material);
+            objSkinned.gameObject.SetActive(false);
+        }
+    }
+
+    public static void RestoreMeshBackup(string modName, Dictionary<string, SkinnedMeshRenderer> skinnedRenderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        try
+        {
+            var skinnedAppendix = new HashSet<string>();
+            var staticAppendix = new HashSet<string>();
+            var replacedMeshes = new HashSet<string>();
+
+            bool found = false;
+            string currentName = "";
+            foreach (string line in AddonsConfig)
+            {
+                if (line.StartsWith("*"))
+                {
+                    currentName = line.Substring(1);
+                    UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{currentName}'");
+                    if (found)
+                        break;
+                    continue;
+                }
+                if (line.StartsWith("-") || string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                    continue;
+
+                if (currentName == modName)
+                {
+                    found = true;
+                    string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts1.Length > 2)
+                    {
+                        switch (parts1[0])
+                        {
+                            case "create_static_appendix":
+                                staticAppendix.Add(parts1[2]);
+                                break;
+                            case "create_skinned_appendix":
+                                skinnedAppendix.Add(parts1[2]);
+                                break;
+                            case "replace_mesh":
+                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]))
+                                    replacedMeshes.Add(parts1[2]);
+                                break;
+                            case "replace_tex":
+                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]))
+                                    replacedMeshes.Add(parts1[2]);
+                                break;
+                            case "remove":
+                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
+                                    replacedMeshes.Add(parts1[2]);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            foreach (var renderer in skinnedRenderers.Values)
+            {
+                if (skinnedAppendix.Contains(renderer.name))
+                {
+                    UnityEngine.Object.Destroy(renderer.gameObject);
+                    UnityEngine.Debug.Log($"[INFO] Removed skinned appendix: '{renderer.name}'");
+                }
+                if (replacedMeshes.Contains(renderer.name))
+                {
+                    var backup = renderer.transform.parent.Find(renderer.name + "_backup");
+                    if (backup != null)
+                    {
+                        renderer.sharedMesh = backup.GetComponent<SkinnedMeshRenderer>().sharedMesh;
+                        renderer.material.mainTexture = backup.GetComponent<SkinnedMeshRenderer>().material.mainTexture;
+                        renderer.gameObject.SetActive(true);
+                        UnityEngine.Debug.Log($"[INFO] Restored mesh for: '{renderer.name}'");
+                    }
+                }
+            }
+            foreach (var renderer in staticRenderers.Values)
+            {
+                if (staticAppendix.Contains(renderer.name))
+                {
+                    UnityEngine.Object.Destroy(renderer.gameObject);
+                    UnityEngine.Debug.Log($"[INFO] Removed static appendix: '{renderer.name}'");
+                }
+                if (replacedMeshes.Contains(renderer.name))
+                {
+                    var backup = renderer.transform.parent.Find(renderer.name + "_backup");
+                    if (backup != null)
+                    {
+                        renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
+                        renderer.material.mainTexture = backup.GetComponent<MeshRenderer>().material.mainTexture;
+                        renderer.gameObject.SetActive(true);
+                        UnityEngine.Debug.Log($"[INFO] Restored mesh for: '{renderer.name}'");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            UnityEngine.Debug.LogError($"[ERROR] Error while restoring mesh backup: {ex}");
+        }
+    }
 
     // Global dictionary to track applied commands per object
     public static Dictionary<GameObject, HashSet<string>> globalAppliedCommands = new();
 
-    public static void PatchMita(GameObject mita, bool recursive = false)
+    public static void PatchMita(string modName, GameObject mita, bool recursive = false, bool disactivation = false)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -427,7 +539,7 @@ public class Plugin : MonoBehaviour
 
         if (mita.name == "MitaTrue(Clone)" && !recursive)
         {
-            PatchMita(mita.transform.Find("MitaUsual").gameObject, true);
+            PatchMita(modName, mita.transform.Find("MitaUsual").gameObject, true, disactivation);
             mita = mita.transform.Find("MitaTrue").gameObject;
         }
 
@@ -441,6 +553,15 @@ public class Plugin : MonoBehaviour
 
         foreach (var renderer in staticRenderersList)
             staticRenderers[mita.name + renderer.name.Trim()] = renderer;
+
+        if (currentSceneName == "SceneMenu")
+        {
+            CreateMeshBackup(renderers);
+            if (disactivation)
+            {
+                RestoreMeshBackup(modName, renderers, staticRenderers);
+            }
+        }
 
         foreach (var command in assetCommands)
         {
