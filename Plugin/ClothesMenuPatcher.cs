@@ -6,8 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class ClothesMenuPatcher
-{
+public class ClothesMenuPatcher{
     public static void Run()
     {
         try
@@ -22,41 +21,8 @@ public class ClothesMenuPatcher
 
     private static GameObject _addonButtonPrefab;
     private static Dictionary<string, GameObject> addonButtons = new Dictionary<string, GameObject>();
-    public static void ClickAddonButton(string name)
-    {
-        if (addonButtons.ContainsKey(name))
-        {
-            var button = addonButtons[name].GetComponent<Button>();
-            if (button != null)
-            {
-                button.onClick.Invoke();
-            }
-        }
-    }
 
-
-    private static void UpdateActiveAddons()
-    {
-        if (Plugin.startup)
-        {
-            return;
-        }
-        string filePath = Path.Combine(PluginInfo.AssetsFolder, "active_mods.txt");
-
-
-        using (StreamWriter sw = new StreamWriter(filePath))
-        {
-            foreach (var kvp in Plugin.Active)
-            {
-                if (kvp.Value)
-                {
-                    sw.WriteLine(kvp.Key);
-                }
-            }
-        }
-    }
-    private static void CreateMenuTab()
-    {
+    private static void CreateMenuTab(){
         var clothesMenu = Reflection.FindObjectsOfType<MenuClothes>()[0].gameObject;
 
         var tabs = new GameObject("Tabs");
@@ -83,7 +49,7 @@ public class ClothesMenuPatcher
         UnityEngine.Object.Destroy(text.GetComponent<UI_Colors>());
         var button1 = clothesButton.AddComponent<UnityEngine.UI.Button>();
         button1.targetGraphic = button1.gameObject.AddComponent<UnityEngine.UI.Image>();
-        button1.targetGraphic.color = new UnityEngine.Color(1, 1, 1, 0.005f);
+        button1.targetGraphic.color = new UnityEngine.Color(1,1,1, 0.005f);
 
         var addonsButton = GameObject.Instantiate(clothesButton, tabs.transform);
         addonsButton.name = "AddonsTabButton";
@@ -123,13 +89,11 @@ public class ClothesMenuPatcher
         layout.childForceExpandHeight = false;
         content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         addonsList.SetActive(false);
-
-        void ShowClothesTab()
-        {
+        
+        void ShowClothesTab(){
             button1.interactable = false;
             button2.interactable = true;
-            for (int i = 0; i < clothesMenu.transform.childCount; i++)
-            {
+            for (int i = 0; i < clothesMenu.transform.childCount; i++){
                 var cloth = clothesMenu.transform.GetChild(i);
                 if (cloth.name.StartsWith("CaseCloth"))
                     cloth.gameObject.SetActive(true);
@@ -137,12 +101,10 @@ public class ClothesMenuPatcher
             addonsList.SetActive(false);
         }
 
-        void ShowAddonsTab()
-        {
+        void ShowAddonsTab(){
             button1.interactable = true;
             button2.interactable = false;
-            for (int i = 0; i < clothesMenu.transform.childCount; i++)
-            {
+            for (int i = 0; i < clothesMenu.transform.childCount; i++){
                 var cloth = clothesMenu.transform.GetChild(i);
                 if (cloth.name.StartsWith("CaseCloth"))
                     cloth.gameObject.SetActive(false);
@@ -150,8 +112,8 @@ public class ClothesMenuPatcher
             addonsList.SetActive(true);
         }
 
-        button1.onClick.AddListener((UnityAction)ShowClothesTab);
-        button2.onClick.AddListener((UnityAction)ShowAddonsTab);
+        button1.onClick.AddListener((UnityAction) ShowClothesTab);
+        button2.onClick.AddListener((UnityAction) ShowAddonsTab);
 
         var uiColors = tabs.AddComponent<UI_Colors>();
         uiColors.ui_images = new();
@@ -163,15 +125,13 @@ public class ClothesMenuPatcher
         ml.objects.Clear();
         ml.objects.Add(tabs.GetComponent<RectTransform>());
     }
-    public static void LogOnClick(string name)
-    {
+    public static void LogOnClick(string name){
         bool active = !Plugin.Active[name];
         if (Plugin.currentSceneName == "SceneMenu")
         {
-            Debug.Log($"[INFO] Clicked: {name}");
+            Debug.Log("clicked: " + name);
             addonButtons[name].GetComponent<RectTransform>().Find("Text").GetComponent<Text>().text = name + ((!active) ? "" : "(*)");
         }
-
         MitaClothesResource clothes =
             Reflection.FindObjectsOfType<MenuClothes>()[0].resourceClothes.GetComponent<MitaClothesResource>();
 
@@ -179,157 +139,104 @@ public class ClothesMenuPatcher
         foreach (var cloth in clothes.clothes)
             clothesDict[cloth.fileSave] = cloth;
 
-        Debug.Log($"[INFO] {name} is active: {active}");
+
+        Debug.Log(name + " is active:" + active);
         Plugin.Active[name] = active;
-
-
-        try
-        {
-            string currentName = "";
-            List<string> oneTimeCommands = new();
-            foreach (string addonline in Plugin.AddonsConfig)
-            {
-                string line = addonline;
-
-                // Ignore empty or commented lines
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
-                    continue;
-
-                if (line.StartsWith("*"))
-                {
-                    currentName = line.Substring(1);
-                    continue;
-                }
-
-                if (currentName == name)
-                {
-                    if (line == "trailer")
-                    {
-                        GlobalGame.trailer = active;
+        string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
+        try{
+            using (StreamReader sr = new StreamReader(filePath)){
+                string line, currentName = "";
+                while ((line = sr.ReadLine()) != null){
+                    // Ignore empty lines
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                        continue;
+                    if (line.StartsWith("*")){
+                        currentName = line.Substring(1);
                         continue;
                     }
-                    if (line == "halloween")
-                    {
-                        GlobalGame.halloween = active;
-                        continue;
-                    }
-                    if (line == "christmas")
-                    {
-                        GlobalGame.christmas = active;
-                        continue;
-                    }
-                    if (line.StartsWith("$"))
-                    {
-                        Plugin.ConsoleEnter(line.Substring(1));
-                        continue;
-                    }
-                    // Handle active/inactive commands
-                    if (!active)
-                    {
-                        if (!line.StartsWith("-"))
-                        {
-                            string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                            // Remove commands from assetCommands and globalAppliedCommands
-
-                            Plugin.assetCommands.RemoveAll(command =>
-                                command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
-                            RemoveCommandFromGlobal(parts1[0], parts1.Skip(1).ToArray());
+                    if (currentName == name){
+                        if (line == "trailer") {
+                            if (!active)
+                                GlobalGame.trailer = false;
+                            else
+                                GlobalGame.trailer = true;
                             continue;
                         }
-
-                        line = line.Substring(1); // Remove the leading "-" for the actual command
-                        oneTimeCommands.Add(line);
-                    }
-                    else if (line.StartsWith("-"))
-                    {
-                        line = line.Substring(1);
-                        string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        // Remove commands from assetCommands and globalAppliedCommands
-
+                        if (line == "halloween"){
+                            if (!active)
+                                GlobalGame.halloween = false;
+                            else
+                                GlobalGame.halloween = true;
+                            continue;
+                        }if (line == "christmas"){
+                            if (!active)
+                                GlobalGame.christmas = false;
+                            else
+                                GlobalGame.christmas = true;
+                            continue;
+                        }
+                        if (line.StartsWith("$")){
+                            Plugin.ConsoleEnter(line.Substring(1));
+                            continue;
+                        }
+                        if (!active){
+                            if (!line.StartsWith("-")){
+                                string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                Plugin.assetCommands.RemoveAll(command =>
+                                    command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
+                                continue;
+                            }
+                            line = line.Substring(1);
+                        } else if (line.StartsWith("-")){
+                            string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            Plugin.assetCommands.RemoveAll(command =>
+                                command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
+                            continue;
+                        }
+                        // Split line on commands with arguments list
+                        string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         Plugin.assetCommands.RemoveAll(command =>
-                            command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
-                        RemoveCommandFromGlobal(parts1[0], parts1.Skip(1).ToArray());
-                        continue;
+                            command.name == parts[0] && Enumerable.SequenceEqual(command.args,parts.Skip(1).ToArray()));
+                        Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
                     }
+                }
+                Plugin.FindMita();
+            }
+        }
+        catch (Exception e){
+            Console.WriteLine("Error: " + e.Message);
+        }
+    }
+    static void CreateAddonButtons() {
+        string filePath = PluginInfo.AssetsFolder + "/addons_config.txt";
+        try{
+            using (StreamReader sr = new StreamReader(filePath)){
+                string line;
+                while ((line = sr.ReadLine()) != null){
+                    if (!line.StartsWith("*"))
+                        continue;
+                    addonButtons[line.Substring(1)] = GameObject.Instantiate(_addonButtonPrefab, _addonButtonPrefab.transform.parent);
+                    addonButtons[line.Substring(1)].SetActive(true);
+                    var button = addonButtons[line.Substring(1)].AddComponent<UnityEngine.UI.Button>();
 
-                    // Add or remove commands based on the active state
-                    string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
-                    Plugin.assetCommands.RemoveAll(command =>
-                        command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
-                    Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
+                    string line1 = line.Substring(1);
+                    button.onClick.AddListener((UnityAction)(() => { LogOnClick(line1); }));
+                    if(!Plugin.Active.ContainsKey(line1))
+                        Plugin.Active.Add(line1, false);
+                    if (line1 == "TrailerMode")
+                        Plugin.Active[line1] = GlobalGame.trailer;
+                    if (line1 == "Halloween")
+                        Plugin.Active[line1] = GlobalGame.halloween;
+                    if (line1 == "Christmas")
+                        Plugin.Active[line1] = GlobalGame.christmas;
+
+                    var rect = addonButtons[line.Substring(1)].GetComponent<RectTransform>();
+                    rect.anchoredPosition3D += new Vector3(0, 40 * (addonButtons.Count - 1), 0);
+                    addonButtons[line.Substring(1)].GetComponent<RectTransform>().Find("Text").GetComponent<UnityEngine.UI.Text>().text = line.Substring(1) + ((!Plugin.Active[line1]) ? "" : "(*)");
                 }
             }
-
-            Plugin.FindMita(name, !active);
-
-            foreach (string line in oneTimeCommands)
-            {
-                string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                Plugin.assetCommands.RemoveAll(command =>
-                    command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
-                RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
-            }
         }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error: {e.Message}");
-        }
-    }
-
-    // Helper Method to Remove Commands from globalAppliedCommands
-    private static void RemoveCommandFromGlobal(string commandName, IEnumerable<string> args)
-    {
-        string commandKey = $"{commandName} {string.Join(" ", args)}";
-        bool empty = true;
-
-        foreach (var objectCommands in Plugin.globalAppliedCommands.Values)
-        {
-            if (objectCommands.Contains(commandKey))
-            {
-                objectCommands.Remove(commandKey);
-                empty = false;
-            }
-        }
-
-        if (!empty)
-        {
-            Debug.Log($"[INFO] Removed command '{commandKey}' from commands buffer");
-        }
-    }
-
-    static void CreateAddonButtons()
-    {
-        try
-        {
-            foreach (string line in Plugin.AddonsConfig)
-            {
-                if (!line.StartsWith("*"))
-                    continue;
-                addonButtons[line.Substring(1)] = GameObject.Instantiate(_addonButtonPrefab, _addonButtonPrefab.transform.parent);
-                addonButtons[line.Substring(1)].SetActive(true);
-                var button = addonButtons[line.Substring(1)].AddComponent<UnityEngine.UI.Button>();
-
-                string line1 = line.Substring(1);
-                button.onClick.AddListener((UnityAction)(() => { LogOnClick(line1); UpdateActiveAddons(); }));
-                if (!Plugin.Active.ContainsKey(line1))
-                    Plugin.Active.Add(line1, false);
-                if (line1 == "TrailerMode")
-                    Plugin.Active[line1] = GlobalGame.trailer;
-                if (line1 == "Halloween")
-                    Plugin.Active[line1] = GlobalGame.halloween;
-                if (line1 == "Christmas")
-                    Plugin.Active[line1] = GlobalGame.christmas;
-
-                var rect = addonButtons[line.Substring(1)].GetComponent<RectTransform>();
-                rect.anchoredPosition3D += new Vector3(0, 40 * (addonButtons.Count - 1), 0);
-                addonButtons[line.Substring(1)].GetComponent<RectTransform>().Find("Text").GetComponent<UnityEngine.UI.Text>().text = line.Substring(1) + ((!Plugin.Active[line1]) ? "" : "(*)");
-            }
-        }
-        catch (Exception e)
-        {
+        catch (Exception e){
             Console.WriteLine("Error: " + e.Message);
         }
     }

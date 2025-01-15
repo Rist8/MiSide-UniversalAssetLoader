@@ -5,8 +5,6 @@ using Matrix4x4 = UnityEngine.Matrix4x4;
 using Unity.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Newtonsoft.Json;
-using MagicaCloth;
-using UnityEngine.Rendering;
 
 public class AssetLoader
 {
@@ -38,22 +36,6 @@ public class AssetLoader
         audioClip.hideFlags = HideFlags.DontSave;
         return audioClip;
     }
-    public static UnityEngine.Mesh ConvertMeshToUnity(Assimp.Mesh aMesh, float scale = 1.0f)
-    {
-        var uMesh = new UnityEngine.Mesh()
-        {
-            name = aMesh.Name,
-            indexFormat = IndexFormat.UInt16,
-        };
-
-        uMesh.SetVertices(aMesh.Vertices.Select(vertex => new Vector3(-vertex.X, vertex.Y, vertex.Z) * scale).ToArray());
-        uMesh.SetNormals(aMesh.Normals.Select(normal => new Vector3(-normal.X, normal.Y, normal.Z)).ToArray());
-        uMesh.SetUVs(0, aMesh.TextureCoordinateChannels[0].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
-        uMesh.triangles = aMesh.GetIndices();
-        uMesh.RecalculateBounds();
-
-        return uMesh;
-    }
 
     public static Assimp.Mesh[] LoadFBX(string file) => LoadFBX(File.OpenRead(file));
     public static Assimp.Mesh[] LoadFBX(Stream stream)
@@ -64,189 +46,104 @@ public class AssetLoader
         return fbxFile.Meshes.ToArray();
     }
 
-    public class ArmatureData
+    public class ArmatureData : Dictionary<string, (int index, Matrix4x4 bindpose)>
     {
-        public Dictionary<string, (int index, UnityEngine.Matrix4x4 bindpose, Transform bone)> bones;
-        public List<MagicaBoneCloth> clothNodes;
-        public SkinnedMeshRenderer source;
-
         public ArmatureData(SkinnedMeshRenderer source)
         {
-            this.source = source;
-            bones = new Dictionary<string, (int index, UnityEngine.Matrix4x4 bindpose, Transform bone)>(source.bones.Length);
-            clothNodes = new List<MagicaBoneCloth>();
-
-            var sharedMeshBindposes = source.sharedMesh.bindposes;
             for (int i = 0; i < source.bones.Length; i++)
-            {
-                var boneName = FixedBoneName(source.bones[i].name);
-
-                if (!bones.ContainsKey(boneName))
-                {
-                    bones[boneName] = (i, sharedMeshBindposes[i], source.bones[i]);
-
-                }
-            }
-
-            var allBones = CollectBonesIteratively(source.rootBone.transform);
-
-            foreach (var bone in allBones)
-            {
-                if (bone.TryGetComponent<MagicaBoneCloth>(out var boneCloth))
-                {
-                    clothNodes.Add(boneCloth);
-                }
-            }
+                this[FixedBoneName(source.bones[i].name)] = (i, source.sharedMesh.bindposes[i]);
         }
-
-        private List<Transform> CollectBonesIteratively(Transform root)
+        public ArmatureData(GameObject source)
         {
-            var boneList = new List<Transform>();
-            if (root == null) return boneList;
-
-            var stack = new Stack<Transform>();
-            stack.Push(root);
-
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                if (current == null || !current.gameObject.activeSelf || current.name.Contains("Collider"))
-                {
-                    continue;
-                }
-
-                boneList.Add(current);
-
-                for (int i = 0; i < current.childCount; ++i)
-                {
-                    stack.Push(current.GetChild(i));
-                }
-            }
-
-            return boneList;
+            foreach (var mr in source.GetComponentsInChildren<SkinnedMeshRenderer>())
+                for (int i = 0; i < mr.bones.Length; i++)
+                    this[FixedBoneName(mr.bones[i].name)] = (i, mr.sharedMesh.bindposes[i]);
         }
-
     }
 
-    public static void ResizeMesh(ref UnityEngine.Mesh mesh, float scale)
+    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, string blendShapeName = "Mita")
     {
-        var vertices = mesh.vertices;
-        mesh.SetVertices(vertices.Select(v => v * scale).ToArray());
-    }
-
-
-    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, bool addBlendShape = false, string blendShapeName = "Mita")
-    {
-        blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "");
-
-        var mesh = ConvertMeshToUnity(fbxMesh);
-
-        if (armature == null)
+        var mesh = new UnityEngine.Mesh()
         {
-            return mesh;
-        }
+            indexFormat = (fbxMesh.VertexCount > 65535) ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16
+        };
 
-        int boneCount = armature.bones.Count;
-        int bonesPerVertexLength = fbxMesh.VertexCount;
+        mesh.name = fbxMesh.Name;
+        mesh.SetVertices(fbxMesh.Vertices.Select(vertex => new Vector3(-vertex.X, vertex.Y, vertex.Z)).ToArray());
+        mesh.SetNormals(fbxMesh.Normals.Select(normal => new Vector3(-normal.X, normal.Y, normal.Z)).ToArray());
 
-        var bindposes = new UnityEngine.Matrix4x4[boneCount];
-        for (int i = 0; i < boneCount; i++)
+        if (fbxMesh.TextureCoordinateChannelCount >= 4)
+            mesh.SetUVs(3, fbxMesh.TextureCoordinateChannels[3].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
+        if (fbxMesh.TextureCoordinateChannelCount >= 3)
+            mesh.SetUVs(2, fbxMesh.TextureCoordinateChannels[2].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
+        if (fbxMesh.TextureCoordinateChannelCount >= 2)
+            mesh.SetUVs(1, fbxMesh.TextureCoordinateChannels[1].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
+        if (fbxMesh.TextureCoordinateChannelCount >= 1)
+            mesh.SetUVs(0, fbxMesh.TextureCoordinateChannels[0].Select(uv => new Vector2(uv.X, uv.Y)).ToArray());
+
+        mesh.SetTangents(fbxMesh.Tangents.Select(tangent => new Vector4(tangent.X, tangent.Y, tangent.Z)).ToArray());
+
+        if (armature != null)
         {
-            bindposes[i] = UnityEngine.Matrix4x4.identity;
-        }
+            var bonesPerVertex = new List<BoneWeight1>[mesh.vertexCount];
+            var bindposes = new List<Matrix4x4>();
+            for (int i = 0; i < armature.Count; i++) bindposes.Add(Matrix4x4.identity);
 
-        var bonesPerVertex = new List<BoneWeight1>[bonesPerVertexLength];
-
-        foreach (var bone in fbxMesh.Bones)
-        {
-            if (!armature.bones.TryGetValue(AssetLoader.FixedBoneName(bone.Name), out var armatureBone))
+            foreach (var bone in fbxMesh.Bones)
             {
-                continue;
-            }
-
-            int armatureBoneIndex = armatureBone.index;
-
-            foreach (var vertex in bone.VertexWeights)
-            {
-                int vertexID = vertex.VertexID;
-
-                if (vertexID >= bonesPerVertexLength)
+                var armatureBone = armature[FixedBoneName(bone.Name)];
+                foreach (var vertex in bone.VertexWeights)
                 {
-                    continue;
+                    if (bonesPerVertex[vertex.VertexID] == null)
+                        bonesPerVertex[vertex.VertexID] = new List<BoneWeight1>();
+
+                    bonesPerVertex[vertex.VertexID].Add(new BoneWeight1()
+                    {
+                        boneIndex = armatureBone.index,
+                        weight = vertex.Weight
+                    });
                 }
-
-                bonesPerVertex[vertexID] ??= new List<BoneWeight1>();
-
-                bonesPerVertex[vertexID].Add(new BoneWeight1()
-                {
-                    boneIndex = armatureBoneIndex,
-                    weight = vertex.Weight
-                });
+                bindposes[armatureBone.index] = armatureBone.bindpose;
             }
 
-            if (armatureBoneIndex >= 0 && armatureBoneIndex < boneCount)
+            var bonesPerVertexArray = new NativeArray<byte>(bonesPerVertex.Length, Allocator.Temp);
+            List<BoneWeight1> weights = new List<BoneWeight1>();
+            for (int i = 0; i < bonesPerVertex.Length; i++)
             {
-                bindposes[armatureBoneIndex] = armatureBone.bindpose;
-            }
-        }
-
-        var bonesPerVertexArray = new NativeArray<byte>(bonesPerVertexLength, Allocator.Temp);
-        var weights = new List<BoneWeight1>();
-
-        for (int i = 0; i < bonesPerVertex.Length; i++)
-        {
-            var boneList = bonesPerVertex[i];
-            if (boneList != null)
-            {
-                boneList.Sort((a, b) => b.weight.CompareTo(a.weight));
-
-                if (boneList.Count > 4)
+                var bone = bonesPerVertex[i];
+                if (bone != null)
                 {
-                    boneList.RemoveRange(4, boneList.Count - 4);
+                    if (bone.Count >= 2)
+                        bone.Sort((a, b) => b.weight.CompareTo(a.weight));
+                    while (bone.Count > 1 && bone[bone.Count - 1].weight < 0.001)
+                        bone.RemoveAt(bone.Count - 1);
+                    float sum = bone.Sum(item => item.weight);
+                    for (int j = 0; j < bone.Count; j++)
+                        bone[j] = new BoneWeight1() { weight = bone[j].weight / sum, boneIndex = bone[j].boneIndex };
+                    weights.AddRange(bone);
+                    bonesPerVertexArray[i] = (byte)bone.Count;
                 }
-
-                float totalWeight = boneList.Sum(bw => bw.weight);
-                for (int j = 0; j < boneList.Count; j++)
+                else
                 {
-                    var boneWeight = boneList[j];
-                    boneWeight.weight /= totalWeight;
-                    boneList[j] = boneWeight;
+                    weights.Add(new BoneWeight1() { weight = 0, boneIndex = 0 });
+                    bonesPerVertexArray[i] = 1;
                 }
-
-                bonesPerVertexArray[i] = (byte)boneList.Count;
-                weights.AddRange(boneList);
             }
-            else
-            {
-                weights.Add(new BoneWeight1() { boneIndex = 0, weight = 0 });
-                bonesPerVertexArray[i] = 1;
-            }
-        }
 
-        var weightsArray = new NativeArray<BoneWeight1>(weights.Count, Allocator.Temp);
-        for (int i = 0; i < weights.Count; i++)
-        {
-            weightsArray[i] = weights[i];
-        }
+            var weightsArray = new NativeArray<BoneWeight1>(weights.Count, Allocator.Temp);
+            for (int i = 0; i < weightsArray.Length; i++) weightsArray[i] = weights[i];
 
-        mesh.SetBoneWeights(bonesPerVertexArray, weightsArray);
-        mesh.bindposes = bindposes;
-
-        foreach (var clothNode in armature.clothNodes)
-        {
-            clothNode.cullRendererList = new Il2CppSystem.Collections.Generic.List<Renderer> { };
-            clothNode.cullRendererList.Add(armature.source);
+            mesh.SetBoneWeights(bonesPerVertexArray, weightsArray);
+            mesh.bindposes = bindposes.ToArray();
         }
+        mesh.triangles = fbxMesh.GetIndices();
 
         // Add Blendshape Processing
-        if (addBlendShape || fbxMesh.HasMeshAnimationAttachments)
+        if (fbxMesh.HasMeshAnimationAttachments)
         {
-            UnityEngine.Debug.Log($"[INFO] Blendshape name: {blendShapeName}");
-
             string blendShapeOrdersPath = Path.Combine(PluginInfo.AssetsFolder, "blendshape_orders.json");
 
-            var blendShapeOrders = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> blendShapeOrders = new Dictionary<string, List<string>>();
 
             if (File.Exists(blendShapeOrdersPath))
             {
@@ -254,18 +151,13 @@ public class AssetLoader
                 blendShapeOrders = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(jsonContent);
             }
 
-            if (!blendShapeOrders.TryGetValue(blendShapeName, out var blendShapeOrder) || blendShapeOrder.Count == 0)
-            {
-                // UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default fbx order");
-                // blendShapeOrder = fbxMesh.MeshAnimationAttachments.Select(bs => bs.Name).ToList();
-                // use Mita as default
-                blendShapeOrder = blendShapeOrders["Mita"];
-                UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default Mita order");
-            }
+            List<string> blendShapeOrder = blendShapeOrders.ContainsKey(blendShapeName) ? blendShapeOrders[blendShapeName] : new List<string>();
 
-            var blendShapeIndex = blendShapeOrder
-                .Select((name, index) => new { name, index })
-                .ToDictionary(x => x.name, x => x.index);
+            Dictionary<string, int> blendShapeIndex = new Dictionary<string, int>();
+            for (int i = 0; i < blendShapeOrder.Count; i++)
+            {
+                blendShapeIndex[blendShapeOrder[i]] = i;
+            }
 
             var blendShapes = fbxMesh.MeshAnimationAttachments
                 .Where(bs => blendShapeIndex.ContainsKey(bs.Name))
@@ -275,11 +167,11 @@ public class AssetLoader
             int vertexCount = mesh.vertexCount;
             int normalCount = mesh.normals.Length;
 
-            var deltaVerts = new Vector3[vertexCount];
-            var deltaNormals = new Vector3[normalCount];
+            Vector3[] deltaVerts = new Vector3[vertexCount];
+            Vector3[] deltaNormals = new Vector3[normalCount];
 
-            var vertices = mesh.vertices;
-            var normals = mesh.normals;
+            Vector3[] vertices = mesh.vertices;
+            Vector3[] normals = mesh.normals;
 
             int missingBlendShapesCount = blendShapeOrder.Count - blendShapes.Count;
             for (int i = 0; i < missingBlendShapesCount; i++)
@@ -312,17 +204,134 @@ public class AssetLoader
                 }
 
                 mesh.AddBlendShapeFrame(name, 100.0f, deltaVerts, deltaNormals, null);
-                //Debug.Log($"[INFO] New blendshape loaded: {name}");
+                Debug.Log($"New blendshape loaded: {name}");
             }
-            Debug.Log($"[INFO] Blendshapes loaded");
         }
 
         // Recalculations
-        mesh.RecalculateBoundsImpl(MeshUpdateFlags.Default);
+        Reflection.ForceUseMethod<object>(mesh, "RecalculateBoundsImpl", new object[] { UnityEngine.Rendering.MeshUpdateFlags.Default });
+
         return mesh;
     }
 
-    public static string FixedBoneName(string name) => name.Replace(" ", "_").Replace(".", "_");
+    static string FixedBoneName(string name) => name.Replace(" ", "_").Replace(".", "_");
+
+    public static void CalculateBoneWeights(UnityEngine.Mesh sourceMesh, UnityEngine.Mesh targetMesh)
+    {
+        Vector3[] sourceVertices = sourceMesh.vertices;
+        Vector3[] targetVertices = targetMesh.vertices;
+        BoneWeight[] sourceBoneWeights = sourceMesh.boneWeights;
+        BoneWeight[] targetBoneWeights = new BoneWeight[targetVertices.Length];
+        List<(int key, float val)> minDistances = new List<(int key, float val)>();
+        int searchLimit = 10;
+
+        for (int i = 0; i < targetVertices.Length; i++)
+        {
+            Vector3 currentVertex = targetVertices[i];
+            minDistances.Clear();
+
+            for (int j = 0; j < sourceVertices.Length; j++)
+            {
+                float distance = Vector3.Distance(currentVertex, sourceVertices[j]);
+                for (int k = 0; k < minDistances.Count; k++)
+                    if (distance < minDistances[k].val)
+                    {
+                        minDistances.Insert(k, (j, distance));
+                        while (minDistances.Count > searchLimit)
+                            minDistances.RemoveAt(minDistances.Count - 1);
+                    }
+                if (minDistances.Count < searchLimit)
+                    minDistances.Add((j, distance));
+            }
+
+            Dictionary<int, float> bonesAffecting = new Dictionary<int, float>();
+            for (int l = 0; l < minDistances.Count; l++)
+            {
+                BoneWeight closestBoneWeight = sourceBoneWeights[minDistances[l].key];
+                if (!bonesAffecting.ContainsKey(closestBoneWeight.boneIndex0)) bonesAffecting[closestBoneWeight.boneIndex0] = 0;
+                if (!bonesAffecting.ContainsKey(closestBoneWeight.boneIndex1)) bonesAffecting[closestBoneWeight.boneIndex1] = 0;
+                if (!bonesAffecting.ContainsKey(closestBoneWeight.boneIndex2)) bonesAffecting[closestBoneWeight.boneIndex2] = 0;
+                if (!bonesAffecting.ContainsKey(closestBoneWeight.boneIndex3)) bonesAffecting[closestBoneWeight.boneIndex3] = 0;
+                bonesAffecting[closestBoneWeight.boneIndex0] += closestBoneWeight.weight0;
+                bonesAffecting[closestBoneWeight.boneIndex1] += closestBoneWeight.weight1;
+                bonesAffecting[closestBoneWeight.boneIndex2] += closestBoneWeight.weight2;
+                bonesAffecting[closestBoneWeight.boneIndex3] += closestBoneWeight.weight3;
+            }
+            List<(int key, float val)> sortedBones = new List<(int key, float val)>();
+            foreach (var pair in bonesAffecting)
+                sortedBones.Add((pair.Key, pair.Value));
+            sortedBones = sortedBones.OrderByDescending(x => x.val).Take(4).ToList();
+            while (sortedBones.Count < 4) sortedBones.Add((0, 0));
+            float sum = sortedBones.Select(item => item.val).Sum();
+
+            BoneWeight averageBoneWeight = new BoneWeight();
+
+            averageBoneWeight.boneIndex0 = sortedBones[0].key;
+            averageBoneWeight.boneIndex1 = sortedBones[1].key;
+            averageBoneWeight.boneIndex2 = sortedBones[2].key;
+            averageBoneWeight.boneIndex3 = sortedBones[3].key;
+            averageBoneWeight.weight0 = sortedBones[0].val / sum;
+            averageBoneWeight.weight1 = sortedBones[1].val / sum;
+            averageBoneWeight.weight2 = sortedBones[2].val / sum;
+            averageBoneWeight.weight3 = sortedBones[3].val / sum;
+
+            // Assign the average bone weights to the current vertex in targetMesh
+            targetBoneWeights[i] = averageBoneWeight;
+        }
+
+        // Apply the changes to the second mesh
+        targetMesh.boneWeights = targetBoneWeights;
+    }
+
+    public static Dictionary<string, object> ParseYAML(string text)
+    {
+        var lines = text.Split('\n');
+        var result = new Dictionary<string, object>();
+        var stack = new Stack<(int level, object container)>();
+        string prevKey = null;
+
+        stack.Push((0, result));
+
+        foreach (string line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//")) continue;
+            var indent = line.TakeWhile(c => c == ' ').Count() / 2;
+            string key = null, value = null;
+            if (line.Contains(':'))
+            {
+                key = line.Substring(0, line.IndexOf(':')).Trim();
+                value = line.Substring(line.IndexOf(':') + 1).Trim();
+                if (string.IsNullOrWhiteSpace(value)) value = null;
+            }
+            else
+                key = line.Trim();
+
+            while (stack.Count > 0 && stack.Peek().level > indent) stack.Pop();
+
+            if (key.StartsWith("-"))
+            {
+                if (!(stack.Peek().container is List<object>))
+                {
+                    var array = new List<object>();
+                    (stack.Peek().container as Dictionary<string, object>)[prevKey] = array;
+                    stack.Push((indent, array));
+                }
+
+                var dict = new Dictionary<string, object>();
+                (stack.Peek().container as List<object>).Add(dict);
+                stack.Push((indent + 1, dict));
+                key = key.Remove(0, 1).TrimStart();
+            }
+            else if (stack.Peek().container is List<object>)
+                stack.Pop();
+
+            (stack.Peek().container as Dictionary<string, object>)[key] = value;
+
+            prevKey = key;
+        }
+
+        return result;
+    }
 
     public static byte[] ReadStream(Stream input)
     {

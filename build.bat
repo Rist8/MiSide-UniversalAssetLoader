@@ -95,5 +95,3 @@ robocopy ".\Compiled" "%GameFolder%\BepInEx\plugins\UniversalAssetLoader" /E /np
 if not exist %GameFolder%\assimp.dll (
     copy ".\Dependencies\assimp.dll" "%GameFolder%"
 )
-
-pause

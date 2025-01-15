@@ -1,2 +1,0 @@
-SetFloat _OutlineWidth 0.6
-SetColor _OutlineColor (0.5,0,0.1,1) 1
