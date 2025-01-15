@@ -227,7 +227,7 @@ public class AssetLoader
         }
 
         // Add Blendshape Processing
-        if (addBlendShape)
+        if (addBlendShape || fbxMesh.HasMeshAnimationAttachments)
         {
             UnityEngine.Debug.Log($"[INFO] Blendshape name: {blendShapeName}");
 

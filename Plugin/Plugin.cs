@@ -290,7 +290,7 @@ public class Plugin : MonoBehaviour
         Parallel.ForEach(AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"),
             new ParallelOptions
             {
-                MaxDegreeOfParallelism = Environment.ProcessorCount - 1
+            MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - 1, 1)
             }
         , file =>
         {
@@ -689,7 +689,7 @@ public class Plugin : MonoBehaviour
                         Commands.ApplyReplaceTexCommand(command, player, renderers, staticRenderers);
                         break;
                     case "replace_mesh":
-                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers);
+                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
                         break;
                     case "create_skinned_appendix":
                         Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers);
