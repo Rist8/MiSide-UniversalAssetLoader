@@ -194,15 +194,28 @@ public class AssetLoader
         var bonesPerVertexArray = new NativeArray<byte>(bonesPerVertexLength, Allocator.Temp);
         var weights = new List<BoneWeight1>();
 
-        for (int i = 0; i < bonesPerVertexLength; i++)
+        for (int i = 0; i < bonesPerVertex.Length; i++)
         {
-            if (bonesPerVertex[i] != null)
+            var boneList = bonesPerVertex[i];
+            if (boneList != null)
             {
-                bonesPerVertex[i].Sort((a, b) => b.weight.CompareTo(a.weight));
-                bonesPerVertex[i] = bonesPerVertex[i].GetRange(0, Math.Min(bonesPerVertex[i].Count, 4));
+                boneList.Sort((a, b) => b.weight.CompareTo(a.weight));
 
-                weights.AddRange(bonesPerVertex[i]);
-                bonesPerVertexArray[i] = (byte)bonesPerVertex[i].Count;
+                if (boneList.Count > 4)
+                {
+                    boneList.RemoveRange(4, boneList.Count - 4);
+                }
+
+                float totalWeight = boneList.Sum(bw => bw.weight);
+                for (int j = 0; j < boneList.Count; j++)
+                {
+                    var boneWeight = boneList[j];
+                    boneWeight.weight /= totalWeight;
+                    boneList[j] = boneWeight;
+                }
+
+                bonesPerVertexArray[i] = (byte)boneList.Count;
+                weights.AddRange(boneList);
             }
             else
             {
