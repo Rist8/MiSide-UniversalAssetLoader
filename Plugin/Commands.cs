@@ -7,24 +7,24 @@ public class Commands
     private static bool ShouldSkip(int start, (string name, string[] args) command, string mitaName)
     {
         int i = start;
-
+    
         // Log only the reason for skipping or applying, keeping logs concise
         for (; i < command.args.Length && command.args[i] != "all"; i++)
         {
             string argsName = command.args[i];
-
+    
             if (command.args[i].StartsWith("!"))
             {
                 // Negative keyword check (e.g., "!Mita")
                 if (command.args[i] == "!Mita")
                     argsName = "!MitaPerson Mita";
-
+    
                 if (mitaName.Contains(string.Join("", argsName.Skip(1))))
                 {
                     UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{mitaName}' due to negative keyword '{argsName}'.");
                     return true;
                 }
-
+    
                 continue;
             }
             else
@@ -32,22 +32,26 @@ public class Commands
                 // Positive keyword check
                 if (command.args[i] == "Mita")
                     argsName = "MitaPerson Mita";
-
+    
                 if (!mitaName.Contains(argsName))
                 {
-                    UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{mitaName}' because keyword '{argsName}' was not found.");
-                    return true;
+                    if (i == command.args.Length - 1)
+                    {
+                        UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{mitaName}' because keyword '{argsName}' was not found.");
+                        return true;
+                    }
+                    continue;
                 }
-
+    
                 break; // Positive match found; no need to check further
             }
         }
-
+    
         if (i == command.args.Length)
         {
             UnityEngine.Debug.Log($"[INFO] Applying command '{command.name}' on '{mitaName}' as no exclusion keywords were matched.");
         }
-
+    
         return false; // Do not skip
     }
 
