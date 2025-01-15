@@ -1,0 +1,2 @@
+EnableKeyword _EMISSION
+SetColor _MainColor (1,0.1,0.1,1) 10

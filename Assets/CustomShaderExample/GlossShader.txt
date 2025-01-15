@@ -1,0 +1,3 @@
+SetFloat _GlossIntensity 1
+SetFloat _Glossiness 5.2
+
