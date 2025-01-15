@@ -264,4 +264,98 @@ public class Commands
         }
     }
 
+    private static void ReadShaderParams(Material material, string shaderParamPath)
+    {
+        string filePath = PluginInfo.AssetsFolder + "/" + shaderParamPath + ".txt";
+        try
+        {
+            using (StreamReader sr = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                        continue;
+
+                    string[] parts = line.Split(' ');
+                    try
+                    {
+                        switch (parts[0])
+                        {
+                            case "EnableKeyword":
+                                material.EnableKeyword(parts[1]);
+                                break;
+                            case "DisableKeyword":
+                                material.DisableKeyword(parts[1]);
+                                break;
+                            case "SetFloat":
+                                material.SetFloat(parts[1], float.Parse(parts[2], CultureInfo.InvariantCulture));
+                                break;
+                            case "SetInt":
+                                material.SetInt(parts[1], int.Parse(parts[2]));
+                                break;
+                            case "SetVector":
+                                material.SetVector(parts[1], new Vector4(
+                                    float.Parse(parts[2].Split(',')[0].TrimStart('('), CultureInfo.InvariantCulture),
+                                    float.Parse(parts[2].Split(',')[1], CultureInfo.InvariantCulture),
+                                    float.Parse(parts[2].Split(',')[2], CultureInfo.InvariantCulture),
+                                    float.Parse(parts[2].Split(',')[3].TrimEnd(')'), CultureInfo.InvariantCulture)
+                                ));
+                                break;
+                            case "SetColor":
+                                Color color = new Color(
+                                    float.Parse(parts[2].Split(',')[0].TrimStart('('), CultureInfo.InvariantCulture),
+                                    float.Parse(parts[2].Split(',')[1], CultureInfo.InvariantCulture),
+                                    float.Parse(parts[2].Split(',')[2], CultureInfo.InvariantCulture),
+                                    float.Parse(parts[2].Split(',')[3].TrimEnd(')'), CultureInfo.InvariantCulture)
+                                );
+                                if (parts.Length == 4)
+                                {
+                                    color *= float.Parse(parts[3], CultureInfo.InvariantCulture);
+                                }
+
+                                material.SetColor(parts[1], color);
+                                break;
+                            default:
+                                UnityEngine.Debug.LogWarning($"[WARNING] Unknown shader parameter '{parts[0]}' in shader '{material.shader.name}'.");
+                                break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogWarning($"[WARNING] Shader parameter '{parts[0]}' not found in shader '{material.shader.name}'.");
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Shader parameter file '{filePath}' not found.");
+            return;
+        }
+    }
+
+    public static void ApplyShaderParamsCommand((string name, string[] args) command, GameObject mita, Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        if (ShouldSkip(3, command, mita.name))
+            return;
+
+        string txtKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
+
+        if (renderers.ContainsKey(mita.name + command.args[1]))
+        {
+            ReadShaderParams(renderers[mita.name + command.args[1]].material, txtKey);
+            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[mita.name + command.args[1]].name}' .");
+        }
+        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+        {
+            ReadShaderParams(staticRenderers[mita.name + command.args[1]].material, txtKey);
+            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[mita.name + command.args[1]].name}' .");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for shader parameter setting.");
+        }
+    }
+
 }
