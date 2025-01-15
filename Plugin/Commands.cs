@@ -35,8 +35,12 @@ public class Commands
 
                 if (!mitaName.Contains(argsName))
                 {
-                    UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{mitaName}' because keyword '{argsName}' was not found.");
-                    return true;
+                    if (i == command.args.Length - 1)
+                    {
+                        UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{mitaName}' because keyword '{argsName}' was not found.");
+                        return true;
+                    }
+                    continue;
                 }
 
                 break; // Positive match found; no need to check further
@@ -126,10 +130,12 @@ public class Commands
     }
 
     public static void ApplyReplaceMeshCommand((string name, string[] args) command, GameObject mita,
-    Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers, string blendShapeKey = null)
     {
         if (ShouldSkip(4, command, mita.name))
             return;
+        if (blendShapeKey == null)
+            blendShapeKey = mita.name;
 
         string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
@@ -138,13 +144,13 @@ public class Commands
         if (renderers.ContainsKey(mita.name + command.args[1]))
         {
             var skinnedRenderer = renderers[mita.name + command.args[1]];
-            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer), (command.args[1] == "Head"), mita.name);
+            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer), (command.args[1] == "Head"), blendShapeKey);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
         {
             var staticRenderer = staticRenderers[mita.name + command.args[1]];
-            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null, (command.args[1] == "Head"), mita.name);
+            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null, (command.args[1] == "Head"), blendShapeKey);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else

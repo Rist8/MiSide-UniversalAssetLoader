@@ -1,18 +1,9 @@
-using System.Globalization;
-using System.IO.Compression;
-using System.Reflection;
 using Coffee.UIEffects;
-using Colorful;
-using Dummiesman;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using LibCpp2IL;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using static MagicaReductionMesh.MeshData;
 using System.Diagnostics;
 using System.Collections.Concurrent;
 
@@ -193,7 +184,7 @@ public class Plugin : MonoBehaviour
                     string command = line.Substring(1).ToLower();
                     if (s == command)
                     {
-                        ClothesMenuPatcher.LogOnClick(command);
+                        ClothesMenuPatcher.LogOnClick(line.Substring(1));
                     }
                 }
             }
@@ -299,7 +290,7 @@ public class Plugin : MonoBehaviour
         Parallel.ForEach(AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"),
             new ParallelOptions
             {
-                MaxDegreeOfParallelism = Environment.ProcessorCount - 1
+            MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - 1, 1)
             }
         , file =>
         {
@@ -701,7 +692,7 @@ public class Plugin : MonoBehaviour
                         Commands.ApplyReplaceTexCommand(command, player, renderers, staticRenderers);
                         break;
                     case "replace_mesh":
-                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers);
+                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
                         break;
                     case "create_skinned_appendix":
                         Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers);
