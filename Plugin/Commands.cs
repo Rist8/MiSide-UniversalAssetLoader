@@ -4,6 +4,7 @@ using UtilityNamespace;
 
 public class Commands
 {
+    public static List<string> HeadSkinnedAppendix = new List<string>();
     private static bool ShouldSkip(int start, (string name, string[] args) command, string mitaName)
     {
         int i = start;
@@ -64,6 +65,8 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
         {
+            if (HeadSkinnedAppendix.Contains(command.args[1]))
+                HeadSkinnedAppendix.Remove(command.args[1]);
             renderers[mita.name + command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
@@ -144,13 +147,16 @@ public class Commands
         if (renderers.ContainsKey(mita.name + command.args[1]))
         {
             var skinnedRenderer = renderers[mita.name + command.args[1]];
-            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer), (command.args[1] == "Head"), blendShapeKey);
+            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer),
+                ((command.args[1] == "Head") || HeadSkinnedAppendix.Contains(command.args[1])), blendShapeKey);
+
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
         {
             var staticRenderer = staticRenderers[mita.name + command.args[1]];
-            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null, (command.args[1] == "Head"), blendShapeKey);
+            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null,
+                ((command.args[1] == "Head") || HeadSkinnedAppendix.Contains(command.args[1])), blendShapeKey);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -179,6 +185,12 @@ public class Commands
         objSkinned.gameObject.SetActive(true);
 
         renderers[mita.name + command.args[1]] = objSkinned;
+
+        if (command.args[2] == "Head" && !HeadSkinnedAppendix.Contains(command.args[1]))
+        {
+            HeadSkinnedAppendix.Add(command.args[1]);
+        }
+
         UnityEngine.Debug.Log($"[INFO] Created skinned appendix '{command.args[1]}' on '{mita.name}'.");
     }
 

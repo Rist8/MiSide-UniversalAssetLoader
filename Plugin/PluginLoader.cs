@@ -2,6 +2,10 @@
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Il2CppInterop.Runtime.Injection;
+using Il2CppSystem.Windows.Forms;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.Device;
 
 public static class PluginInfo
 {
@@ -11,6 +15,7 @@ public static class PluginInfo
 
 	public static PluginLoader Instance;
 	public static string AssetsFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Assets";
+	public static string DependenciesFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Dependencies";
 }
 
 [BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.11.0")]
@@ -18,12 +23,48 @@ public class PluginLoader : BasePlugin
 {
 	public ManualLogSource Logger { get; private set; }
 
-	public PluginLoader() { }
+    public PluginLoader()
+    {
+        Logger = null!; // Initialize Logger to a non-null value to satisfy the compiler
+    }
 
 	public override void Load()
 	{
 		Logger = (this as BasePlugin).Log;
 		PluginInfo.Instance = this;
-		IL2CPPChainloader.AddUnityComponent(typeof(Plugin));
+
+        var assimpPath = Path.Join(PluginInfo.DependenciesFolder, "assimp.dll");
+        if (File.Exists(assimpPath))
+        {
+            Assimp.Unmanaged.AssimpLibrary.Instance.LoadLibrary(assimpPath);
+        }
+
+        AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+
+        IL2CPPChainloader.AddUnityComponent(typeof(Plugin));
 	}
+
+    private static Assembly? ResolveAssembly(object? sender, ResolveEventArgs args)
+    {
+        // Directory containing custom assemblies
+        string customDirectory = PluginInfo.DependenciesFolder;
+
+        // Extract the assembly name
+        var assemblyName = new AssemblyName(args.Name).Name;
+
+        // Construct the path to the DLL
+        string assemblyPath = Path.Combine(customDirectory, assemblyName + ".dll");
+
+        // Check if the file exists and load it
+        if (File.Exists(assemblyPath))
+        {
+            if(assemblyName == "assimp")
+            {
+                return null;
+            }
+            return Assembly.LoadFrom(assemblyPath);
+        }
+
+        return null; // Return null if not found
+    }
 }

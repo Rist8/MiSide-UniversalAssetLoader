@@ -160,7 +160,7 @@ public class AssetLoader
 
         foreach (var bone in fbxMesh.Bones)
         {
-            if (!armature.bones.TryGetValue(AssetLoader.FixedBoneName(bone.Name), out var armatureBone))
+            if (!armature.bones.TryGetValue(FixedBoneName(bone.Name), out var armatureBone))
             {
                 continue;
             }
@@ -235,7 +235,7 @@ public class AssetLoader
 
         foreach (var clothNode in armature.clothNodes)
         {
-            clothNode.cullRendererList = new Il2CppSystem.Collections.Generic.List<Renderer> { };
+            clothNode.cullRendererList ??= new Il2CppSystem.Collections.Generic.List<Renderer> { };
             clothNode.cullRendererList.Add(armature.source);
         }
 

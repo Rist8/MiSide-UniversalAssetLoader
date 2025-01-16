@@ -182,6 +182,7 @@ public class ClothesMenuPatcher
         Debug.Log($"[INFO] {name} is active: {active}");
         Plugin.Active[name] = active;
 
+        Commands.HeadSkinnedAppendix.Clear();
 
         try
         {
@@ -272,6 +273,8 @@ public class ClothesMenuPatcher
                     command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                 RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
             }
+
+            Commands.HeadSkinnedAppendix.Clear();
         }
         catch (Exception e)
         {
