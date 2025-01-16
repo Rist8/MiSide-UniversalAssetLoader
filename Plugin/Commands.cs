@@ -5,6 +5,7 @@ using UtilityNamespace;
 public class Commands
 {
     public static List<string> HeadSkinnedAppendix = new List<string>();
+
     private static bool ShouldSkip(int start, (string name, string[] args) command, string mitaName)
     {
         int i = start;
@@ -149,7 +150,6 @@ public class Commands
             var skinnedRenderer = renderers[mita.name + command.args[1]];
             skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer),
                 ((command.args[1] == "Head") || HeadSkinnedAppendix.Contains(command.args[1])), blendShapeKey);
-
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
