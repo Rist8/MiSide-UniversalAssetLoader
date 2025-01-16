@@ -290,7 +290,7 @@ public class Plugin : MonoBehaviour
         Parallel.ForEach(AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"),
             new ParallelOptions
             {
-            MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - 1, 1)
+                MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - 1, 1)
             }
         , file =>
         {
@@ -429,9 +429,11 @@ public class Plugin : MonoBehaviour
     {
         try
         {
+            UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{modName}'");
             var skinnedAppendix = new HashSet<string>();
             var staticAppendix = new HashSet<string>();
             var replacedMeshes = new HashSet<string>();
+            var removedMeshes = new HashSet<string>();
 
             bool found = false;
             string currentName = "";
@@ -440,7 +442,6 @@ public class Plugin : MonoBehaviour
                 if (line.StartsWith("*"))
                 {
                     currentName = line.Substring(1);
-                    UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{currentName}'");
                     if (found)
                         break;
                     continue;
@@ -463,16 +464,16 @@ public class Plugin : MonoBehaviour
                                 skinnedAppendix.Add(parts1[2]);
                                 break;
                             case "replace_mesh":
-                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]))
+                                if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
                                     replacedMeshes.Add(parts1[2]);
                                 break;
                             case "replace_tex":
-                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]))
+                                if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
                                     replacedMeshes.Add(parts1[2]);
                                 break;
                             case "remove":
-                                if (!skinnedRenderers.ContainsKey(parts1[2]) && !staticRenderers.ContainsKey(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
-                                    replacedMeshes.Add(parts1[2]);
+                                if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
+                                    removedMeshes.Add(parts1[2]);
                                 break;
                         }
                     }
@@ -484,7 +485,8 @@ public class Plugin : MonoBehaviour
                 if (skinnedAppendix.Contains(renderer.name))
                 {
                     UnityEngine.Object.Destroy(renderer.gameObject);
-                    UnityEngine.Debug.Log($"[INFO] Removed skinned appendix: '{renderer.name}'");
+                    skinnedAppendix.Remove(renderer.name);
+                    continue;
                 }
                 if (replacedMeshes.Contains(renderer.name))
                 {
@@ -494,8 +496,15 @@ public class Plugin : MonoBehaviour
                         renderer.sharedMesh = backup.GetComponent<SkinnedMeshRenderer>().sharedMesh;
                         renderer.material.mainTexture = backup.GetComponent<SkinnedMeshRenderer>().material.mainTexture;
                         renderer.gameObject.SetActive(true);
-                        UnityEngine.Debug.Log($"[INFO] Restored mesh for: '{renderer.name}'");
                     }
+                    replacedMeshes.Remove(renderer.name);
+                    continue;
+                }
+                if (removedMeshes.Contains(renderer.name))
+                {
+                    renderer.gameObject.SetActive(true);
+                    removedMeshes.Remove(renderer.name);
+                    continue;
                 }
             }
             foreach (var renderer in staticRenderers.Values)
@@ -503,7 +512,8 @@ public class Plugin : MonoBehaviour
                 if (staticAppendix.Contains(renderer.name))
                 {
                     UnityEngine.Object.Destroy(renderer.gameObject);
-                    UnityEngine.Debug.Log($"[INFO] Removed static appendix: '{renderer.name}'");
+                    staticAppendix.Remove(renderer.name);
+                    continue;
                 }
                 if (replacedMeshes.Contains(renderer.name))
                 {
@@ -513,10 +523,20 @@ public class Plugin : MonoBehaviour
                         renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
                         renderer.material.mainTexture = backup.GetComponent<MeshRenderer>().material.mainTexture;
                         renderer.gameObject.SetActive(true);
-                        UnityEngine.Debug.Log($"[INFO] Restored mesh for: '{renderer.name}'");
                     }
+                    replacedMeshes.Remove(renderer.name);
+                    continue;
+                }
+                if (removedMeshes.Contains(renderer.name))
+                {
+                    renderer.gameObject.SetActive(true);
+                    removedMeshes.Remove(renderer.name);
+                    continue;
                 }
             }
+
+            UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
+
         }
         catch (Exception ex)
         {
