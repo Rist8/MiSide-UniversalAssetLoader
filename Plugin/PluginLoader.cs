@@ -1,11 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
-using Il2CppInterop.Runtime.Injection;
-using Il2CppSystem.Windows.Forms;
 using System.Reflection;
-using UnityEngine;
-using UnityEngine.Device;
 
 public static class PluginInfo
 {
