@@ -591,7 +591,7 @@ public class Plugin : MonoBehaviour
                         Commands.ApplyReplaceTexCommand(command, mita, renderers, staticRenderers);
                         break;
                     case "replace_mesh":
-                        Commands.ApplyReplaceMeshCommand(command, mita, renderers, staticRenderers);
+                        Commands.ApplyReplaceMeshCommand(command, mita, renderers, staticRenderers, mita.name);
                         break;
                     case "create_skinned_appendix":
                         Commands.ApplyCreateSkinnedAppendixCommand(command, mita, renderers);
