@@ -1,3 +1,5 @@
+using EPOOutline;
+using HarmonyLib;
 using System.Globalization;
 using UnityEngine;
 using UtilityNamespace;
@@ -66,8 +68,26 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
         {
+            {
+                var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+                    .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
+                    .ToArray();
+                if(outlinables.Length > 0)
+                {
+                    for (int i = 0; i <= outlinables[0].outlineTargets.Count - 1; i++)
+                    {
+                        if (outlinables[0].outlineTargets[i].Renderer == renderers[mita.name + command.args[1]])
+                        {
+                            outlinables[0].outlineTargets.RemoveAt(i--);
+                        }
+                    }
+
+                }
+            }
+
             if (HeadSkinnedAppendix.Contains(command.args[1]))
                 HeadSkinnedAppendix.Remove(command.args[1]);
+
             renderers[mita.name + command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
@@ -176,13 +196,51 @@ public class Commands
             UnityEngine.Debug.Log($"[WARNING] Parent renderer '{command.args[2]}' not found: skipping command {command.name} on '{mita.name}'.");
             return;
         }
-
         var parent = renderers[mita.name + command.args[2]];
         var objSkinned = UnityEngine.Object.Instantiate(parent, parent.transform.position, parent.transform.rotation, parent.transform.parent);
         objSkinned.name = command.args[1];
         objSkinned.material = new Material(parent.material);
         objSkinned.transform.localEulerAngles = new Vector3(-90f, 0, 0);
         objSkinned.gameObject.SetActive(true);
+
+
+        if (Reflection.FindObjectsOfType<Material_ColorVariables>(true)
+            .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray().Length > 0)
+        {
+            var meshes = Reflection.FindObjectsOfType<Material_ColorVariables>()
+                .Where(mat => mat.gameObject.name.Contains("Mita") 
+                || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes;
+            var newMeshes = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GameObject>(meshes.Length + 1);
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                newMeshes[i] = meshes[i];
+            }
+
+            newMeshes[meshes.Length - 1] = objSkinned.gameObject;
+            Reflection.FindObjectsOfType<Material_ColorVariables>()
+                .Where(mat => mat.gameObject.name.Contains("Mita") 
+                || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes = newMeshes;
+        }
+
+        {
+            var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
+                .ToArray();
+
+            if (outlinables.Length > 0)
+            {
+                // Create an OutlineTarget instance
+                OutlineTarget target = new OutlineTarget(objSkinned)
+                {
+                    BoundsMode = BoundsMode.Manual,
+                    CullMode = UnityEngine.Rendering.CullMode.Off,
+                    Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
+                };
+
+                // Add the OutlineTarget to the first matching outlinable
+                outlinables[0].outlineTargets.Add(target);
+            }
+        }
 
         renderers[mita.name + command.args[1]] = objSkinned;
 
@@ -220,6 +278,42 @@ public class Commands
         obj.transform.localScale = Vector3.one;
         obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
         obj.gameObject.SetActive(true);
+
+        if (Reflection.FindObjectsOfType<Material_ColorVariables>(true)
+            .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray().Length > 0)
+        {
+            var meshes = Reflection.FindObjectsOfType<Material_ColorVariables>()
+                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes;
+            var newMeshes = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GameObject>(meshes.Length + 1);
+            for(int i = 0; i < meshes.Length; i++)
+            {
+                newMeshes[i] = meshes[i];
+            }
+
+            newMeshes[meshes.Length - 1] = obj.gameObject;
+            Reflection.FindObjectsOfType<Material_ColorVariables>()
+                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes = newMeshes;
+        }
+
+        {
+            var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
+                .ToArray();
+
+            if (outlinables.Length > 0)
+            {
+                // Create an OutlineTarget instance
+                OutlineTarget target = new OutlineTarget(obj)
+                {
+                    BoundsMode = BoundsMode.Manual,
+                    CullMode = UnityEngine.Rendering.CullMode.Off,
+                    Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
+                };
+
+                // Add the OutlineTarget to the first matching outlinable
+                outlinables[0].outlineTargets.Add(target);
+            }
+        }
 
         staticRenderers[mita.name + command.args[1]] = obj;
         UnityEngine.Debug.Log($"[INFO] Created static appendix {obj.name} on '{mita.name}'.");

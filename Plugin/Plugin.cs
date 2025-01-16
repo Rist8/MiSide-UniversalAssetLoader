@@ -551,7 +551,6 @@ public class Plugin : MonoBehaviour
                     continue;
                 }
             }
-
             UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
         }
         catch (Exception ex)
