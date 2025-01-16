@@ -203,23 +203,31 @@ public class Commands
         objSkinned.transform.localEulerAngles = new Vector3(-90f, 0, 0);
         objSkinned.gameObject.SetActive(true);
 
-
-        if (Reflection.FindObjectsOfType<Material_ColorVariables>(true)
-            .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray().Length > 0)
         {
-            var meshes = Reflection.FindObjectsOfType<Material_ColorVariables>()
-                .Where(mat => mat.gameObject.name.Contains("Mita") 
-                || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes;
-            var newMeshes = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GameObject>(meshes.Length + 1);
-            for (int i = 0; i < meshes.Length; i++)
-            {
-                newMeshes[i] = meshes[i];
-            }
+            var materials = Reflection.FindObjectsOfType<Material_ColorVariables>(true)
+                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame"))
+                .ToArray();
 
-            newMeshes[meshes.Length - 1] = objSkinned.gameObject;
-            Reflection.FindObjectsOfType<Material_ColorVariables>()
-                .Where(mat => mat.gameObject.name.Contains("Mita") 
-                || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes = newMeshes;
+            if (materials.Length > 0)
+            {
+                var material = materials[0];
+                var meshes = material.meshes;
+
+                // Create a new array with one additional slot
+                var newMeshes = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GameObject>(meshes.Length + 1);
+
+                // Copy the existing meshes to the new array
+                for (int i = 0; i < meshes.Length; i++)
+                {
+                    newMeshes[i] = meshes[i];
+                }
+
+                // Add the new object to the end of the array
+                newMeshes[meshes.Length] = objSkinned.gameObject;
+
+                // Assign the updated meshes array back to the material
+                material.meshes = newMeshes;
+            }
         }
 
         {
@@ -279,20 +287,31 @@ public class Commands
         obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
         obj.gameObject.SetActive(true);
 
-        if (Reflection.FindObjectsOfType<Material_ColorVariables>(true)
-            .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray().Length > 0)
         {
-            var meshes = Reflection.FindObjectsOfType<Material_ColorVariables>()
-                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes;
-            var newMeshes = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GameObject>(meshes.Length + 1);
-            for(int i = 0; i < meshes.Length; i++)
-            {
-                newMeshes[i] = meshes[i];
-            }
+            var materials = Reflection.FindObjectsOfType<Material_ColorVariables>(true)
+                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame"))
+                .ToArray();
 
-            newMeshes[meshes.Length - 1] = obj.gameObject;
-            Reflection.FindObjectsOfType<Material_ColorVariables>()
-                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame")).ToArray()[0].meshes = newMeshes;
+            if (materials.Length > 0)
+            {
+                var material = materials[0];
+                var meshes = material.meshes;
+
+                // Create a new array with one additional slot
+                var newMeshes = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<GameObject>(meshes.Length + 1);
+
+                // Copy the existing meshes to the new array
+                for (int i = 0; i < meshes.Length; i++)
+                {
+                    newMeshes[i] = meshes[i];
+                }
+
+                // Add the new object to the end of the array
+                newMeshes[meshes.Length] = obj.gameObject;
+
+                // Assign the updated meshes array back to the material
+                material.meshes = newMeshes;
+            }
         }
 
         {
