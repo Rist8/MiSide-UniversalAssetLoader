@@ -1,4 +1,7 @@
-*Drip Outfit
+//This is still experimental
+//You can try this but it might not work at all times.
+
+*Drip Outfit for Player
 create_skinned_appendix Player DripShoes Clothes
 create_skinned_appendix Player DripShirt Clothes
 create_skinned_appendix Player DripPants Clothes
