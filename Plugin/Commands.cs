@@ -59,6 +59,45 @@ public class Commands
         return false; // Do not skip
     }
 
+    public static void RemoveOutlineTarget(Renderer RendererObject)
+    {
+        var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+                            .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
+                            .ToArray();
+        if (outlinables.Length > 0)
+        {
+            for (int i = 0; i <= outlinables[0].outlineTargets.Count - 1; i++)
+            {
+                if (outlinables[0].outlineTargets[i].Renderer == RendererObject)
+                {
+                    outlinables[0].outlineTargets.RemoveAt(i--);
+                }
+            }
+
+        }
+    }
+
+    public static void AddOutlineTarget(Renderer RendererObject)
+    {
+        var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+                        .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
+                        .ToArray();
+
+        if (outlinables.Length > 0)
+        {
+            // Create an OutlineTarget instance
+            OutlineTarget target = new OutlineTarget(RendererObject)
+            {
+                BoundsMode = BoundsMode.Manual,
+                CullMode = UnityEngine.Rendering.CullMode.Off,
+                Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
+            };
+
+            // Add the OutlineTarget to the first matching outlinable
+            outlinables[0].outlineTargets.Add(target);
+        }
+    }
+
 
     public static void ApplyRemoveCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
@@ -68,23 +107,7 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
         {
-            {
-                var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                    .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
-                    .ToArray();
-                if(outlinables.Length > 0)
-                {
-                    for (int i = 0; i <= outlinables[0].outlineTargets.Count - 1; i++)
-                    {
-                        if (outlinables[0].outlineTargets[i].Renderer == renderers[mita.name + command.args[1]])
-                        {
-                            outlinables[0].outlineTargets.RemoveAt(i--);
-                        }
-                    }
-
-                }
-            }
-
+            RemoveOutlineTarget(renderers[mita.name + command.args[1]]);
             if (HeadSkinnedAppendix.Contains(command.args[1]))
                 HeadSkinnedAppendix.Remove(command.args[1]);
 
@@ -93,6 +116,7 @@ public class Commands
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
         {
+            RemoveOutlineTarget(staticRenderers[mita.name + command.args[1]]);
             staticRenderers[mita.name + command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed static renderer '{command.args[1]}' on '{mita.name}'.");
         }
@@ -230,32 +254,12 @@ public class Commands
             }
         }
 
-        {
-            var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
-                .ToArray();
-
-            if (outlinables.Length > 0)
-            {
-                // Create an OutlineTarget instance
-                OutlineTarget target = new OutlineTarget(objSkinned)
-                {
-                    BoundsMode = BoundsMode.Manual,
-                    CullMode = UnityEngine.Rendering.CullMode.Off,
-                    Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
-                };
-
-                // Add the OutlineTarget to the first matching outlinable
-                outlinables[0].outlineTargets.Add(target);
-            }
-        }
+        AddOutlineTarget(objSkinned);
 
         renderers[mita.name + command.args[1]] = objSkinned;
 
         if (command.args[2] == "Head" && !HeadSkinnedAppendix.Contains(command.args[1]))
-        {
             HeadSkinnedAppendix.Add(command.args[1]);
-        }
 
         UnityEngine.Debug.Log($"[INFO] Created skinned appendix '{command.args[1]}' on '{mita.name}'.");
     }
@@ -314,25 +318,7 @@ public class Commands
             }
         }
 
-        {
-            var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
-                .ToArray();
-
-            if (outlinables.Length > 0)
-            {
-                // Create an OutlineTarget instance
-                OutlineTarget target = new OutlineTarget(obj)
-                {
-                    BoundsMode = BoundsMode.Manual,
-                    CullMode = UnityEngine.Rendering.CullMode.Off,
-                    Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
-                };
-
-                // Add the OutlineTarget to the first matching outlinable
-                outlinables[0].outlineTargets.Add(target);
-            }
-        }
+        AddOutlineTarget(obj);
 
         staticRenderers[mita.name + command.args[1]] = obj;
         UnityEngine.Debug.Log($"[INFO] Created static appendix {obj.name} on '{mita.name}'.");
@@ -489,4 +475,48 @@ public class Commands
         }
     }
 
+    public static void ApplyRemoveOutlineCommand((string name, string[] args) command, GameObject mita,
+    Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        if (ShouldSkip(2, command, mita.name))
+            return;
+
+        if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
+        {
+            RemoveOutlineTarget(renderers[mita.name + command.args[1]]);
+            UnityEngine.Debug.Log($"[INFO] Removed outline from skinned renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
+        {
+            RemoveOutlineTarget(staticRenderers[mita.name + command.args[1]]);
+            UnityEngine.Debug.Log($"[INFO] Removed outline from static renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}'.");
+        }
+
+    }
+
+    public static void ApplyAddOutlineCommand((string name, string[] args) command, GameObject mita,
+    Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        if (ShouldSkip(2, command, mita.name))
+            return;
+
+        if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
+        {
+            AddOutlineTarget(renderers[mita.name + command.args[1]]);
+            UnityEngine.Debug.Log($"[INFO] Added outline to skinned renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
+        {
+            AddOutlineTarget(staticRenderers[mita.name + command.args[1]]);
+            UnityEngine.Debug.Log($"[INFO] Added outline to static renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}'.");
+        }
+    }
 }

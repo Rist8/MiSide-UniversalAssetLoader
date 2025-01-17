@@ -646,6 +646,12 @@ public class Plugin : MonoBehaviour
                     case "shader_params":
                         Commands.ApplyShaderParamsCommand(command, mita, renderers, staticRenderers);
                         break;
+                    case "remove_outline":
+                        Commands.ApplyRemoveOutlineCommand(command, mita, renderers, staticRenderers);
+                        break;
+                    case "recover_outline":
+                        Commands.ApplyAddOutlineCommand(command, mita, renderers, staticRenderers);
+                        break;
                     default:
                         UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
                         break;

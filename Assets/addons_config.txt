@@ -35,6 +35,12 @@
 
 //	recover Mita Name KeyWords 
 
+//  remove_outline Mita Name KeyWords
+//      # exclude the object from the white outline
+
+//  recover_outline Mita Name KeyWords
+//      # recover white outline to the object
+
 //	set_scale Mita Name x y z KeyWords
 //	 # KeyWord (use "all" for every Mita possible, logic can be inverted by 
 //       # putting ! in the beginning of Keyword example "!Core" will proceed 
