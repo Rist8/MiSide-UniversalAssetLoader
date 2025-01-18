@@ -29,7 +29,7 @@
 
 //	replace_mesh Mita Name MeshFilename MeshName KeyWord
 
-// shader_params Mita Name ShaderFilename KeyWord
+//  shader_params Mita Name ShaderFilename KeyWord
 
 //	remove Mita Name KeyWords   
 

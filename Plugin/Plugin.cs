@@ -499,7 +499,7 @@ public class Plugin : MonoBehaviour
                         var armature = new AssetLoader.ArmatureData(renderer);
 
                         renderer.sharedMesh = backupRenderer.sharedMesh;
-                        renderer.material.mainTexture = backupRenderer.material.mainTexture;
+                        renderer.material = backupRenderer.material;
 
                         for (int i = 0; i < armature.clothNodes.Count; ++i)
                         {
@@ -536,7 +536,7 @@ public class Plugin : MonoBehaviour
                     if (backup != null)
                     {
                         renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
-                        renderer.material.mainTexture = backup.GetComponent<MeshRenderer>().material.mainTexture;
+                        renderer.material = backup.GetComponent<MeshRenderer>().material;
                         renderer.gameObject.SetActive(true);
                     }
 
@@ -736,7 +736,7 @@ public class Plugin : MonoBehaviour
                         Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
                         break;
                     case "create_skinned_appendix":
-                        Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers);
+                        Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers, true);
                         break;
                     case "create_static_appendix":
                         Commands.ApplyCreateStaticAppendixCommand(command, player, staticRenderers);
@@ -835,6 +835,18 @@ public class Plugin : MonoBehaviour
     private static float maxMovementSpeed = 0.1f;
     private static float mouseSensitivity = 0.7f;
 
+    private static int GameObjectCount = 0;
+    // This method can be used in gameplay too but it's causing a bit of frame drop whenever a new object is created
+    // So I'll use it only in the character menu
+    private static void PatchCharacterMenu()
+    {
+        int currentCount = Reflection.FindObjectsOfType<Animator>(true).Length;
+        if (GameObjectCount == currentCount)
+            return;
+        GameObjectCount = currentCount;
+        FindMita();
+    }
+
     void Update()
     {
 
@@ -929,6 +941,7 @@ public class Plugin : MonoBehaviour
         {
             if (logo != null)
                 logo.color = Color.white;
+            PatchCharacterMenu();
         }
     }
     void OnSceneChanged()

@@ -116,7 +116,6 @@ public class ClothesMenuPatcher
         //var button3 = _addonButtonPrefab.AddComponent<UnityEngine.UI.Button>();
         //button3.onClick.AddListener((UnityAction)LogOnClick);
 
-
         var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 5;
         layout.childControlHeight = false;
@@ -182,7 +181,7 @@ public class ClothesMenuPatcher
         Debug.Log($"[INFO] {name} is active: {active}");
         Plugin.Active[name] = active;
 
-        Commands.HeadSkinnedAppendix.Clear();
+        Commands.BlendShapedSkinnedAppendix.Clear();
 
         try
         {
@@ -274,7 +273,7 @@ public class ClothesMenuPatcher
                 RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
             }
 
-            Commands.HeadSkinnedAppendix.Clear();
+            Commands.BlendShapedSkinnedAppendix.Clear();
         }
         catch (Exception e)
         {

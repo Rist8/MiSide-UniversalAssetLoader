@@ -153,29 +153,10 @@
     "TongueTricky",
     "BigEyesSparkles"
   ],
-  "Chibi": [
-    "LittleSmile",
-    "A",
-    "Blink"
-  ],
-  "Little": [
-    "Blink",
-    "Smile",
-    "A",
-    "O"
-  ],
-  "Broke": [
-    "Blink",
-    "Smile",
-    "A",
-    "O"
-  ],
-  "Core": [
-    "Blink",
-    "Angry",
-    "Disgust 1",
-    "Disgust 2"
-  ],
+  "Chibi": ["LittleSmile", "A", "Blink"],
+  "Little": ["Blink", "Smile", "A", "O"],
+  "Broke": ["Blink", "Smile", "A", "O"],
+  "Core": ["Blink", "Angry", "Disgust 1", "Disgust 2"],
   "True": [
     "ManiacPupils",
     "Blink",
@@ -226,10 +207,15 @@
     "A1",
     "O1"
   ],
-  "Longer": [
-    "Blink",
-    "SmileStrange"
+  "PlayerArms": [
+    "GlitchRightA",
+    "GlitchRightB",
+    "GlitchRightC",
+    "GlitchLeftA",
+    "GlitchLeftB",
+    "GlitchLeftC"
   ],
+  "Longer": ["Blink", "SmileStrange"],
   "BlackScreen": [
     "ManiacPupils",
     "Blink",
