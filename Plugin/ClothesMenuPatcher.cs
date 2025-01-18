@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Net;
+using BepInEx.Unity.IL2CPP.Utils;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Drawing;
 using UnityEngine;
@@ -263,7 +264,7 @@ public class ClothesMenuPatcher
                 }
             }
 
-            Plugin.FindMita(name, !active);
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
 
             foreach (string line in oneTimeCommands)
             {

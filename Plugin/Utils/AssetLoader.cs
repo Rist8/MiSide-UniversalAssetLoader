@@ -22,22 +22,42 @@ public class AssetLoader
         return texture;
     }
 
-    public static AudioClip LoadAudio(string file) => LoadAudio(Path.GetFileNameWithoutExtension(file), File.OpenRead(file));
-    public static AudioClip LoadAudio(string name, Stream stream)
+    public static System.Collections.IEnumerator LoadAudioCoroutine(string name, Stream stream, Action<AudioClip> onAudioLoaded)
     {
-        AudioClip audioClip = null;
+        float[] audioData = null;
+
         using (var vorbis = new NVorbis.VorbisReader(new MemoryStream(ReadStream(stream), false)))
         {
-            float[] _audioBuffer = new float[vorbis.Channels * vorbis.TotalSamples]; // Just dump everything
-            int read = vorbis.ReadSamples(_audioBuffer, 0, _audioBuffer.Length);
-            audioClip = AudioClip.Create(name, (int)vorbis.TotalSamples, vorbis.Channels, vorbis.SampleRate, false);
-            AudioClip.SetData(audioClip, _audioBuffer, ((System.Array)_audioBuffer).Length / audioClip.channels, 0);
-        }
-        if (audioClip == null) return null;
+            audioData = new float[vorbis.Channels * vorbis.TotalSamples];
+            int chunkSize = 4096 * 32; // Read in small chunks (e.g., 1024 samples at a time)
+            int totalSamplesRead = 0;
 
-        audioClip.hideFlags = HideFlags.DontSave;
-        return audioClip;
+            // Read the audio in chunks, simulating async loading in parts
+            while (totalSamplesRead < audioData.Length)
+            {
+                int samplesToRead = Mathf.Min(chunkSize, audioData.Length - totalSamplesRead);
+                int readSamples = vorbis.ReadSamples(audioData, totalSamplesRead, samplesToRead);
+                totalSamplesRead += readSamples;
+
+                // Yield to wait until the next frame
+                yield return null;
+            }
+        }
+
+        // Once the audio data is loaded, create the AudioClip on the main thread
+        if (audioData != null)
+        {
+            // Create the AudioClip on the main thread
+            var audio = AudioClip.Create(name, (int)(audioData.Length / 2), 2, 44100, false); // 2 channels, 44.1kHz sample rate
+            AudioClip.SetData(audio, audioData, ((System.Array)audioData).Length / audio.channels, 0);
+            onAudioLoaded?.Invoke(audio);
+        }
+        else
+        {
+            onAudioLoaded?.Invoke(null);
+        }
     }
+
     public static UnityEngine.Mesh ConvertMeshToUnity(Assimp.Mesh aMesh, float scale = 1.0f)
     {
         var uMesh = new UnityEngine.Mesh()
@@ -79,9 +99,15 @@ public class AssetLoader
             var sharedMeshBindposes = source.sharedMesh.bindposes;
             for (int i = 0; i < source.bones.Length; i++)
             {
+                if (source.bones[i] == null)
+                {
+                    Debug.LogError($"Bone at index {i} is null!");
+                    continue;
+                }
+
                 var boneName = FixedBoneName(source.bones[i].name);
 
-                if (!bones.ContainsKey(boneName))
+                if (!bones.ContainsKey(boneName) && i < sharedMeshBindposes.Count)
                 {
                     bones[boneName] = (i, sharedMeshBindposes[i], source.bones[i]);
 

@@ -38,6 +38,7 @@ public class PluginLoader : BasePlugin
         AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
 
         IL2CPPChainloader.AddUnityComponent(typeof(Plugin));
+        IL2CPPChainloader.AddUnityComponent(typeof(UtilityNamespace.LateCallUtility.CoroutineHandler));
 	}
 
     private static Assembly? ResolveAssembly(object? sender, ResolveEventArgs args)

@@ -6,6 +6,10 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using System.Diagnostics;
 using System.Collections.Concurrent;
+using BepInEx.Unity.IL2CPP.Utils;
+using UnityEngine.Playables;
+using Il2CppSystem.Windows.Forms;
+using static UtilityNamespace.LateCallUtility;
 
 public class Plugin : MonoBehaviour
 {
@@ -15,7 +19,7 @@ public class Plugin : MonoBehaviour
     private void Start()
     {
         ReadAssetsConfig();
-        LoadAssetsForPatch();
+        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(LoadAssetsForPatchCoroutine());
         ReadAddonsConfigs();
         ConsoleMain.active = true;
         ConsoleMain.eventEnter = new UnityEvent();
@@ -64,7 +68,7 @@ public class Plugin : MonoBehaviour
             assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
         }
 
-        FindMita();
+        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
 
         assetCommands.RemoveAll(command =>
             command.name == parts[0] && command.args.SequenceEqual(parts.Skip(1)));
@@ -200,7 +204,7 @@ public class Plugin : MonoBehaviour
     public static Dictionary<string, AudioClip>? loadedAudio;
     public static List<(string name, string[] args)> assetCommands;
 
-    public static GameObject[] mitas = new GameObject[70];
+    public static GameObject[] mitas = new GameObject[65];
 
     void ReadAssetsConfig()
     {
@@ -257,9 +261,12 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    void LoadAssetsForPatch()
+    static bool loaded = false;
+
+    static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
     {
-        if (loadedModels != null) return;
+        if (loadedModels != null) yield break;
+        loaded = false;
 
         loadedModels = new Dictionary<string, Assimp.Mesh[]>();
         loadedTextures = new Dictionary<string, Texture2D>();
@@ -267,11 +274,17 @@ public class Plugin : MonoBehaviour
 
         PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
         var stopwatch = Stopwatch.StartNew();
+        float frameStartTime = Time.realtimeSinceStartup;
 
-        // Load audio files
-        foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg"))
+
+        var audioFiles = AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg");
+        foreach (var file in audioFiles)
         {
-            var audioFile = AssetLoader.LoadAudio(file);
+            // Load audio files
+            AudioClip audioFile = null;
+            yield return AssetLoader.LoadAudioCoroutine(Path.GetFileNameWithoutExtension(file), File.OpenRead(file), clip => audioFile = clip);
+            audioFile.hideFlags = HideFlags.DontSave;
+
             string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
             filename = Path.ChangeExtension(filename, null);
             if (!loadedAudio.ContainsKey(filename))
@@ -280,40 +293,50 @@ public class Plugin : MonoBehaviour
                 PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
             }
         }
-        stopwatch.Stop();
         PluginInfo.Instance.Logger.LogInfo($"Loaded all audio in {stopwatch.ElapsedMilliseconds}ms");
 
         // Load model files
         stopwatch.Restart();
+        var modelFiles = AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx");
         var loadedModelsLocal = new ConcurrentDictionary<string, Assimp.Mesh[]>();
 
-        Parallel.ForEach(AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx"),
-            new ParallelOptions
+        int maxParallelism = Math.Max(Environment.ProcessorCount - 1, 1);
+
+        foreach (var fileBatch in SplitIntoBatches(modelFiles, maxParallelism))
+        {
+            Parallel.ForEach(fileBatch, new ParallelOptions { MaxDegreeOfParallelism = maxParallelism }, file =>
             {
-                MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - 1, 1)
+                var meshes = AssetLoader.LoadFBX(file);
+                string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+                filename = Path.ChangeExtension(filename, null);
+                loadedModelsLocal.TryAdd(filename, meshes);
+                PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
+            });
+
+            foreach (var kvp in loadedModelsLocal)
+            {
+                if (!loadedModels.ContainsKey(kvp.Key))
+                {
+                    loadedModels.Add(kvp.Key, kvp.Value);
+                }
             }
-        , file =>
-        {
-            var meshes = AssetLoader.LoadFBX(file);
-            string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
-            filename = Path.ChangeExtension(filename, null);
-            loadedModelsLocal.TryAdd(filename, meshes);
-            PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
-        });
-        foreach (var kvp in loadedModelsLocal)
-        {
-            if (!loadedModels.ContainsKey(kvp.Key))
+            loadedModelsLocal.Clear();
+
+            // Yield control if needed
+            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
             {
-                loadedModels.Add(kvp.Key, kvp.Value);
+                stopwatch.Stop(); // Pause the stopwatch
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+                stopwatch.Start(); // Resume the stopwatch
             }
         }
-        loadedModelsLocal.Clear();
-        stopwatch.Stop();
         PluginInfo.Instance.Logger.LogInfo($"Loaded all meshes in {stopwatch.ElapsedMilliseconds}ms");
 
         // Load texture files
         stopwatch.Restart();
-        foreach (var file in AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg"))
+        var textureFiles = AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg");
+        foreach (var file in textureFiles)
         {
             var texture = AssetLoader.LoadTexture(file);
             if (texture != null)
@@ -326,22 +349,59 @@ public class Plugin : MonoBehaviour
                     PluginInfo.Instance.Logger.LogInfo($"Loaded texture from file: '{filename}'");
                 }
             }
-        }
-        stopwatch.Stop();
-        PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
-    }
-    public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
-    "Little", "Maneken", "Black", "Dreamer", "Mila",
-    "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream",
-    "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita",
-    "Old", "MitaPerson Old", "Mita", "Mita", "Mita",
-    "Mita", "Mita", "Mita", "Mita", "Mita",
-    "Mita", "Mita", "Mita", "Mita", "Mita"};
 
-    public static void FindMita(string modName = "", bool disactivation = false)
+            // Yield every N files or if processing takes longer than a threshold
+            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
+            {
+                stopwatch.Stop(); // Pause the stopwatch
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+                stopwatch.Start(); // Resume the stopwatch
+            }
+        }
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
+        loaded = true;
+    }
+
+    private static  IEnumerable<List<string>> SplitIntoBatches(IEnumerable<string> files, int batchSize)
+    {
+        var batch = new List<string>(batchSize);
+        foreach (var file in files)
+        {
+            batch.Add(file);
+            if (batch.Count >= batchSize)
+            {
+                yield return batch;
+                batch = new List<string>(batchSize);
+            }
+        }
+        if (batch.Count > 0)
+        {
+            yield return batch;
+        }
+    }
+
+
+
+    public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
+        "Little", "Maneken", "Black", "Dreamer", "Mila",
+        "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream",
+        "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita",
+        "Old", "MitaPerson Old", "MitaTrue(Clone)", "MitaShortHairs(Clone)", "MitaKind(Clone)",
+        "MitaCap(Clone)", "MitaLittle(Clone)", "MitaManeken(Clone)", "MitaBlack(Clone)", "MitaDreamer(Clone)",
+        "Mila(Clone)", "MitaCreepy(Clone)", "MitaCore(Clone)", "IdleHide", "IdleHide",
+        "IdleHide", "IdleHide", "IdleHide", "IdleHide", "IdleHide",
+        "IdleHide", "IdleHide", "IdleHide", "IdleHide", "IdleHide",
+        "Mita", "Mita", "Mita", "Mita", "Mita",
+        "Mita", "Mita", "Mita", "Mita", "Mita",
+        "Mita", "Mita", "Mita", "Mita", "Mita",
+        "Mita", "Mita", "Mita", "Mita", "Mita"
+    };
+
+    public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
-        GameObject[] mitaAnimators = new GameObject[70];
+        GameObject[] mitaAnimators = new GameObject[65];
         Array.Clear(mitaAnimators, 0, mitaAnimators.Length);
 
         foreach (var obj in animators)
@@ -351,12 +411,9 @@ public class Plugin : MonoBehaviour
 
             if (runtimeController != null)
             {
-                //UnityEngine.Debug.Log($"[INFO] Animator Found: |{runtimeController.name}|");
-
-                for (int i = 0; i < 35; ++i)
+                for (int i = 0; i < 65; ++i)
                 {
                     string mitaName = mitaNames[i];
-                    string cloneName = mitaName + "(Clone)";
 
                     if (runtimeController.name.Contains(mitaName))
                     {
@@ -365,51 +422,43 @@ public class Plugin : MonoBehaviour
                         mitaAnimators[i] = anim.gameObject;
                         break;
                     }
-                    else if (runtimeController.name.Contains(cloneName))
-                    {
-                        if (mitaAnimators[i + 35] != null)
-                            continue;
-                        mitaAnimators[i + 35] = anim.gameObject;
-                        break;
-                    }
                 }
             }
+
         }
 
-        // Explicit assignment for specific cases
+        // Assign specific cases (explicit assignment)
+        AssignSpecificMitaObjects(mitaAnimators);
+
+        // Patch each Mita over multiple frames
+        for (int i = 0; i < 65; ++i)
+        {
+            string mitaName = mitaNames[i];
+            string fullName = mitaName;
+
+            if (mitaAnimators[i] == null)
+            {
+                mitas[i] = null;
+            }
+            else
+            {
+                mitas[i] = mitaAnimators[i];
+                yield return PatchMitaCoroutine(modName, mitas[i], false, disactivation);
+            }
+
+        }
+    }
+
+    private static void AssignSpecificMitaObjects(GameObject[] mitaAnimators)
+    {
         mitaAnimators[13] = GameObject.Find("MitaPerson Mita");
         mitaAnimators[14] = GameObject.Find("Mita Dream");
         mitaAnimators[15] = GameObject.Find("Mita Future");
         mitaAnimators[18] = GameObject.Find("MitaPerson Future");
         mitaAnimators[19] = GameObject.Find("CreepyMita");
         mitaAnimators[21] = GameObject.Find("MitaPerson Old");
-        mitaAnimators[48] = GameObject.Find("MitaPerson Mita(Clone)");
-        mitaAnimators[49] = GameObject.Find("Mita Dream(Clone)");
-        mitaAnimators[50] = GameObject.Find("Mita Future(Clone)");
-        mitaAnimators[53] = GameObject.Find("MitaPerson Future(Clone)");
-        mitaAnimators[54] = GameObject.Find("CreepyMita(Clone)");
-        mitaAnimators[56] = GameObject.Find("MitaPerson Old(Clone)");
-
-        for (int i = 0; i < 70; ++i)
-        {
-            string mitaName = mitaNames[i % 35];
-            string suffix = (i >= 35) ? "(Clone)" : string.Empty;
-            string fullName = mitaName + suffix;
-
-            if (mitaAnimators[i] == null)
-            {
-                //UnityEngine.Debug.Log($"[WARNING] No animators found for {fullName} to patch.");
-                mitas[i] = null;
-            }
-            else
-            {
-                mitas[i] = mitaAnimators[i];
-                //UnityEngine.Debug.Log($"[INFO] Starting to patch Mita: {fullName}");
-                PatchMita(modName, mitas[i], false, disactivation);
-                //UnityEngine.Debug.Log($"[INFO] Finished patching Mita: {fullName}.");
-            }
-        }
     }
+
 
     public static void CreateMeshBackup(Dictionary<string, SkinnedMeshRenderer> renderers)
     {
@@ -425,148 +474,167 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    public static void RestoreMeshBackup(string modName, Dictionary<string, SkinnedMeshRenderer> skinnedRenderers, Dictionary<string, MeshRenderer> staticRenderers)
+    public static System.Collections.IEnumerator RestoreMeshBackupCoroutine(
+        string modName,
+        Dictionary<string, SkinnedMeshRenderer> skinnedRenderers,
+        Dictionary<string, MeshRenderer> staticRenderers
+    )
     {
-        try
+        UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{modName}'");
+
+        var skinnedAppendix = new HashSet<string>();
+        var staticAppendix = new HashSet<string>();
+        var replacedMeshes = new HashSet<string>();
+        var removedMeshes = new HashSet<string>();
+
+        bool found = false;
+        string currentName = "";
+
+        // Parse `AddonsConfig` line by line (this can be optimized further if needed)
+        foreach (string line in AddonsConfig)
         {
-            UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{modName}'");
-            var skinnedAppendix = new HashSet<string>();
-            var staticAppendix = new HashSet<string>();
-            var replacedMeshes = new HashSet<string>();
-            var removedMeshes = new HashSet<string>();
-
-            bool found = false;
-            string currentName = "";
-            foreach (string line in AddonsConfig)
+            if (line.StartsWith("*"))
             {
-                if (line.StartsWith("*"))
-                {
-                    currentName = line.Substring(1);
-                    if (found)
-                        break;
-                    continue;
-                }
-                if (line.StartsWith("-") || string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
-                    continue;
+                currentName = line.Substring(1);
+                if (found)
+                    break;
+                continue;
+            }
+            if (line.StartsWith("-") || string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                continue;
 
-                if (currentName == modName)
+            if (currentName == modName)
+            {
+                found = true;
+                string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts1.Length > 2)
                 {
-                    found = true;
-                    string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts1.Length > 2)
+                    switch (parts1[0])
                     {
-                        switch (parts1[0])
-                        {
-                            case "create_static_appendix":
-                                staticAppendix.Add(parts1[2]);
-                                break;
-                            case "create_skinned_appendix":
-                                skinnedAppendix.Add(parts1[2]);
-                                break;
-                            case "replace_mesh":
-                                if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
-                                    replacedMeshes.Add(parts1[2]);
-                                break;
-                            case "replace_tex":
-                                if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
-                                    replacedMeshes.Add(parts1[2]);
-                                break;
-                            case "remove":
-                                if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
-                                    removedMeshes.Add(parts1[2]);
-                                break;
-                        }
+                        case "create_static_appendix":
+                            staticAppendix.Add(parts1[2]);
+                            break;
+                        case "create_skinned_appendix":
+                            skinnedAppendix.Add(parts1[2]);
+                            break;
+                        case "replace_mesh":
+                        case "replace_tex":
+                            if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
+                                replacedMeshes.Add(parts1[2]);
+                            break;
+                        case "remove":
+                            if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
+                                removedMeshes.Add(parts1[2]);
+                            break;
                     }
                 }
             }
-
-            foreach (var renderer in skinnedRenderers.Values)
-            {
-                if (skinnedAppendix.Contains(renderer.name))
-                {
-                    UnityEngine.Object.Destroy(renderer.gameObject);
-                    skinnedAppendix.Remove(renderer.name);
-                    continue;
-                }
-
-                if (replacedMeshes.Contains(renderer.name))
-                {
-                    var backup = renderer.transform.parent.Find(renderer.name + "_backup");
-                    if (backup != null)
-                    {
-                        var backupRenderer = backup.GetComponent<SkinnedMeshRenderer>();
-                        var armatureBackup = new AssetLoader.ArmatureData(backupRenderer);
-                        var armature = new AssetLoader.ArmatureData(renderer);
-
-                        renderer.sharedMesh = backupRenderer.sharedMesh;
-                        renderer.material = backupRenderer.material;
-
-                        for (int i = 0; i < armature.clothNodes.Count; ++i)
-                        {
-                            armature.clothNodes[i].cullRendererList = armatureBackup.clothNodes[i].cullRendererList;
-                        }
-
-                        renderer.gameObject.SetActive(true);
-                    }
-
-                    replacedMeshes.Remove(renderer.name);
-                    continue;
-                }
-
-                if (removedMeshes.Contains(renderer.name))
-                {
-                    renderer.gameObject.SetActive(true);
-                    removedMeshes.Remove(renderer.name);
-                    continue;
-                }
-            }
-
-            foreach (var renderer in staticRenderers.Values)
-            {
-                if (staticAppendix.Contains(renderer.name))
-                {
-                    UnityEngine.Object.Destroy(renderer.gameObject);
-                    staticAppendix.Remove(renderer.name);
-                    continue;
-                }
-
-                if (replacedMeshes.Contains(renderer.name))
-                {
-                    var backup = renderer.transform.parent.Find(renderer.name + "_backup");
-                    if (backup != null)
-                    {
-                        renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
-                        renderer.material = backup.GetComponent<MeshRenderer>().material;
-                        renderer.gameObject.SetActive(true);
-                    }
-
-                    replacedMeshes.Remove(renderer.name);
-                    continue;
-                }
-
-                if (removedMeshes.Contains(renderer.name))
-                {
-                    renderer.gameObject.SetActive(true);
-                    removedMeshes.Remove(renderer.name);
-                    continue;
-                }
-            }
-            UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
         }
-        catch (Exception ex)
+
+        // Process skinned renderers
+        int processedCount = 0;
+        foreach (var renderer in skinnedRenderers.Values)
         {
-            UnityEngine.Debug.LogError($"[ERROR] Error while restoring mesh backup: {ex}");
+            if (skinnedAppendix.Contains(renderer.name))
+            {
+                UnityEngine.Object.Destroy(renderer.gameObject);
+                skinnedAppendix.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (replacedMeshes.Contains(renderer.name))
+            {
+                var backup = renderer.transform.parent.Find(renderer.name + "_backup");
+                if (backup != null)
+                {
+                    var backupRenderer = backup.GetComponent<SkinnedMeshRenderer>();
+                    var armatureBackup = new AssetLoader.ArmatureData(backupRenderer);
+                    var armature = new AssetLoader.ArmatureData(renderer);
+
+                    renderer.sharedMesh = backupRenderer.sharedMesh;
+                    renderer.material = backupRenderer.material;
+
+                    for (int i = 0; i < armature.clothNodes.Count; ++i)
+                    {
+                        armature.clothNodes[i].cullRendererList = armatureBackup.clothNodes[i].cullRendererList;
+                    }
+
+                    renderer.gameObject.SetActive(true);
+                }
+
+                replacedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (removedMeshes.Contains(renderer.name))
+            {
+                renderer.gameObject.SetActive(true);
+                removedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            // Yield control every 10 renderers to avoid freezing
+            if (processedCount % 10 == 0)
+            {
+                yield return null;
+            }
         }
+
+        // Process static renderers
+        foreach (var renderer in staticRenderers.Values)
+        {
+            if (staticAppendix.Contains(renderer.name))
+            {
+                UnityEngine.Object.Destroy(renderer.gameObject);
+                staticAppendix.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (replacedMeshes.Contains(renderer.name))
+            {
+                var backup = renderer.transform.parent.Find(renderer.name + "_backup");
+                if (backup != null)
+                {
+                    renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
+                    renderer.material = backup.GetComponent<MeshRenderer>().material;
+                    renderer.gameObject.SetActive(true);
+                }
+
+                replacedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (removedMeshes.Contains(renderer.name))
+            {
+                renderer.gameObject.SetActive(true);
+                removedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            // Yield control every 10 renderers to avoid freezing
+            if (processedCount % 10 == 0)
+            {
+                yield return null;
+            }
+        }
+
+        UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
     }
 
     // Global dictionary to track applied commands per object
     public static Dictionary<GameObject, HashSet<string>> globalAppliedCommands = new();
 
-    public static void PatchMita(string modName, GameObject mita, bool recursive = false, bool disactivation = false)
+    public static System.Collections.IEnumerator PatchMitaCoroutine(string modName, GameObject mita, bool recursive = false, bool disactivation = false)
     {
         var stopwatch = Stopwatch.StartNew();
+        float frameStartTime = Time.realtimeSinceStartup;
 
-        // Ensure the object is tracked in the global dictionary
         if (!globalAppliedCommands.ContainsKey(mita))
         {
             globalAppliedCommands[mita] = new HashSet<string>();
@@ -574,7 +642,7 @@ public class Plugin : MonoBehaviour
 
         if (mita.name == "MitaTrue(Clone)" && !recursive)
         {
-            PatchMita(modName, mita.transform.Find("MitaUsual").gameObject, true, disactivation);
+            yield return PatchMitaCoroutine(modName, mita.transform.Find("MitaUsual").gameObject, true, disactivation);
             mita = mita.transform.Find("MitaTrue").gameObject;
         }
 
@@ -584,17 +652,17 @@ public class Plugin : MonoBehaviour
         var staticRenderers = new Dictionary<string, MeshRenderer>();
 
         foreach (var renderer in renderersList)
-            renderers[mita.name + renderer.name.Trim()] = renderer;
+            renderers[renderer.name.Trim()] = renderer;
 
         foreach (var renderer in staticRenderersList)
-            staticRenderers[mita.name + renderer.name.Trim()] = renderer;
+            staticRenderers[renderer.name.Trim()] = renderer;
 
         if (currentSceneName == "SceneMenu")
         {
             CreateMeshBackup(renderers);
             if (disactivation)
             {
-                RestoreMeshBackup(modName, renderers, staticRenderers);
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(RestoreMeshBackupCoroutine(modName, renderers, staticRenderers));
             }
         }
 
@@ -605,7 +673,6 @@ public class Plugin : MonoBehaviour
 
             string commandKey = $"{command.name} {string.Join(" ", command.args)}";
 
-            // Check the globalAppliedCommands dictionary to skip already applied commands
             if (globalAppliedCommands[mita].Contains(commandKey))
             {
                 UnityEngine.Debug.Log($"[INFO] Skipping already applied command: {commandKey} on '{mita.name}'");
@@ -627,6 +694,9 @@ public class Plugin : MonoBehaviour
                         break;
                     case "replace_mesh":
                         Commands.ApplyReplaceMeshCommand(command, mita, renderers, staticRenderers, mita.name);
+                        break;
+                    case "resize_mesh":
+                        Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
                         break;
                     case "create_skinned_appendix":
                         Commands.ApplyCreateSkinnedAppendixCommand(command, mita, renderers);
@@ -657,18 +727,27 @@ public class Plugin : MonoBehaviour
                         break;
                 }
 
-                // Mark command as applied in the global dictionary
                 globalAppliedCommands[mita].Add(commandKey);
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError($"[ERROR] Error processing command: {commandKey} on '{mita.name}'\n{e}");
             }
+
+            // Yield control every 30ms to avoid freezing
+            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
+            {
+                stopwatch.Stop(); // Pause the stopwatch
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+                stopwatch.Start(); // Resume the stopwatch
+            }
         }
 
         stopwatch.Stop();
         UnityEngine.Debug.Log($"[INFO] Patched '{mita.name}' in {stopwatch.ElapsedMilliseconds}ms.");
     }
+
 
     public static void FindPlayer()
     {
@@ -699,11 +778,11 @@ public class Plugin : MonoBehaviour
 
         var skinnedRenderers = player.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         foreach (var renderer in skinnedRenderers)
-            renderers[player.name + renderer.name.Trim()] = renderer;
+            renderers[renderer.name.Trim()] = renderer;
 
         var meshRenderers = player.GetComponentsInChildren<MeshRenderer>(true);
         foreach (var renderer in meshRenderers)
-            staticRenderers[player.name + renderer.name.Trim()] = renderer;
+            staticRenderers[renderer.name.Trim()] = renderer;
 
         foreach (var command in Plugin.assetCommands)
         {
@@ -734,6 +813,9 @@ public class Plugin : MonoBehaviour
                         break;
                     case "replace_mesh":
                         Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
+                        break;
+                    case "resize_mesh":
+                        Commands.ApplyResizeMeshCommand(command, player, renderers, staticRenderers);
                         break;
                     case "create_skinned_appendix":
                         Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers, true);
@@ -771,9 +853,12 @@ public class Plugin : MonoBehaviour
     VideoPlayer currentVideoPlayer = null;
     Action onCurrentVideoEnded = null;
     Image logo = null;
+    Transform sceneObjectTransform = null;
 
     void PatchMenuScene()
     {
+        sceneObjectTransform = GameObject.Find("MenuGame/Scene").transform;
+        gameObjectCount = sceneObjectTransform.childCount;
         UnityEngine.Debug.Log($"[INFO] Patching game scene.");
         var command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
         if (command.name != null)
@@ -835,17 +920,32 @@ public class Plugin : MonoBehaviour
     private static float maxMovementSpeed = 0.1f;
     private static float mouseSensitivity = 0.7f;
 
-    private static int GameObjectCount = 0;
-    // This method can be used in gameplay too but it's causing a bit of frame drop whenever a new object is created
-    // So I'll use it only in the character menu
-    private static void PatchCharacterMenu()
+    private static int gameObjectCount = 0;
+
+    public static System.Collections.IEnumerator SceneLoading(string sceneName)
     {
-        int currentCount = Reflection.FindObjectsOfType<Animator>(true).Length;
-        if (GameObjectCount == currentCount)
-            return;
-        GameObjectCount = currentCount;
-        FindMita();
+        // Start the scene loading process
+        UnityEngine.Debug.Log("Waiting for assets loading...");
+
+        var sceneLoading = Reflection.FindObjectsOfType<SceneLoading>(true)[0];
+
+        bool initialState = sceneLoading.loadReady;
+
+        // Wait until assets are loaded
+        while (!loaded)
+        {
+            if (sceneLoading.loadReady)
+                initialState = true;
+            sceneLoading.loadReady = false;
+            yield return null; // Keep yielding until assets are fully loaded
+        }
+
+        sceneLoading.loadReady = initialState;
+
+        UnityEngine.Debug.Log("Assets have been loaded, activating scene...");
+
     }
+
 
     void Update()
     {
@@ -863,8 +963,8 @@ public class Plugin : MonoBehaviour
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
         {
-            LoadAssetsForPatch();
-            FindMita();
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(LoadAssetsForPatchCoroutine());
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
             FindPlayer();
         }
 
@@ -941,7 +1041,12 @@ public class Plugin : MonoBehaviour
         {
             if (logo != null)
                 logo.color = Color.white;
-            PatchCharacterMenu();
+            if (sceneObjectTransform.childCount != gameObjectCount)
+            {
+                gameObjectCount = sceneObjectTransform.childCount;
+                if (sceneObjectTransform.childCount == 6 && !sceneObjectTransform.GetChild(5).gameObject.name.Contains("Particle"))
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
+            }
         }
     }
     void OnSceneChanged()
@@ -949,12 +1054,14 @@ public class Plugin : MonoBehaviour
         try
         {
             UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
-            LoadAssetsForPatch();
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(LoadAssetsForPatchCoroutine());
             globalAppliedCommands.Clear();
-            FindMita();
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
             FindPlayer();
             if (currentSceneName == "SceneMenu")
                 PatchMenuScene();
+            else if (currentSceneName == "SceneLoading")
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(SceneLoading("SceneMenu"));
         }
         catch (Exception e)
         {

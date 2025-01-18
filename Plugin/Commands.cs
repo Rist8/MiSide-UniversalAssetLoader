@@ -2,6 +2,7 @@ using EPOOutline;
 using HarmonyLib;
 using System.Globalization;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UtilityNamespace;
 
 public class Commands
@@ -105,19 +106,19 @@ public class Commands
         if (ShouldSkip(2, command, mita.name))
             return;
 
-        if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(renderers[mita.name + command.args[1]]);
+            RemoveOutlineTarget(renderers[command.args[1]]);
             if (BlendShapedSkinnedAppendix.Contains(command.args[1]))
                 BlendShapedSkinnedAppendix.Remove(command.args[1]);
 
-            renderers[mita.name + command.args[1]].gameObject.SetActive(false);
+            renderers[command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
-        else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(staticRenderers[mita.name + command.args[1]]);
-            staticRenderers[mita.name + command.args[1]].gameObject.SetActive(false);
+            RemoveOutlineTarget(staticRenderers[command.args[1]]);
+            staticRenderers[command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -133,14 +134,14 @@ public class Commands
         if (ShouldSkip(2, command, mita.name))
             return;
 
-        if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            renderers[mita.name + command.args[1]].gameObject.SetActive(true);
+            renderers[command.args[1]].gameObject.SetActive(true);
             UnityEngine.Debug.Log($"[INFO] Recovered skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
-        else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            staticRenderers[mita.name + command.args[1]].gameObject.SetActive(true);
+            staticRenderers[command.args[1]].gameObject.SetActive(true);
             UnityEngine.Debug.Log($"[INFO] Recovered static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -154,19 +155,19 @@ public class Commands
     {
         if (ShouldSkip(3, command, mita.name))
             return;
-
+        
         string textureKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
 
-        if (renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers.ContainsKey(command.args[1]))
         {
-            Material material = renderers[mita.name + command.args[1]].material;
+            Material material = renderers[command.args[1]].material;
             material.mainTexture = Plugin.loadedTextures[textureKey];
             material.SetFloat("_EnableTextureTransparent", 1.0f);
             UnityEngine.Debug.Log($"[INFO] Replaced texture for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
-        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers.ContainsKey(command.args[1]))
         {
-            Material material = staticRenderers[mita.name + command.args[1]].material;
+            Material material = staticRenderers[command.args[1]].material;
             material.mainTexture = Plugin.loadedTextures[textureKey];
             material.SetFloat("_EnableTextureTransparent", 1.0f);
             UnityEngine.Debug.Log($"[INFO] Replaced texture for static renderer '{command.args[1]}' on '{mita.name}'.");
@@ -191,16 +192,16 @@ public class Commands
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
         Assimp.Mesh meshData = Plugin.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
 
-        if (renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers.ContainsKey(command.args[1]))
         {
-            var skinnedRenderer = renderers[mita.name + command.args[1]];
+            var skinnedRenderer = renderers[command.args[1]];
             skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer),
                 ((command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms"), blendShapeKey);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
-        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers.ContainsKey(command.args[1]))
         {
-            var staticRenderer = staticRenderers[mita.name + command.args[1]];
+            var staticRenderer = staticRenderers[command.args[1]];
             staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null,
                 ((command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms"), blendShapeKey);
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
@@ -217,15 +218,15 @@ public class Commands
         if (ShouldSkip(3, command, mita.name))
             return;
 
-        if (!renderers.ContainsKey(mita.name + command.args[2]))
+        if (!renderers.ContainsKey(command.args[2]))
         {
             UnityEngine.Debug.Log($"[WARNING] Parent renderer '{command.args[2]}' not found: skipping command {command.name} on '{mita.name}'.");
             return;
         }
-        var parent = renderers[mita.name + command.args[2]];
+        var parent = renderers[command.args[2]];
         var objSkinned = UnityEngine.Object.Instantiate(parent, parent.transform.position, parent.transform.rotation, parent.transform.parent);
         objSkinned.name = command.args[1];
-        objSkinned.material = new Material(parent.material);
+        objSkinned.material.renderQueue = 2499;
         objSkinned.transform.localEulerAngles = new Vector3(-90f, 0, 0);
         objSkinned.gameObject.SetActive(true);
 
@@ -256,9 +257,18 @@ public class Commands
             }
         }
 
+        if(command.args[2] == "Body" && Plugin.currentSceneName == "Scene 10 - ManekenWorld")
+        {
+            var location10 = mita.GetComponent<Location10_MitaInShadow>();
+            if (location10 != null)
+            {
+                location10.rend = objSkinned;
+            }
+        }
+
         AddOutlineTarget(objSkinned);
 
-        renderers[mita.name + command.args[1]] = objSkinned;
+        renderers[command.args[1]] = objSkinned;
 
         if ((command.args[2] == "Head" || (command.args[2] == "Arms" && Player)) && !BlendShapedSkinnedAppendix.Contains(command.args[1]))
             BlendShapedSkinnedAppendix.Add(command.args[1]);
@@ -272,7 +282,7 @@ public class Commands
         if (ShouldSkip(3, command, mita.name))
             return;
 
-        if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+        if (staticRenderers.ContainsKey(command.args[1]))
         {
             UnityEngine.Debug.Log($"[INFO] Found existing static renderer '{command.args[1]}' recovering it.");
             string[] args = command.args
@@ -285,6 +295,7 @@ public class Commands
         var obj = new GameObject().AddComponent<MeshRenderer>();
         obj.name = command.args[1];
         obj.material = new Material(RecursiveFindMaterial(mita));
+        obj.material.renderQueue = 5000;
         obj.gameObject.AddComponent<MeshFilter>();
 
         obj.transform.parent = Utility.RecursiveFindChild(mita.transform, command.args[2]);
@@ -322,7 +333,7 @@ public class Commands
 
         AddOutlineTarget(obj);
 
-        staticRenderers[mita.name + command.args[1]] = obj;
+        staticRenderers[command.args[1]] = obj;
         UnityEngine.Debug.Log($"[INFO] Created static appendix {obj.name} on '{mita.name}'.");
     }
 
@@ -345,6 +356,33 @@ public class Commands
                 float.Parse(command.args[4], CultureInfo.InvariantCulture)
             );
             UnityEngine.Debug.Log($"[INFO] Set scale of '{command.args[1]}' on '{mita.name}' .");
+        }
+    }
+    public static void ApplyResizeMeshCommand((string name, string[] args) command, GameObject mita,
+        Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        if (ShouldSkip(3, command, mita.name))
+            return;
+
+        if (renderers.ContainsKey(command.args[1]))
+        {
+            var skinnedRenderer = renderers[command.args[1]];
+            var mesh = skinnedRenderer.sharedMesh;
+            AssetLoader.ResizeMesh(ref mesh, float.Parse(command.args[2], CultureInfo.InvariantCulture));
+            skinnedRenderer.sharedMesh = mesh;
+            UnityEngine.Debug.Log($"[INFO] Resized mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else if (staticRenderers.ContainsKey(command.args[1]))
+        {
+            var staticRenderer = staticRenderers[command.args[1]];
+            var mesh = staticRenderer.GetComponent<MeshFilter>().mesh;
+            AssetLoader.ResizeMesh(ref mesh, float.Parse(command.args[2], CultureInfo.InvariantCulture));
+            staticRenderer.GetComponent<MeshFilter>().mesh = mesh;
+            UnityEngine.Debug.Log($"[INFO] Resized mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for mesh resizement.");
         }
     }
 
@@ -461,15 +499,15 @@ public class Commands
 
         string txtKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
 
-        if (renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers.ContainsKey(command.args[1]))
         {
-            ReadShaderParams(renderers[mita.name + command.args[1]].material, txtKey);
-            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[mita.name + command.args[1]].name}' .");
+            ReadShaderParams(renderers[command.args[1]].material, txtKey);
+            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[command.args[1]].name}' .");
         }
-        else if (staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers.ContainsKey(command.args[1]))
         {
-            ReadShaderParams(staticRenderers[mita.name + command.args[1]].material, txtKey);
-            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[mita.name + command.args[1]].name}' .");
+            ReadShaderParams(staticRenderers[command.args[1]].material, txtKey);
+            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[ command.args[1]].name}' .");
         }
         else
         {
@@ -483,14 +521,14 @@ public class Commands
         if (ShouldSkip(2, command, mita.name))
             return;
 
-        if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(renderers[mita.name + command.args[1]]);
+            RemoveOutlineTarget(renderers[command.args[1]]);
             UnityEngine.Debug.Log($"[INFO] Removed outline from skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
-        else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(staticRenderers[mita.name + command.args[1]]);
+            RemoveOutlineTarget(staticRenderers[command.args[1]]);
             UnityEngine.Debug.Log($"[INFO] Removed outline from static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -506,14 +544,14 @@ public class Commands
         if (ShouldSkip(2, command, mita.name))
             return;
 
-        if (renderers != null && renderers.ContainsKey(mita.name + command.args[1]))
+        if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            AddOutlineTarget(renderers[mita.name + command.args[1]]);
+            AddOutlineTarget(renderers[command.args[1]]);
             UnityEngine.Debug.Log($"[INFO] Added outline to skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
-        else if (staticRenderers != null && staticRenderers.ContainsKey(mita.name + command.args[1]))
+        else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            AddOutlineTarget(staticRenderers[mita.name + command.args[1]]);
+            AddOutlineTarget(staticRenderers[command.args[1]]);
             UnityEngine.Debug.Log($"[INFO] Added outline to static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
