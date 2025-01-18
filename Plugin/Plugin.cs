@@ -938,11 +938,7 @@ public class Plugin : MonoBehaviour
         }
 
         if (currentSceneName == "SceneMenu")
-        {
-            if (logo != null)
-                logo.color = Color.white;
             PatchCharacterMenu();
-        }
     }
     void OnSceneChanged()
     {
