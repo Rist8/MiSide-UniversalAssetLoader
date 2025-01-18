@@ -676,12 +676,12 @@ public class Plugin : MonoBehaviour
         foreach (var animator in animators)
         {
             // this is "Player"
-            if (animator.name == "Person")
+            if (animator.name == "Person" || animator.name == "Player")
             {
                 GameObject personObject = animator.gameObject;
                 UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {personObject.name}");
                 PatchPlayer(personObject);
-                return;
+                // return;
             }
         }
     }

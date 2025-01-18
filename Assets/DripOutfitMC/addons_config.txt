@@ -15,4 +15,5 @@ replace_mesh Player DripShirt DripOutfitMC\drip shirt
 replace_mesh Player DripPants DripOutfitMC\drip pants
 replace_mesh Player DripJackt DripOutfitMC\drip jacket
 replace_mesh Player Arms DripOutfitMC\drip Arms
-remove Player Clothes
+replace_tex Player Clothes DripOutfitMC\Blank
+//remove Player Clothes
