@@ -204,8 +204,6 @@ public class Plugin : MonoBehaviour
     public static Dictionary<string, AudioClip>? loadedAudio;
     public static List<(string name, string[] args)> assetCommands;
 
-    // public static GameObject[] mitas = new GameObject[mitaNames.Length];
-    public static List<GameObject> mitas = new List<GameObject>();
 
     void ReadAssetsConfig()
     {
@@ -393,6 +391,9 @@ public class Plugin : MonoBehaviour
         "Mila(Clone)", "MitaCreepy(Clone)", "MitaCore(Clone)", "IdleHide", "Mita"
     };
 
+
+    public static List<GameObject> mitas = new List<GameObject>();
+
     public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
@@ -422,8 +423,6 @@ public class Plugin : MonoBehaviour
 
         }
 
-        // Assign specific cases (explicit assignment)
-        // AssignSpecificMitaObjects(mitaAnimators);
 
         // Patch each Mita over multiple frames
         for (int i = 0; i < mitaNames.Length; ++i)
@@ -438,16 +437,6 @@ public class Plugin : MonoBehaviour
 
         }
     }
-
-    // private static void AssignSpecificMitaObjects(GameObject[] mitaAnimators)
-    // {
-    // mitaAnimators[13] = GameObject.Find("MitaPerson Mita");
-    // mitaAnimators[14] = GameObject.Find("Mita Dream");
-    // mitaAnimators[15] = GameObject.Find("Mita Future");
-    // mitaAnimators[18] = GameObject.Find("MitaPerson Future");
-    // mitaAnimators[19] = GameObject.Find("CreepyMita");
-    // mitaAnimators[21] = GameObject.Find("MitaPerson Old");
-    // }
 
 
     public static void CreateMeshBackup(Dictionary<string, SkinnedMeshRenderer> renderers)
@@ -669,63 +658,56 @@ public class Plugin : MonoBehaviour
                 continue;
             }
 
-            try
+            switch (command.name)
             {
-                switch (command.name)
-                {
-                    case "remove":
-                        Commands.ApplyRemoveCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    case "recover":
-                        Commands.ApplyRecoverCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    case "replace_tex":
-                        Commands.ApplyReplaceTexCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    case "replace_mesh":
-                        Commands.ApplyReplaceMeshCommand(command, mita, renderers, staticRenderers, mita.name);
-                        break;
-                    case "resize_mesh":
-                        Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    case "create_skinned_appendix":
-                        Commands.ApplyCreateSkinnedAppendixCommand(command, mita, renderers);
-                        break;
-                    case "create_static_appendix":
-                        Commands.ApplyCreateStaticAppendixCommand(command, mita, staticRenderers);
-                        break;
-                    case "set_scale":
-                        Commands.ApplySetScaleCommand(command, mita);
-                        break;
-                    case "move_position":
-                        Commands.ApplyMovePositionCommand(command, mita);
-                        break;
-                    case "set_rotation":
-                        Commands.ApplySetRotationCommand(command, mita);
-                        break;
-                    case "shader_params":
-                        Commands.ApplyShaderParamsCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    case "remove_outline":
-                        Commands.ApplyRemoveOutlineCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    case "recover_outline":
-                        Commands.ApplyAddOutlineCommand(command, mita, renderers, staticRenderers);
-                        break;
-                    default:
-                        UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
-                        break;
-                }
-
-                globalAppliedCommands[mita].Add(commandKey);
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError($"[ERROR] Error processing command: {commandKey} on '{mita.name}'\n{e}");
+                case "remove":
+                    Commands.ApplyRemoveCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "recover":
+                    Commands.ApplyRecoverCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "replace_tex":
+                    Commands.ApplyReplaceTexCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "replace_mesh":
+                    yield return Commands.ApplyReplaceMeshCommandCoroutine(command, mita, renderers, staticRenderers, mita.name);
+                    break;
+                case "resize_mesh":
+                    Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "create_skinned_appendix":
+                    Commands.ApplyCreateSkinnedAppendixCommand(command, mita, renderers);
+                    break;
+                case "create_static_appendix":
+                    Commands.ApplyCreateStaticAppendixCommand(command, mita, staticRenderers);
+                    break;
+                case "set_scale":
+                    Commands.ApplySetScaleCommand(command, mita);
+                    break;
+                case "move_position":
+                    Commands.ApplyMovePositionCommand(command, mita);
+                    break;
+                case "set_rotation":
+                    Commands.ApplySetRotationCommand(command, mita);
+                    break;
+                case "shader_params":
+                    Commands.ApplyShaderParamsCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "remove_outline":
+                    Commands.ApplyRemoveOutlineCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "recover_outline":
+                    Commands.ApplyAddOutlineCommand(command, mita, renderers, staticRenderers);
+                    break;
+                default:
+                    UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
+                    break;
             }
 
-            // Yield control every 30ms to avoid freezing
-            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
+            globalAppliedCommands[mita].Add(commandKey);
+
+            // Yield control every 15ms to avoid freezing
+            if ((Time.realtimeSinceStartup - frameStartTime) > 1f / 120f)
             {
                 stopwatch.Stop(); // Pause the stopwatch
                 yield return null; // Yield control back to Unity
@@ -801,7 +783,7 @@ public class Plugin : MonoBehaviour
                         Commands.ApplyReplaceTexCommand(command, player, renderers, staticRenderers);
                         break;
                     case "replace_mesh":
-                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
+                        Commands.ApplyReplaceMeshCommandCoroutine(command, player, renderers, staticRenderers, "Player");
                         break;
                     case "resize_mesh":
                         Commands.ApplyResizeMeshCommand(command, player, renderers, staticRenderers);

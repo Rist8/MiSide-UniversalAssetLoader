@@ -4,6 +4,7 @@ using System.Globalization;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UtilityNamespace;
+using static AssetLoader;
 
 public class Commands
 {
@@ -187,11 +188,18 @@ public class Commands
         }
     }
 
-    public static void ApplyReplaceMeshCommand((string name, string[] args) command, GameObject mita,
-    Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers, string blendShapeKey = null)
+    public static System.Collections.IEnumerator ApplyReplaceMeshCommandCoroutine(
+    (string name, string[] args) command,
+    GameObject mita,
+    Dictionary<string, SkinnedMeshRenderer> renderers,
+    Dictionary<string, MeshRenderer> staticRenderers,
+    string blendShapeKey = null,
+    float maxFrameTime = 1f / 120f // max time per frame in seconds
+)
     {
         if (ShouldSkip(4, command, mita.name))
-            return;
+            yield break;
+
         if (blendShapeKey == null)
             blendShapeKey = mita.name;
         if (blendShapeKey == "Player" && command.args[1] == "Arms")
@@ -199,20 +207,59 @@ public class Commands
 
         string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
+
         Assimp.Mesh meshData = Plugin.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
 
         if (renderers.ContainsKey(command.args[1]))
         {
             var skinnedRenderer = renderers[command.args[1]];
-            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer),
-                ((command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms"), blendShapeKey);
+
+            // Call coroutine to build the mesh
+            UnityEngine.Mesh builtMesh = null;
+            var meshCoroutine = BuildMeshCoroutine(
+                meshData,
+                new ArmatureData(skinnedRenderer),
+                (command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms",
+                blendShapeKey,
+                maxFrameTime
+            );
+
+            while (meshCoroutine.MoveNext())
+            {
+                if (meshCoroutine.Current is UnityEngine.Mesh resultMesh)
+                {
+                    builtMesh = resultMesh;
+                }
+                yield return null;
+            }
+
+            skinnedRenderer.sharedMesh = builtMesh;
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(command.args[1]))
         {
             var staticRenderer = staticRenderers[command.args[1]];
-            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null,
-                ((command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms"), blendShapeKey);
+
+            // Call coroutine to build the mesh
+            UnityEngine.Mesh builtMesh = null;
+            var meshCoroutine = BuildMeshCoroutine(
+                meshData,
+                null,
+                (command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms",
+                blendShapeKey,
+                maxFrameTime
+            );
+
+            while (meshCoroutine.MoveNext())
+            {
+                if (meshCoroutine.Current is UnityEngine.Mesh resultMesh)
+                {
+                    builtMesh = resultMesh;
+                }
+                yield return null;
+            }
+
+            staticRenderer.GetComponent<MeshFilter>().mesh = builtMesh;
             UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -220,6 +267,8 @@ public class Commands
             UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for mesh replacement.");
         }
     }
+
+
 
     public static void ApplyCreateSkinnedAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, bool Player = false)
