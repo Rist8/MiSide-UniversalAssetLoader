@@ -363,7 +363,7 @@ public class Plugin : MonoBehaviour
         loaded = true;
     }
 
-    private static  IEnumerable<List<string>> SplitIntoBatches(IEnumerable<string> files, int batchSize)
+    private static IEnumerable<List<string>> SplitIntoBatches(IEnumerable<string> files, int batchSize)
     {
         var batch = new List<string>(batchSize);
         foreach (var file in files)
@@ -387,7 +387,7 @@ public class Plugin : MonoBehaviour
         "Little", "Maneken", "Black", "Dreamer", "Mila",
         "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream",
         "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita",
-        "Old", "MitaPerson Old", "MitaTrue(Clone)", "MitaShortHairs(Clone)", "MitaKind(Clone)",
+        "Old", "MitaPerson Old", "MitaTrue(Clone)", "MitaChibi(Clone)", "Chibi", "MitaShortHairs(Clone)", "MitaKind(Clone)",
         "MitaCap(Clone)", "MitaLittle(Clone)", "MitaManeken(Clone)", "MitaBlack(Clone)", "MitaDreamer(Clone)",
         "Mila(Clone)", "MitaCreepy(Clone)", "MitaCore(Clone)", "IdleHide", "IdleHide",
         "IdleHide", "IdleHide", "IdleHide", "IdleHide", "IdleHide",
@@ -401,7 +401,7 @@ public class Plugin : MonoBehaviour
     public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
-        GameObject[] mitaAnimators = new GameObject[65];
+        GameObject[] mitaAnimators = new GameObject[mitaNames.Length];
         Array.Clear(mitaAnimators, 0, mitaAnimators.Length);
 
         foreach (var obj in animators)
@@ -411,7 +411,7 @@ public class Plugin : MonoBehaviour
 
             if (runtimeController != null)
             {
-                for (int i = 0; i < 65; ++i)
+                for (int i = 0; i < mitaNames.Length; ++i)
                 {
                     string mitaName = mitaNames[i];
 
@@ -431,7 +431,7 @@ public class Plugin : MonoBehaviour
         AssignSpecificMitaObjects(mitaAnimators);
 
         // Patch each Mita over multiple frames
-        for (int i = 0; i < 65; ++i)
+        for (int i = 0; i < mitaNames.Length; ++i)
         {
             string mitaName = mitaNames[i];
             string fullName = mitaName;

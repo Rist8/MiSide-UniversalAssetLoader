@@ -155,21 +155,30 @@ public class Commands
     {
         if (ShouldSkip(3, command, mita.name))
             return;
-        
+
         string textureKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
 
         if (renderers.ContainsKey(command.args[1]))
         {
-            Material material = renderers[command.args[1]].material;
-            material.mainTexture = Plugin.loadedTextures[textureKey];
-            material.SetFloat("_EnableTextureTransparent", 1.0f);
+            var materials = renderers[command.args[1]].materials;
+            foreach (var mat in materials)
+            {
+                mat.mainTexture = Plugin.loadedTextures[textureKey];
+                mat.SetFloat("_EnableTextureTransparent", 1.0f);
+            }
+
             UnityEngine.Debug.Log($"[INFO] Replaced texture for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(command.args[1]))
         {
-            Material material = staticRenderers[command.args[1]].material;
-            material.mainTexture = Plugin.loadedTextures[textureKey];
-            material.SetFloat("_EnableTextureTransparent", 1.0f);
+            // Material material = staticRenderers[command.args[1]].material;
+            // material.mainTexture = Plugin.loadedTextures[textureKey];
+            var materials = staticRenderers[command.args[1]].materials;
+            foreach (var mat in materials)
+            {
+                mat.mainTexture = Plugin.loadedTextures[textureKey];
+                mat.SetFloat("_EnableTextureTransparent", 1.0f);
+            }
             UnityEngine.Debug.Log($"[INFO] Replaced texture for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -257,7 +266,7 @@ public class Commands
             }
         }
 
-        if(command.args[2] == "Body" && Plugin.currentSceneName == "Scene 10 - ManekenWorld")
+        if (command.args[2] == "Body" && Plugin.currentSceneName == "Scene 10 - ManekenWorld")
         {
             var location10 = mita.GetComponent<Location10_MitaInShadow>();
             if (location10 != null)
@@ -507,7 +516,7 @@ public class Commands
         else if (staticRenderers.ContainsKey(command.args[1]))
         {
             ReadShaderParams(staticRenderers[command.args[1]].material, txtKey);
-            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[ command.args[1]].name}' .");
+            UnityEngine.Debug.Log($"[INFO] Set shader parameter '{command.args[2]}' on '{renderers[command.args[1]].name}' .");
         }
         else
         {

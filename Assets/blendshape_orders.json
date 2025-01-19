@@ -154,6 +154,8 @@
     "BigEyesSparkles"
   ],
   "Chibi": ["LittleSmile", "A", "Blink"],
+  "MitaChibi(Clone)": ["LittleSmile", "A", "Blink"],
+  "MitaChibi": ["LittleSmile", "A", "Blink"],
   "Little": ["Blink", "Smile", "A", "O"],
   "Broke": ["Blink", "Smile", "A", "O"],
   "Core": ["Blink", "Angry", "Disgust 1", "Disgust 2"],
