@@ -204,7 +204,8 @@ public class Plugin : MonoBehaviour
     public static Dictionary<string, AudioClip>? loadedAudio;
     public static List<(string name, string[] args)> assetCommands;
 
-    public static GameObject[] mitas = new GameObject[65];
+    // public static GameObject[] mitas = new GameObject[mitaNames.Length];
+    public static List<GameObject> mitas = new List<GameObject>();
 
     void ReadAssetsConfig()
     {
@@ -389,20 +390,15 @@ public class Plugin : MonoBehaviour
         "Future", "Broke", "Glasses", "MitaPerson Future", "CreepyMita",
         "Old", "MitaPerson Old", "MitaTrue(Clone)", "MitaChibi(Clone)", "Chibi", "MitaShortHairs(Clone)", "MitaKind(Clone)",
         "MitaCap(Clone)", "MitaLittle(Clone)", "MitaManeken(Clone)", "MitaBlack(Clone)", "MitaDreamer(Clone)",
-        "Mila(Clone)", "MitaCreepy(Clone)", "MitaCore(Clone)", "IdleHide", "IdleHide",
-        "IdleHide", "IdleHide", "IdleHide", "IdleHide", "IdleHide",
-        "IdleHide", "IdleHide", "IdleHide", "IdleHide", "IdleHide",
-        "Mita", "Mita", "Mita", "Mita", "Mita",
-        "Mita", "Mita", "Mita", "Mita", "Mita",
-        "Mita", "Mita", "Mita", "Mita", "Mita",
-        "Mita", "Mita", "Mita", "Mita", "Mita"
+        "Mila(Clone)", "MitaCreepy(Clone)", "MitaCore(Clone)", "IdleHide", "Mita"
     };
 
     public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
-        GameObject[] mitaAnimators = new GameObject[mitaNames.Length];
-        Array.Clear(mitaAnimators, 0, mitaAnimators.Length);
+        List<GameObject> mitaAnimators = new List<GameObject>();
+
+        mitas.Clear();
 
         foreach (var obj in animators)
         {
@@ -416,9 +412,9 @@ public class Plugin : MonoBehaviour
                     string mitaName = mitaNames[i];
                     if (runtimeController.name.Contains(mitaName) || obj.name.Contains(mitaName))
                     {
-                        if (mitaAnimators[i] != null)
+                        if (mitaAnimators.Contains(anim.gameObject))
                             continue;
-                        mitaAnimators[i] = anim.gameObject;
+                        mitaAnimators.Add(anim.gameObject);
                         break;
                     }
                 }
@@ -427,7 +423,7 @@ public class Plugin : MonoBehaviour
         }
 
         // Assign specific cases (explicit assignment)
-        AssignSpecificMitaObjects(mitaAnimators);
+        // AssignSpecificMitaObjects(mitaAnimators);
 
         // Patch each Mita over multiple frames
         for (int i = 0; i < mitaNames.Length; ++i)
@@ -435,28 +431,23 @@ public class Plugin : MonoBehaviour
             string mitaName = mitaNames[i];
             string fullName = mitaName;
 
-            if (mitaAnimators[i] == null)
-            {
-                mitas[i] = null;
-            }
-            else
-            {
-                mitas[i] = mitaAnimators[i];
-                yield return PatchMitaCoroutine(modName, mitas[i], false, disactivation);
-            }
+            if (mitaAnimators.Count <= i)
+                continue;
+            mitas.Add(mitaAnimators[i]);
+            yield return PatchMitaCoroutine(modName, mitas[i], false, disactivation);
 
         }
     }
 
-    private static void AssignSpecificMitaObjects(GameObject[] mitaAnimators)
-    {
-        mitaAnimators[13] = GameObject.Find("MitaPerson Mita");
-        mitaAnimators[14] = GameObject.Find("Mita Dream");
-        mitaAnimators[15] = GameObject.Find("Mita Future");
-        mitaAnimators[18] = GameObject.Find("MitaPerson Future");
-        mitaAnimators[19] = GameObject.Find("CreepyMita");
-        mitaAnimators[21] = GameObject.Find("MitaPerson Old");
-    }
+    // private static void AssignSpecificMitaObjects(GameObject[] mitaAnimators)
+    // {
+    // mitaAnimators[13] = GameObject.Find("MitaPerson Mita");
+    // mitaAnimators[14] = GameObject.Find("Mita Dream");
+    // mitaAnimators[15] = GameObject.Find("Mita Future");
+    // mitaAnimators[18] = GameObject.Find("MitaPerson Future");
+    // mitaAnimators[19] = GameObject.Find("CreepyMita");
+    // mitaAnimators[21] = GameObject.Find("MitaPerson Old");
+    // }
 
 
     public static void CreateMeshBackup(Dictionary<string, SkinnedMeshRenderer> renderers)
