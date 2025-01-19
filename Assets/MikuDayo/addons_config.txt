@@ -1,9 +1,14 @@
-*Miku Dayo as Chibi Mita
+*Miku Dayo as Chibi Mita & Chibi Player
 create_skinned_appendix Mita MikuDayo Body Chibi
+create_skinned_appendix Player MikuDayo Head Chibi
 
 replace_mesh Mita MikuDayo MikuDayo\MikuDayo Mikudayo Chibi
 replace_tex Mita MikuDayo MikuDayo\MikuDayo Chibi
+replace_mesh Player MikuDayo MikuDayo\MikuDayo Mikudayo.Static Chibi
+replace_tex Player MikuDayo MikuDayo\MikuDayo Chibi
 
 remove Mita Body Chibi
+remove Player Body Chibi
 
 resize_mesh Mita MikuDayo 5 Chibi
+resize_mesh Player MikuDayo 5 Chibi

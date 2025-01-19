@@ -754,8 +754,7 @@ public class Plugin : MonoBehaviour
         var animators = Reflection.FindObjectsOfType<Animator>(true);
         foreach (var animator in animators)
         {
-            // this is "Player"
-            if (animator.name == "Person" || animator.name == "Player")
+            if (animator.name.Contains("Person") || animator.name.Contains("Player"))
             {
                 GameObject personObject = animator.gameObject;
                 UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {personObject.name}");
