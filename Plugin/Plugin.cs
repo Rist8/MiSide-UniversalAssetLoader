@@ -414,8 +414,7 @@ public class Plugin : MonoBehaviour
                 for (int i = 0; i < mitaNames.Length; ++i)
                 {
                     string mitaName = mitaNames[i];
-
-                    if (runtimeController.name.Contains(mitaName))
+                    if (runtimeController.name.Contains(mitaName) || obj.name.Contains(mitaName))
                     {
                         if (mitaAnimators[i] != null)
                             continue;
