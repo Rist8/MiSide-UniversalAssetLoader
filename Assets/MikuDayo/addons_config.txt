@@ -1,8 +1,8 @@
 *Miku Dayo as Chibi Mita
 create_skinned_appendix Mita MikuDayo Body Chibi
 
-replace_mesh Mita MikuDayo HatsuneMiku\MikuDayo Mikudayo Chibi
-replace_tex Mita MikuDayo HatsuneMiku\MikuDayo Chibi
+replace_mesh Mita MikuDayo MikuDayo\MikuDayo Mikudayo Chibi
+replace_tex Mita MikuDayo MikuDayo\MikuDayo Chibi
 
 remove Mita Body Chibi
 
