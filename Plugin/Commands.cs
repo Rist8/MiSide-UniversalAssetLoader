@@ -194,7 +194,7 @@ public class Commands
     Dictionary<string, SkinnedMeshRenderer> renderers,
     Dictionary<string, MeshRenderer> staticRenderers,
     string blendShapeKey = null,
-    float maxFrameTime = 1f / 120f // max time per frame in seconds
+    float maxFrameTime = 1f / 240f // max time per frame in seconds
 )
     {
         if (ShouldSkip(4, command, mita.name))
@@ -214,8 +214,6 @@ public class Commands
         {
             var skinnedRenderer = renderers[command.args[1]];
 
-            // Call coroutine to build the mesh
-            UnityEngine.Mesh builtMesh = null;
             var meshCoroutine = BuildMeshCoroutine(
                 meshData,
                 new ArmatureData(skinnedRenderer),
@@ -228,20 +226,17 @@ public class Commands
             {
                 if (meshCoroutine.Current is UnityEngine.Mesh resultMesh)
                 {
-                    builtMesh = resultMesh;
+                    skinnedRenderer.sharedMesh = resultMesh;
+                    UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
+                    yield break;
                 }
                 yield return null;
             }
-
-            skinnedRenderer.sharedMesh = builtMesh;
-            UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers.ContainsKey(command.args[1]))
         {
             var staticRenderer = staticRenderers[command.args[1]];
 
-            // Call coroutine to build the mesh
-            UnityEngine.Mesh builtMesh = null;
             var meshCoroutine = BuildMeshCoroutine(
                 meshData,
                 null,
@@ -254,13 +249,12 @@ public class Commands
             {
                 if (meshCoroutine.Current is UnityEngine.Mesh resultMesh)
                 {
-                    builtMesh = resultMesh;
+                    staticRenderer.GetComponent<MeshFilter>().mesh = resultMesh;
+                    UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
+                    yield break;
                 }
                 yield return null;
             }
-
-            staticRenderer.GetComponent<MeshFilter>().mesh = builtMesh;
-            UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
         {

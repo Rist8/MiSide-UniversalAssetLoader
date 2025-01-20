@@ -190,7 +190,7 @@ public class AssetLoader
         ArmatureData armature = null,
         bool addBlendShape = false,
         string blendShapeName = "Mita",
-        float maxFrameTime = 1f / 120f // max time per frame in seconds
+        float maxFrameTime = 1f / 240f // max time per frame in seconds
     )
     {
         blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "");

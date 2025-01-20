@@ -28,7 +28,7 @@ namespace UtilityNamespace
     {
         public class CoroutineHandler : MonoBehaviour { }
 
-        public static CoroutineHandler _handler;
+        private static CoroutineHandler _handler;
 
         // Ensures the CoroutineHandler exists
         public static CoroutineHandler Handler

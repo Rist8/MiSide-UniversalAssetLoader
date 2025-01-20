@@ -675,12 +675,6 @@ public class Plugin : MonoBehaviour
                 case "resize_mesh":
                     Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
                     break;
-                case "move_mesh":
-                    Commands.ApplyMoveMeshCommand(command, mita, renderers, staticRenderers);
-                    break;
-                case "rotate_mesh":
-                    Commands.ApplyRotateMeshCommand(command, mita, renderers, staticRenderers);
-                    break;
                 case "create_skinned_appendix":
                     Commands.ApplyCreateSkinnedAppendixCommand(command, mita, renderers);
                     break;
@@ -713,7 +707,7 @@ public class Plugin : MonoBehaviour
             globalAppliedCommands[mita].Add(commandKey);
 
             // Yield control every 15ms to avoid freezing
-            if ((Time.realtimeSinceStartup - frameStartTime) > 1f / 120f)
+            if ((Time.realtimeSinceStartup - frameStartTime) > 1f / 240f)
             {
                 stopwatch.Stop(); // Pause the stopwatch
                 yield return null; // Yield control back to Unity
@@ -793,12 +787,6 @@ public class Plugin : MonoBehaviour
                         break;
                     case "resize_mesh":
                         Commands.ApplyResizeMeshCommand(command, player, renderers, staticRenderers);
-                        break;
-                    case "move_mesh":
-                        Commands.ApplyMoveMeshCommand(command, player, renderers, staticRenderers);
-                        break;
-                    case "rotate_mesh":
-                        Commands.ApplyRotateMeshCommand(command, player, renderers, staticRenderers);
                         break;
                     case "create_skinned_appendix":
                         Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers, true);
