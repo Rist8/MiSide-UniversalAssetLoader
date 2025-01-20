@@ -201,7 +201,8 @@ public class AssetLoader
         var bindposesTask = Task.Run(() =>
         {
             var bindposesData = new BindPoseData[boneCount];
-            Parallel.For(0, boneCount, i =>
+            // Parallel.For(0, boneCount, i =>
+            for (int i = 0; i < boneCount; i++)
             {
                 bindposesData[i] = new BindPoseData
                 {
@@ -213,13 +214,15 @@ public class AssetLoader
                         0, 0, 0, 1
                     }
                 };
-            });
+            }
 
-            Parallel.ForEach(fbxMesh.Bones, bone =>
+            // Parallel.ForEach(fbxMesh.Bones, bone =>
+            foreach (var bone in fbxMesh.Bones)
             {
                 if (!armature.bones.TryGetValue(FixedBoneName(bone.Name), out var armatureBone))
                 {
-                    return;
+                    // return;
+                    continue;
                 }
 
                 int armatureBoneIndex = armatureBone.index;
@@ -238,7 +241,7 @@ public class AssetLoader
                         }
                     };
                 }
-            });
+            }
 
             return bindposesData;
         });
@@ -259,11 +262,13 @@ public class AssetLoader
                 bonesPerVertex.Add(new List<BoneWeightData>());
             }
 
-            Parallel.ForEach(fbxMesh.Bones, bone =>
+            // Parallel.ForEach(fbxMesh.Bones, bone =>
+            foreach (var bone in fbxMesh.Bones)
             {
                 if (!armature.bones.TryGetValue(FixedBoneName(bone.Name), out var armatureBone))
                 {
-                    return;
+                    // return;
+                    continue;
                 }
 
                 int armatureBoneIndex = armatureBone.index;
@@ -283,7 +288,7 @@ public class AssetLoader
                         weight = vertex.Weight
                     });
                 }
-            });
+            }
 
             return bonesPerVertex;
         });
