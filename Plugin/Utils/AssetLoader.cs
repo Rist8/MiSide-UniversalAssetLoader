@@ -7,6 +7,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Newtonsoft.Json;
 using MagicaCloth;
 using UnityEngine.Rendering;
+using UnityEngine.TextCore.Text;
 
 public class AssetLoader
 {
@@ -152,7 +153,37 @@ public class AssetLoader
 
             return boneList;
         }
+    }
 
+    void SetupBoneCloth(GameObject character, List<string> rootBonesNames)
+    {
+
+        var obj = new GameObject("BoneCloth");
+        obj.transform.SetParent(character.transform, false);
+
+        // add Magica Cloth
+        var cloth = obj.AddComponent<MagicaCloth2.MagicaCloth>();
+        var sdata = cloth.SerializeData;
+
+        // bone cloth
+        sdata.clothType = MagicaCloth2.ClothProcess.ClothType.BoneCloth;
+
+        foreach (var rootBoneName in rootBonesNames)
+        {
+            sdata.rootBones.Add(UtilityNamespace.Utility.RecursiveFindChild(character.transform, rootBoneName).transform);
+        }
+
+        // setup parameters
+        sdata.gravity = 3.0f;
+        sdata.damping.SetValue(0.05f);
+        sdata.angleRestorationConstraint.stiffness.SetValue(0.15f, 1.0f, 0.15f, true);
+        sdata.angleRestorationConstraint.velocityAttenuation = 0.6f;
+        sdata.tetherConstraint.distanceCompression = 0.5f;
+        sdata.inertiaConstraint.particleSpeedLimit.SetValue(true, 3.0f);
+        sdata.colliderCollisionConstraint.mode = MagicaCloth2.ColliderCollisionConstraint.Mode.None;
+
+        // start build
+        cloth.BuildAndRun();
     }
 
     public static void ResizeMesh(ref UnityEngine.Mesh mesh, float scale)
