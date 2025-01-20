@@ -161,6 +161,19 @@ public class AssetLoader
         mesh.SetVertices(vertices.Select(v => v * scale).ToArray());
     }
 
+    public static void MoveMesh(ref UnityEngine.Mesh mesh, Vector3 offset)
+    {
+        var vertices = mesh.vertices;
+        mesh.SetVertices(vertices.Select(v => v + offset).ToArray());
+    }
+
+    public static void RotateMesh(ref UnityEngine.Mesh mesh, Vector3 rotation)
+    {
+        var vertices = mesh.vertices;
+        var rotationMatrix = Matrix4x4.TRS(Vector3.zero, UnityEngine.Quaternion.Euler(rotation), Vector3.one);
+        mesh.SetVertices(vertices.Select(v => rotationMatrix.MultiplyPoint3x4(v)).ToArray());
+    }
+
     struct BindPoseData
     {
         public float[] elements; // 16 elements for a 4x4 matrix
@@ -196,7 +209,7 @@ public class AssetLoader
         int boneCount = armature.bones.Count;
         int bonesPerVertexLength = fbxMesh.VertexCount;
 
-    // Step 2: Prepare bindposes and bone weights in a background thread
+        // Step 2: Prepare bindposes and bone weights in a background thread
 
         var bindposesTask = Task.Run(() =>
         {
@@ -257,7 +270,7 @@ public class AssetLoader
         {
 
             var bonesPerVertex = new List<List<BoneWeightData>>(bonesPerVertexLength);
-            for (int i = 0; i<bonesPerVertexLength; i++)
+            for (int i = 0; i < bonesPerVertexLength; i++)
             {
                 bonesPerVertex.Add(new List<BoneWeightData>());
             }

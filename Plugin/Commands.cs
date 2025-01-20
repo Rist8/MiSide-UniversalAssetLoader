@@ -444,6 +444,84 @@ public class Commands
         }
     }
 
+    public static void ApplyMoveMeshCommand((string name, string[] args) command, GameObject mita,
+        Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        if (ShouldSkip(5, command, mita.name))
+            return;
+
+        if (renderers.ContainsKey(command.args[1]))
+        {
+            var skinnedRenderer = renderers[command.args[1]];
+            var mesh = skinnedRenderer.sharedMesh;
+            AssetLoader.MoveMesh(ref mesh,
+                new Vector3(
+                    float.Parse(command.args[2], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[3], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[4], CultureInfo.InvariantCulture)
+                )
+            );
+            UnityEngine.Debug.Log($"[INFO] Moved mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else if (staticRenderers.ContainsKey(command.args[1]))
+        {
+            var staticRenderer = staticRenderers[command.args[1]];
+            var mesh = staticRenderer.GetComponent<MeshFilter>().mesh;
+            AssetLoader.MoveMesh(ref mesh,
+                new Vector3(
+                    float.Parse(command.args[2], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[3], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[4], CultureInfo.InvariantCulture)
+                )
+            );
+            UnityEngine.Debug.Log($"[INFO] Moved mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for mesh movement.");
+        }
+    }
+
+    public static void ApplyRotateMeshCommand((string name, string[] args) command, GameObject mita,
+        Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
+    {
+        if (ShouldSkip(5, command, mita.name))
+            return;
+
+        if (renderers.ContainsKey(command.args[1]))
+        {
+            var skinnedRenderer = renderers[command.args[1]];
+            var mesh = skinnedRenderer.sharedMesh;
+            AssetLoader.RotateMesh(ref mesh,
+                new Vector3(
+                    float.Parse(command.args[2], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[3], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[4], CultureInfo.InvariantCulture)
+                )
+            );
+            skinnedRenderer.sharedMesh = mesh;
+            UnityEngine.Debug.Log($"[INFO] Rotated mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else if (staticRenderers.ContainsKey(command.args[1]))
+        {
+            var staticRenderer = staticRenderers[command.args[1]];
+            var mesh = staticRenderer.GetComponent<MeshFilter>().mesh;
+            AssetLoader.RotateMesh(ref mesh,
+                new Vector3(
+                    float.Parse(command.args[2], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[3], CultureInfo.InvariantCulture),
+                    float.Parse(command.args[4], CultureInfo.InvariantCulture)
+                )
+            );
+            staticRenderer.GetComponent<MeshFilter>().mesh = mesh;
+            UnityEngine.Debug.Log($"[INFO] Rotated mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for mesh rotation.");
+        }
+    }
+
     public static void ApplyMovePositionCommand((string name, string[] args) command, GameObject mita)
     {
         if (ShouldSkip(5, command, mita.name))

@@ -20,6 +20,11 @@
 //	trailer - unique command, doesn't need disactivation command
 //	halloween - unique command, doesn't need disactivation command	
 //      christmas - unique command, doesn't need disactivation command
+
+//Usage:
+//	*ButtonName
+//	commands on activation
+//	-commands on disactivation
 	
 //	create_static_appendix Mita Name ParentRenderer KeyWord
 
@@ -41,6 +46,8 @@
 //  recover_outline Mita Name KeyWords
 //      # recover white outline to the object
 
+// ======================== FOR STATIC APPENDIXES ========================
+
 //	set_scale Mita Name x y z KeyWords
 //	 # KeyWord (use "all" for every Mita possible, logic can be inverted by 
 //       # putting ! in the beginning of Keyword example "!Core" will proceed 
@@ -57,12 +64,24 @@
 //	set_rotation Mita Name x y z w KeyWords
 //	 #x,y,z,w are the angles of Quaternion the object will be rotated by
 
+// ======================== FOR SKINNED APPENDIXES =======================
 
+//  resize_mesh Mita Name x y z KeyWords
+//    # KeyWord (use "all" for every Mita possible, logic can be inverted by
+//    # putting ! in the beginning of Keyword example "!Core" will proceed
+//    # the command for every Mita except containing Core in the name) is
+//    # the word which the plugin will search for in Mita's name and will
+//    # change the scale only for that Mita;
+//    # KeyWord can be ommited, will act as "all" in such case;
+//    # x,y,z are scales for the corresponding axes
 
-//Usage:
-//	*ButtonName
-//	commands on activation
-//	-commands on disactivation
+//  move_mesh Mita Name x y z KeyWords
+//    #x,y,z are distances for which the Name will be moved on
+//    #corresponding axes
+
+//  rotate_mesh Mita Name x y z w KeyWords
+//    #x,y,z,w are the angles of Quaternion the object will be rotated by
+
 
 *TrailerMode
 trailer
