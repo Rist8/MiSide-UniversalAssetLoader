@@ -491,10 +491,22 @@ public class Plugin : MonoBehaviour
                     switch (parts1[0])
                     {
                         case "create_static_appendix":
-                            staticAppendix.Add(parts1[2]);
+                            if (!staticRenderers.ContainsKey(parts1[2] + "_backup"))
+                            {
+                                staticAppendix.Add(parts1[2]);
+                            }
+                            else{
+                                replacedMeshes.Add(parts1[2]);
+                            }
                             break;
                         case "create_skinned_appendix":
-                            skinnedAppendix.Add(parts1[2]);
+                            if (!skinnedRenderers.ContainsKey(parts1[2] + "_backup"))
+                            {
+                                skinnedAppendix.Add(parts1[2]);
+                            }
+                            else{
+                                replacedMeshes.Add(parts1[2]);
+                            }
                             break;
                         case "replace_mesh":
                         case "replace_tex":
