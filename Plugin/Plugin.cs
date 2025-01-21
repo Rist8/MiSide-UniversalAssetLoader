@@ -424,6 +424,14 @@ public class Plugin : MonoBehaviour
         }
 
 
+        Transform player = null;
+
+        if (GlobalTag.cameraPlayer != null)
+        {
+            player = GlobalTag.cameraPlayer.transform;
+            mitaAnimators.Sort((x, y) => Vector3.Distance(player.position, x.transform.position).CompareTo(Vector3.Distance(player.position, y.transform.position)));
+        }
+
         // Patch each Mita over multiple frames
         for (int i = 0; i < mitaNames.Length; ++i)
         {
@@ -433,8 +441,11 @@ public class Plugin : MonoBehaviour
             if (mitaAnimators.Count <= i)
                 continue;
             mitas.Add(mitaAnimators[i]);
-            yield return PatchMitaCoroutine(modName, mitas[i], false, disactivation);
 
+            float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
+            float maxFrameTime = distance <= 20 ? 1f / 120f : 1f / (120f * Mathf.Log(distance - 19, 8));
+            UnityEngine.Debug.Log(distance);
+            yield return PatchMitaCoroutine(modName, mitas[i], false, disactivation, maxFrameTime);
         }
     }
 
@@ -621,7 +632,7 @@ public class Plugin : MonoBehaviour
     // Global dictionary to track applied commands per object
     public static Dictionary<GameObject, HashSet<string>> globalAppliedCommands = new();
 
-    public static System.Collections.IEnumerator PatchMitaCoroutine(string modName, GameObject mita, bool recursive = false, bool disactivation = false)
+    public static System.Collections.IEnumerator PatchMitaCoroutine(string modName, GameObject mita, bool recursive = false, bool disactivation = false, float maxFrameTime = 1f / 120f)
     {
         var stopwatch = Stopwatch.StartNew();
         float frameStartTime = Time.realtimeSinceStartup;
@@ -682,7 +693,7 @@ public class Plugin : MonoBehaviour
                     Commands.ApplyReplaceTexCommand(command, mita, renderers, staticRenderers);
                     break;
                 case "replace_mesh":
-                    yield return Commands.ApplyReplaceMeshCommandCoroutine(command, mita, renderers, staticRenderers, mita.name);
+                    yield return Commands.ApplyReplaceMeshCommandCoroutine(command, mita, renderers, staticRenderers, mita.name, maxFrameTime);
                     break;
                 case "resize_mesh":
                     Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
@@ -725,7 +736,7 @@ public class Plugin : MonoBehaviour
             globalAppliedCommands[mita].Add(commandKey);
 
             // Yield control every 15ms to avoid freezing
-            if ((Time.realtimeSinceStartup - frameStartTime) > 1f / 240f)
+            if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
             {
                 stopwatch.Stop(); // Pause the stopwatch
                 yield return null; // Yield control back to Unity
