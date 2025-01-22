@@ -12,7 +12,7 @@ This project is based on a fork of the original [MiSide-AssetLoader](https://git
 
 ### About / О моде
 
-**MiSide-AssetLoader** is a mod for loading assets in real time for the Unity game *MiSide*.  
+**MiSide-AssetLoader** is a mod for loading assets in runtime for the Unity game *MiSide*.  
 > **MiSide-AssetLoader** — мод для загрузки ресурсов в реальном времени для Unity-игры *MiSide*.
 
 - **Supports custom configurations** for adding new buttons through the **Addons** tab.  
