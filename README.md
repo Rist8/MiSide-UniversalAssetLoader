@@ -59,6 +59,7 @@ For a complete list of features, refer to the `readme.txt` file.
 
 #### **Plugin Installation**
 
+
 1. **Download** `UniversalAssetLoaderRelease-0.11.0.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).  
    > **Скачайте** `UniversalAssetLoaderRelease-0.11.0.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).
 
