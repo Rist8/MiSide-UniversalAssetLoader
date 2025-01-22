@@ -438,8 +438,9 @@ public class Plugin : MonoBehaviour
             string mitaName = mitaNames[i];
             string fullName = mitaName;
 
-            if (mitaAnimators.Count <= i)
+            if (mitaAnimators.Count <= i || mitaAnimators[i] == null)
                 continue;
+                
             mitas.Add(mitaAnimators[i]);
 
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
