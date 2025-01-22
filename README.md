@@ -62,29 +62,10 @@ For a complete list of features, refer to the `readme.txt` file.
 1. **Download** `UniversalAssetLoaderRelease-0.11.0.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).  
    > **Скачайте** `UniversalAssetLoaderRelease-0.11.0.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).
 
-2. **Open** the `OuterFolder` inside the downloaded archive, and **extract** the `UniversalAssetLoader` folder into the `...\MiSide\BepInEx\plugins` directory of your game (so that `plugins\UniversalAssetLoader` path exists).
-   **Locate** the `assimp.dll` file in `plugins\UniversalAssetLoader` and move it to the root folder of your game (where the game executable is located).
-   > **Откройте** папку OuterFolder внутри загруженного архива и **распакуйте** папку UniversalAssetLoader в каталог `...\MiSide\BepInEx\plugins` вашей игры (так чтобы появился путь `plugins\UniversalAssetLoader`).
-   > **Найдите** файл `assimp.dll` в `plugins\UniversalAssetLoader` и переместите его в корневую папку вашей игры (где находится исполняемый файл игры).
-
-   **OR / ИЛИ**
-
-   Unpack the archive into any folder, download `move.bat`, move it to the extracted `OuterFolder`, and run the script. This will automatically locate the MiSide folder and copy all files.  
-   > Распакуйте архив в любую папку, скачайте `move.bat`, переместите его в распакованную папку `OuterFolder` и запустите скрипт. Скрипт автоматически найдет папку MiSide и скопирует все файлы.
+2. **Extract** the entire `BepInEx` folder from the archive directly into your game's root directory (where the `BepInEx` folder already exists). This will merge the folders automatically.
+   > **Извлеките** всю папку `BepInEx` из архива непосредственно в корневой каталог вашей игры (где папка `BepInEx` уже существует). Это автоматически объединит папки.
 
 3. **Launch the game** and check if the mod works by opening the **Clothes** menu and looking for the **Addons** tab.  
    > **Запустите игру** и проверьте, работает ли мод, открыв меню **Clothes** и найдя вкладку **Addons**.
 
    ![image](https://github.com/user-attachments/assets/b380ff52-5c7d-4ebe-9b85-52eda35ce9fb)
-
----
-
-### Screenshots / Скриншоты
-
-Here are some screenshots of the **CatEars** addon:  
-> Вот несколько скриншотов аддона **CatEars**:
-
-![image](https://github.com/user-attachments/assets/76c8d3f0-7bbc-484f-bddb-03db69215b1f)  
-![image](https://github.com/user-attachments/assets/e6325bbf-fb06-4757-9384-e07ab47d5212)  
-![image](https://github.com/user-attachments/assets/f13dd339-d0a9-4ebc-80aa-c2d0dd12bfd9)  
-![image](https://github.com/user-attachments/assets/255db69d-2528-4968-8c9d-551ffab0b17e)  
