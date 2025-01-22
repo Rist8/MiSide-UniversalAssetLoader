@@ -495,7 +495,8 @@ public class Plugin : MonoBehaviour
                             {
                                 staticAppendix.Add(parts1[2]);
                             }
-                            else{
+                            else
+                            {
                                 replacedMeshes.Add(parts1[2]);
                             }
                             break;
@@ -504,7 +505,8 @@ public class Plugin : MonoBehaviour
                             {
                                 skinnedAppendix.Add(parts1[2]);
                             }
-                            else{
+                            else
+                            {
                                 replacedMeshes.Add(parts1[2]);
                             }
                             break;
@@ -855,6 +857,8 @@ public class Plugin : MonoBehaviour
         sceneObjectTransform = GameObject.Find("MenuGame/Scene").transform;
         gameObjectCount = sceneObjectTransform.childCount;
         UnityEngine.Debug.Log($"[INFO] Patching game scene.");
+        var hide_ver = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_game_version", (null, null));
+        var hide_glowing = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_glowing_effect", (null, null));
         var command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
         if (command.name != null)
         {
@@ -874,16 +878,31 @@ public class Plugin : MonoBehaviour
                 if (tr.name == "Background")
                 {
                     Texture2D tex = loadedTextures[command.args[0]];
-                    Destroy(Reflection.GetComponent<UIShiny>(tr));
-
+                    if (hide_glowing.name != null)
+                        Destroy(Reflection.GetComponent<UIShiny>(tr));
                     logo = Reflection.GetComponent<Image>(tr);
                     logo.preserveAspect = true;
                     logo.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one / 2.0f);
                     Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
                 }
-                else
+                else if (tr.name != "TextVersion")
                     tr.gameObject.SetActive(false);
+                else
+                {
+                    if (hide_ver.name == null)
+                    {
+                        Color color = Reflection.GetComponent<Text>(tr).color;
+                        color.a = 1;
+                        Reflection.GetComponent<Text>(tr).color = color;
+                    }
+                }
             }
+        }
+
+        command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "resize_logo", (null, null));
+        if (command.name != null)
+        {
+            Reflection.GetComponent<RectTransform>(logo.transform).localScale = new Vector3(float.Parse(command.args[0]), float.Parse(command.args[1]), 1);
         }
 
         command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));

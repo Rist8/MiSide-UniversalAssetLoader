@@ -1,5 +1,9 @@
 //menu_music MusicFilename
 //menu_logo LogoFilename
+//resize_logo x y
 
 //menu_music crab_rave
 //menu_logo logo
+
+//hide_game_version
+//hide_glowing_effect
