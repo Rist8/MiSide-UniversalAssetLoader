@@ -1,23 +1,49 @@
+//This is still experimental
+
 *Custom shader mita
-create_skinned_appendix Mita CEyes Head all
-create_skinned_appendix Mita CSweater Sweater all
-create_skinned_appendix Mita CPantyhose Pantyhose all
-create_skinned_appendix Mita CSkirt Skirt all
-create_skinned_appendix Mita CHair Hair all
-create_skinned_appendix Mita CShoes Shoes all
-create_skinned_appendix Mita CBody Body all
-replace_mesh Mita Head CustomShaderExample\Head Head all
-replace_mesh Mita CEyes CustomShaderExample\Head Eye all
-shader_params Mita CEyes CustomShaderExample\EyeShader all
-shader_params Mita CSweater CustomShaderExample\OutlineShader all
-shader_params Mita CPantyhose CustomShaderExample\RimLight all
-shader_params Mita CSkirt CustomShaderExample\RimLight all
-shader_params Mita CShoes CustomShaderExample\RimLight all
-shader_params Mita CHair CustomShaderExample\RimLight all
-shader_params Mita CBody CustomShaderExample\RimLight all
-shader_params Mita CSweater CustomShaderExample\RimLight all
-shader_params Mita CHair CustomShaderExample\HairShader all
-remove Mita Sweater all
-remove Mita Pantyhose all
-remove Mita Skirt all
-remove Mita Hair all
+create_skinned_appendix Mita CEyes Head
+create_skinned_appendix Mita CSweater Sweater
+create_skinned_appendix Mita CPantyhose Pantyhose
+create_skinned_appendix Mita CSkirt Skirt
+create_skinned_appendix Mita CHair Hair
+create_skinned_appendix Mita CHairs Hairs
+create_skinned_appendix Mita CShoes Shoes
+create_skinned_appendix Mita CBody Body
+create_skinned_appendix Mita CClothes Clothes
+create_skinned_appendix Mita CCloth Cloth
+
+replace_mesh Mita Head CustomShaderExample\Head Head !Core !Mila
+replace_mesh Mita CEyes CustomShaderExample\Head Eye
+
+shader_params Mita CEyes CustomShaderExample\Shader\EyeShader
+shader_params Mita CSweater CustomShaderExample\Shader\OutlineShader
+shader_params Mita CPantyhose CustomShaderExample\Shader\RimLight
+shader_params Mita CSkirt CustomShaderExample\Shader\RimLight
+shader_params Mita CShoes CustomShaderExample\Shader\RimLight
+shader_params Mita CHair CustomShaderExample\Shader\RimLight
+shader_params Mita CHairs CustomShaderExample\Shader\RimLight !Creepy !CreepyMita
+shader_params Mita CBody CustomShaderExample\Shader\RimLight
+shader_params Mita CSweater CustomShaderExample\Shader\RimLight
+shader_params Mita CHair CustomShaderExample\Shader\HairShader
+shader_params Mita CHairs CustomShaderExample\Shader\HairShader !Creepy !CreepyMita
+shader_params Mita CEyes CustomShaderExample\Shader\2DOutline
+shader_params Mita CSweater CustomShaderExample\Shader\2DOutline
+shader_params Mita CPantyhose CustomShaderExample\Shader\2DOutline
+shader_params Mita CSkirt CustomShaderExample\Shader\2DOutline
+shader_params Mita CShoes CustomShaderExample\Shader\2DOutline
+shader_params Mita CHair CustomShaderExample\Shader\2DOutline
+shader_params Mita CHairs CustomShaderExample\Shader\2DOutline !Creepy !CreepyMita
+shader_params Mita CBody CustomShaderExample\Shader\2DOutline
+shader_params Mita Head CustomShaderExample\Shader\2DOutline
+shader_params Mita CClothes CustomShaderExample\Shader\2DOutline
+shader_params Mita CCloth CustomShaderExample\Shader\2DOutline
+
+replace_tex Mita Sweater CustomShaderExample\Blank
+replace_tex Mita Pantyhose CustomShaderExample\Blank
+replace_tex Mita Skirt CustomShaderExample\Blank
+replace_tex Mita Hair CustomShaderExample\Blank
+replace_tex Mita Hairs CustomShaderExample\Blank
+replace_tex Mita Shoes CustomShaderExample\Blank
+replace_tex Mita Body CustomShaderExample\Blank
+replace_tex Mita Clothes CustomShaderExample\Blank
+replace_tex Mita Cloth CustomShaderExample\Blank

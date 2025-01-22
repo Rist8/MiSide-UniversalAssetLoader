@@ -1,5 +1,26 @@
-//menu_music MusicFilename
-//menu_logo LogoFilename
+// ====================== MENU CONFIGURATION ===========================
+// Commands for configuring the menu:
+//
+//   menu_music MusicFilename
+//     # Sets the background music for the menu.
+//     # - MusicFilename: The name of the music file to play (e.g., "crab_rave").
+//
+//   menu_logo LogoFilename
+//     # Sets the logo displayed in the menu.
+//     # - LogoFilename: The name of the logo file to use (e.g., "logo").
+//
+//   resize_logo x y
+//     # Adjusts the size of the menu logo.
+//     # - x, y: The width and height scale factors for the logo.
+//
+//   hide_game_version
+//     # Hides the displayed game version in the menu.
+//
+//   hide_glowing_effect
+//     # Disables the glowing effect in the menu UI.
 
 //menu_music crab_rave
 //menu_logo logo
+
+//hide_game_version
+//hide_glowing_effect

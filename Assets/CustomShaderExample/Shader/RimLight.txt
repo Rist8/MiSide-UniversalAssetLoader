@@ -1,0 +1,4 @@
+SetFloat _RimLightUnfill 100
+SetFloat _RimLightColorPower 10
+SetFloat _LightAffectRimLightColor 0
+SetFloat _LightIntensity 100

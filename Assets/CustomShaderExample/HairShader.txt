@@ -1,9 +1,0 @@
-SetFloat _LightIntensity 1
-SetFloat _DirectionalLightIntensity 1
-SetFloat _PointSpotlightIntensity 1
-SetColor _RimLightColor (1,1,1,1) 100
-SetFloat _RimLightColorPower 100
-SetFloat _LightAffectRimLightColor 100
-SetFloat _ReflectionIntensity 100
-SetFloat _ReflectionRoughtness 100SetFloat _RimLightUnfill 100
-SetFloat _RimLightColorPower 50

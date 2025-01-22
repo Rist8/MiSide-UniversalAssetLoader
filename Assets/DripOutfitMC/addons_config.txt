@@ -1,0 +1,19 @@
+//This is still experimental
+//You can try this but it might not work at all times.
+
+*Drip Outfit for Player
+create_skinned_appendix Player DripShoes Clothes
+create_skinned_appendix Player DripShirt Clothes
+create_skinned_appendix Player DripPants Clothes
+create_skinned_appendix Player DripJackt Clothes
+replace_tex Player DripShoes DripOutfitMC\shoes
+replace_tex Player DripShirt DripOutfitMC\shirt
+replace_tex Player DripPants DripOutfitMC\pants
+replace_tex Player DripJackt DripOutfitMC\jacket
+replace_mesh Player DripShoes DripOutfitMC\drip shoes
+replace_mesh Player DripShirt DripOutfitMC\drip shirt
+replace_mesh Player DripPants DripOutfitMC\drip pants
+replace_mesh Player DripJackt DripOutfitMC\drip jacket
+replace_mesh Player Arms DripOutfitMC\drip Arms
+replace_tex Player Clothes DripOutfitMC\Blank
+//remove Player Clothes

@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Net;
+using BepInEx.Unity.IL2CPP.Utils;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Drawing;
 using UnityEngine;
@@ -116,7 +117,6 @@ public class ClothesMenuPatcher
         //var button3 = _addonButtonPrefab.AddComponent<UnityEngine.UI.Button>();
         //button3.onClick.AddListener((UnityAction)LogOnClick);
 
-
         var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 5;
         layout.childControlHeight = false;
@@ -182,6 +182,7 @@ public class ClothesMenuPatcher
         Debug.Log($"[INFO] {name} is active: {active}");
         Plugin.Active[name] = active;
 
+        Commands.BlendShapedSkinnedAppendix.Clear();
 
         try
         {
@@ -263,7 +264,7 @@ public class ClothesMenuPatcher
                 }
             }
 
-            Plugin.FindMita(name, !active);
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
 
             foreach (string line in oneTimeCommands)
             {
@@ -272,6 +273,8 @@ public class ClothesMenuPatcher
                     command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                 RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
             }
+
+            Commands.BlendShapedSkinnedAppendix.Clear();
         }
         catch (Exception e)
         {

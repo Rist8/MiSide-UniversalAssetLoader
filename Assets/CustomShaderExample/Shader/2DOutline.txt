@@ -1,0 +1,5 @@
+SetFloat _OutlineWidth 3
+SetColor _OutlineColor (1,1,1,1)
+SetFloat _OutlineExtrudeMethod 1
+SetFloat _OutlineZPostionInCamera 10
+SetVector _OutlineOffset (2,-2,0,0)

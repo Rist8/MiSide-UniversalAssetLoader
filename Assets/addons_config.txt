@@ -1,60 +1,80 @@
-// existing renderers on Mita
-//  - Attribute
-//  - Body
-//  - Hair
-//  - Head
-//  - Pantyhose
-//  - Shoes
-//  - Skirt
-//  - Sweater
-//  - GlassesObject (Mila)
-//  - BodyTowel (Mila)
+// ========================= EXISTING RENDERERS =========================
+// These renderers are available on Mita:
+//   - Attribute
+//   - Body
+//   - Hair
+//   - Head
+//   - Pantyhose
+//   - Shoes
+//   - Skirt
+//   - Sweater
+//   - GlassesObject (Mila)
+//   - BodyTowel (Mila)
+
+// ========================== KNOWN ANIMATORS ===========================
+// Known Mita Animators:
+//   "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap", "Little", "Maneken",
+//   "Black", "Dreamer", "Mila", "Washes", "Creepy", "Core", "MitaGame",
+//   "MitaPerson Mita", "Dream", "Future", "Broke", "Glasses",
+//   "MitaPerson Future", "CreepyMita", "Know", "Longer", "OnlyBody",
+//   "NewVersion"
+
+// ========================= AVAILABLE COMMANDS =========================
+// Unique commands (no disactivation command needed):
+//   - trailer
+//   - halloween
+//   - christmas
+
+// ========================== COMMAND USAGE =============================
+// Button Syntax:
+//   *ButtonName
+//   commands on activation
+//   -commands on disactivation (optional)
+
+// Command Descriptions:
+//   create_static_appendix Mita Name ParentRenderer KeyWords
+//   create_skinned_appendix Mita Name ParentRenderer KeyWords
+//   replace_tex Mita Name TextureFilename KeyWords
+//   replace_mesh Mita Name MeshFilename MeshName KeyWords
+//   shader_params Mita Name ShaderFilename KeyWords
+//   remove Mita Name KeyWords
+//   recover Mita Name KeyWords
+//   remove_outline Mita Name KeyWords      # Exclude the object from the white outline
+//   recover_outline Mita Name KeyWords     # Recover white outline to the object
+//     # - KeyWords: Use "!" to exclude KeyWord (e.g., "!Core").
+//     # - KeyWords: Don't combine positive and negative KeyWords.
+//     # - KeyWords can be omitted to apply the command to all Mitas.
+
+// ==================== FOR STATIC APPENDIXES ===========================
+// Commands specific to static appendixes:
 //
-//Known Mitas' Animators "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
-//   "Little", "Maneken", "Black", "Dreamer", "Mila", "Washes",
-//   "Creepy", "Core", "MitaGame", "MitaPerson Mita", "Dream", "Future", 
-//   "Broke", "Glasses", "MitaPerson Future", "CreepyMita", "Know", "Longer"
-//   "OnlyBody", "NewVersion"
+//   set_scale Mita Name x y z KeyWords
+//     # Adjust scale for the specified axes (x, y, z).
+//     # - KeyWords: Use "!" to exclude KeyWord (e.g., "!Core").
+//     # - KeyWords: Don't combine positive and negative KeyWords.
+//     # - KeyWords can be omitted to apply the command to all Mitas.
 //
-//Available commands:
-//	trailer - unique command, doesn't need disactivation command
-//	halloween - unique command, doesn't need disactivation command	
-//      christmas - unique command, doesn't need disactivation command
-	
-//	create_static_appendix Mita Name ParentRenderer KeyWord
+//   move_position Mita Name x y z KeyWords
+//     # Move the object by specified distances (x, y, z) along corresponding axes.
+//
+//   set_rotation Mita Name x y z w KeyWords
+//     # Rotate the object using quaternion angles (x, y, z, w).
 
-//	create_skinned_appendix Mita Name ParentRenderer KeyWord
+// ==================== FOR SKINNED APPENDIXES ==========================
+// Commands specific to skinned appendixes:
+//
+//   resize_mesh Mita Name x y z KeyWords
+//     # Adjust mesh scale for the specified axes (x, y, z).
+//     # - KeyWords: Use "!" to exclude KeyWord (e.g., "!Core").
+//     # - KeyWords: Don't combine positive and negative KeyWords.
+//     # - KeyWords can be omitted to apply the command to all Mitas.
+//
+//   move_mesh Mita Name x y z KeyWords
+//     # Move the mesh by specified distances (x, y, z) along corresponding axes.
+//
+//   rotate_mesh Mita Name x y z w KeyWords
+//     # Rotate the mesh using quaternion angles (x, y, z, w).
 
-//	replace_tex Mita Name TextureFilename KeyWord
-
-//	replace_mesh Mita Name MeshFilename MeshName KeyWord
-
-//	remove Mita Name KeyWords   
-
-//	recover Mita Name KeyWords 
-
-//	set_scale Mita Name x y z KeyWords
-//	 # KeyWord (use "all" for every Mita possible, logic can be inverted by 
-//       # putting ! in the beginning of Keyword example "!Core" will proceed 
-//       # the command for every Mita except containing Core in the name) is 
-//       # the word which the plugin will search for in Mita's name and will 
-//	 # change the scale only for that Mita;
-//       # KeyWord can be ommited, will act as "all" in such case;
-//       # x,y,z are scales for the corresponding axes
-
-//	move_position Mita Name x y z KeyWords
-//	 #x,y,z are distances for which the Name will be moved on
-//	 #corresponding axes
-
-//	set_rotation Mita Name x y z w KeyWords
-//	 #x,y,z,w are the angles of Quaternion the object will be rotated by
-
-
-
-//Usage:
-//	*ButtonName
-//	commands on activation
-//	-commands on disactivation
 
 *TrailerMode
 trailer

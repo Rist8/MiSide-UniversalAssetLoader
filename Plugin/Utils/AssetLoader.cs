@@ -7,6 +7,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Newtonsoft.Json;
 using MagicaCloth;
 using UnityEngine.Rendering;
+using UnityEngine.TextCore.Text;
 
 public class AssetLoader
 {
@@ -22,22 +23,42 @@ public class AssetLoader
         return texture;
     }
 
-    public static AudioClip LoadAudio(string file) => LoadAudio(Path.GetFileNameWithoutExtension(file), File.OpenRead(file));
-    public static AudioClip LoadAudio(string name, Stream stream)
+    public static System.Collections.IEnumerator LoadAudioCoroutine(string name, Stream stream, Action<AudioClip> onAudioLoaded)
     {
-        AudioClip audioClip = null;
+        float[] audioData = null;
+
         using (var vorbis = new NVorbis.VorbisReader(new MemoryStream(ReadStream(stream), false)))
         {
-            float[] _audioBuffer = new float[vorbis.Channels * vorbis.TotalSamples]; // Just dump everything
-            int read = vorbis.ReadSamples(_audioBuffer, 0, _audioBuffer.Length);
-            audioClip = AudioClip.Create(name, (int)vorbis.TotalSamples, vorbis.Channels, vorbis.SampleRate, false);
-            AudioClip.SetData(audioClip, _audioBuffer, ((System.Array)_audioBuffer).Length / audioClip.channels, 0);
-        }
-        if (audioClip == null) return null;
+            audioData = new float[vorbis.Channels * vorbis.TotalSamples];
+            int chunkSize = 4096 * 32; // Read in small chunks (e.g., 1024 samples at a time)
+            int totalSamplesRead = 0;
 
-        audioClip.hideFlags = HideFlags.DontSave;
-        return audioClip;
+            // Read the audio in chunks, simulating async loading in parts
+            while (totalSamplesRead < audioData.Length)
+            {
+                int samplesToRead = Mathf.Min(chunkSize, audioData.Length - totalSamplesRead);
+                int readSamples = vorbis.ReadSamples(audioData, totalSamplesRead, samplesToRead);
+                totalSamplesRead += readSamples;
+
+                // Yield to wait until the next frame
+                yield return null;
+            }
+        }
+
+        // Once the audio data is loaded, create the AudioClip on the main thread
+        if (audioData != null)
+        {
+            // Create the AudioClip on the main thread
+            var audio = AudioClip.Create(name, (int)(audioData.Length / 2), 2, 44100, false); // 2 channels, 44.1kHz sample rate
+            AudioClip.SetData(audio, audioData, ((System.Array)audioData).Length / audio.channels, 0);
+            onAudioLoaded?.Invoke(audio);
+        }
+        else
+        {
+            onAudioLoaded?.Invoke(null);
+        }
     }
+
     public static UnityEngine.Mesh ConvertMeshToUnity(Assimp.Mesh aMesh, float scale = 1.0f)
     {
         var uMesh = new UnityEngine.Mesh()
@@ -79,9 +100,15 @@ public class AssetLoader
             var sharedMeshBindposes = source.sharedMesh.bindposes;
             for (int i = 0; i < source.bones.Length; i++)
             {
+                if (source.bones[i] == null)
+                {
+                    Debug.LogError($"Bone at index {i} is null!");
+                    continue;
+                }
+
                 var boneName = FixedBoneName(source.bones[i].name);
 
-                if (!bones.ContainsKey(boneName))
+                if (!bones.ContainsKey(boneName) && i < sharedMeshBindposes.Count)
                 {
                     bones[boneName] = (i, sharedMeshBindposes[i], source.bones[i]);
 
@@ -126,7 +153,37 @@ public class AssetLoader
 
             return boneList;
         }
+    }
 
+    void SetupBoneCloth(GameObject character, List<string> rootBonesNames)
+    {
+
+        var obj = new GameObject("BoneCloth");
+        obj.transform.SetParent(character.transform, false);
+
+        // add Magica Cloth
+        var cloth = obj.AddComponent<MagicaCloth2.MagicaCloth>();
+        var sdata = cloth.SerializeData;
+
+        // bone cloth
+        sdata.clothType = MagicaCloth2.ClothProcess.ClothType.BoneCloth;
+
+        foreach (var rootBoneName in rootBonesNames)
+        {
+            sdata.rootBones.Add(UtilityNamespace.Utility.RecursiveFindChild(character.transform, rootBoneName).transform);
+        }
+
+        // setup parameters
+        sdata.gravity = 3.0f;
+        sdata.damping.SetValue(0.05f);
+        sdata.angleRestorationConstraint.stiffness.SetValue(0.15f, 1.0f, 0.15f, true);
+        sdata.angleRestorationConstraint.velocityAttenuation = 0.6f;
+        sdata.tetherConstraint.distanceCompression = 0.5f;
+        sdata.inertiaConstraint.particleSpeedLimit.SetValue(true, 3.0f);
+        sdata.colliderCollisionConstraint.mode = MagicaCloth2.ColliderCollisionConstraint.Mode.None;
+
+        // start build
+        cloth.BuildAndRun();
     }
 
     public static void ResizeMesh(ref UnityEngine.Mesh mesh, float scale)
@@ -135,69 +192,186 @@ public class AssetLoader
         mesh.SetVertices(vertices.Select(v => v * scale).ToArray());
     }
 
+    public static void MoveMesh(ref UnityEngine.Mesh mesh, Vector3 offset)
+    {
+        var vertices = mesh.vertices;
+        mesh.SetVertices(vertices.Select(v => v + offset).ToArray());
+    }
 
-    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, bool addBlendShape = false, string blendShapeName = "Mita")
+    public static void RotateMesh(ref UnityEngine.Mesh mesh, Vector3 rotation)
+    {
+        var vertices = mesh.vertices;
+        var rotationMatrix = Matrix4x4.TRS(Vector3.zero, UnityEngine.Quaternion.Euler(rotation), Vector3.one);
+        mesh.SetVertices(vertices.Select(v => rotationMatrix.MultiplyPoint3x4(v)).ToArray());
+    }
+
+    struct BindPoseData
+    {
+        public float[] elements; // 16 elements for a 4x4 matrix
+    }
+
+    struct BoneWeightData
+    {
+        public int boneIndex;
+        public float weight;
+    }
+
+    public static System.Collections.IEnumerator BuildMeshCoroutine(
+        Assimp.Mesh fbxMesh,
+        ArmatureData armature = null,
+        bool addBlendShape = false,
+        string blendShapeName = "Mita",
+        float maxFrameTime = 1f / 240f // max time per frame in seconds
+    )
     {
         blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "");
 
+        float frameStartTime = Time.realtimeSinceStartup;
+
+        // Step 1: Convert the mesh to Unity format (main thread only)
         var mesh = ConvertMeshToUnity(fbxMesh);
 
         if (armature == null)
         {
-            return mesh;
+            yield return mesh;
+            yield break;
         }
 
         int boneCount = armature.bones.Count;
         int bonesPerVertexLength = fbxMesh.VertexCount;
 
-        var bindposes = new UnityEngine.Matrix4x4[boneCount];
-        for (int i = 0; i < boneCount; i++)
-        {
-            bindposes[i] = UnityEngine.Matrix4x4.identity;
-        }
+        // Step 2: Prepare bindposes and bone weights in a background thread
 
-        var bonesPerVertex = new List<BoneWeight1>[bonesPerVertexLength];
-
-        foreach (var bone in fbxMesh.Bones)
+        var bindposesTask = Task.Run(() =>
         {
-            if (!armature.bones.TryGetValue(AssetLoader.FixedBoneName(bone.Name), out var armatureBone))
+            var bindposesData = new BindPoseData[boneCount];
+            // Parallel.For(0, boneCount, i =>
+            for (int i = 0; i < boneCount; i++)
             {
-                continue;
+                bindposesData[i] = new BindPoseData
+                {
+                    elements = new float[16] // Initialize identity matrix
+                    {
+                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1
+                    }
+                };
             }
 
-            int armatureBoneIndex = armatureBone.index;
-
-            foreach (var vertex in bone.VertexWeights)
+            // Parallel.ForEach(fbxMesh.Bones, bone =>
+            foreach (var bone in fbxMesh.Bones)
             {
-                int vertexID = vertex.VertexID;
-
-                if (vertexID >= bonesPerVertexLength)
+                if (!armature.bones.TryGetValue(FixedBoneName(bone.Name), out var armatureBone))
                 {
+                    // return;
                     continue;
                 }
 
-                bonesPerVertex[vertexID] ??= new List<BoneWeight1>();
+                int armatureBoneIndex = armatureBone.index;
 
-                bonesPerVertex[vertexID].Add(new BoneWeight1()
+                if (armatureBoneIndex >= 0 && armatureBoneIndex < boneCount)
                 {
-                    boneIndex = armatureBoneIndex,
-                    weight = vertex.Weight
-                });
+                    var bindpose = armatureBone.bindpose;
+                    bindposesData[armatureBoneIndex] = new BindPoseData
+                    {
+                        elements = new float[16]
+                        {
+                            bindpose.m00, bindpose.m01, bindpose.m02, bindpose.m03,
+                            bindpose.m10, bindpose.m11, bindpose.m12, bindpose.m13,
+                            bindpose.m20, bindpose.m21, bindpose.m22, bindpose.m23,
+                            bindpose.m30, bindpose.m31, bindpose.m32, bindpose.m33
+                        }
+                    };
+                }
             }
 
-            if (armatureBoneIndex >= 0 && armatureBoneIndex < boneCount)
+            return bindposesData;
+        });
+
+
+        if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+        {
+            yield return null;
+            frameStartTime = Time.realtimeSinceStartup;
+        }
+
+        var bonesPerVertexTask = Task.Run(() =>
+        {
+
+            var bonesPerVertex = new List<List<BoneWeightData>>(bonesPerVertexLength);
+            for (int i = 0; i < bonesPerVertexLength; i++)
             {
-                bindposes[armatureBoneIndex] = armatureBone.bindpose;
+                bonesPerVertex.Add(new List<BoneWeightData>());
             }
+
+            // Parallel.ForEach(fbxMesh.Bones, bone =>
+            foreach (var bone in fbxMesh.Bones)
+            {
+                if (!armature.bones.TryGetValue(FixedBoneName(bone.Name), out var armatureBone))
+                {
+                    // return;
+                    continue;
+                }
+
+                int armatureBoneIndex = armatureBone.index;
+
+                foreach (var vertex in bone.VertexWeights)
+                {
+                    int vertexID = vertex.VertexID;
+
+                    if (vertexID >= bonesPerVertexLength)
+                    {
+                        continue;
+                    }
+
+                    bonesPerVertex[vertexID].Add(new BoneWeightData()
+                    {
+                        boneIndex = armatureBoneIndex,
+                        weight = vertex.Weight
+                    });
+                }
+            }
+
+            return bonesPerVertex;
+        });
+
+        // Wait for both tasks to complete
+        while (!bindposesTask.IsCompleted || !bonesPerVertexTask.IsCompleted)
+        {
+            yield return null;
+        }
+
+        var bindposesData = bindposesTask.Result;
+        var bonesPerVertex = bonesPerVertexTask.Result;
+
+        // Step 3: Process bindposes and bone weights on the main thread
+        var bindposes = new UnityEngine.Matrix4x4[boneCount];
+        for (int i = 0; i < bindposesData.Length; i++)
+        {
+            var data = bindposesData[i];
+            bindposes[i] = new UnityEngine.Matrix4x4(
+                new Vector4(data.elements[0], data.elements[4], data.elements[8], data.elements[12]),
+                new Vector4(data.elements[1], data.elements[5], data.elements[9], data.elements[13]),
+                new Vector4(data.elements[2], data.elements[6], data.elements[10], data.elements[14]),
+                new Vector4(data.elements[3], data.elements[7], data.elements[11], data.elements[15])
+            );
+        }
+
+        if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+        {
+            yield return null;
+            frameStartTime = Time.realtimeSinceStartup;
         }
 
         var bonesPerVertexArray = new NativeArray<byte>(bonesPerVertexLength, Allocator.Temp);
         var weights = new List<BoneWeight1>();
 
-        for (int i = 0; i < bonesPerVertex.Length; i++)
+        for (int i = 0; i < bonesPerVertex.Count; i++)
         {
             var boneList = bonesPerVertex[i];
-            if (boneList != null)
+            if (boneList != null && boneList.Count > 0)
             {
                 boneList.Sort((a, b) => b.weight.CompareTo(a.weight));
 
@@ -215,7 +389,11 @@ public class AssetLoader
                 }
 
                 bonesPerVertexArray[i] = (byte)boneList.Count;
-                weights.AddRange(boneList);
+                weights.AddRange(boneList.Select(bw => new BoneWeight1()
+                {
+                    boneIndex = bw.boneIndex,
+                    weight = bw.weight
+                }));
             }
             else
             {
@@ -230,15 +408,23 @@ public class AssetLoader
             weightsArray[i] = weights[i];
         }
 
+        // Apply bone weights and bindposes
         mesh.SetBoneWeights(bonesPerVertexArray, weightsArray);
         mesh.bindposes = bindposes;
 
+        if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+        {
+            yield return null;
+            frameStartTime = Time.realtimeSinceStartup;
+        }
+
         foreach (var clothNode in armature.clothNodes)
         {
-            clothNode.cullRendererList = new Il2CppSystem.Collections.Generic.List<Renderer> { };
+            clothNode.cullRendererList ??= new Il2CppSystem.Collections.Generic.List<Renderer> { };
             clothNode.cullRendererList.Add(armature.source);
         }
 
+        // Step 4: Process blendshapes if necessary
         // Add Blendshape Processing
         if (addBlendShape || fbxMesh.HasMeshAnimationAttachments)
         {
@@ -256,9 +442,6 @@ public class AssetLoader
 
             if (!blendShapeOrders.TryGetValue(blendShapeName, out var blendShapeOrder) || blendShapeOrder.Count == 0)
             {
-                // UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default fbx order");
-                // blendShapeOrder = fbxMesh.MeshAnimationAttachments.Select(bs => bs.Name).ToList();
-                // use Mita as default
                 blendShapeOrder = blendShapeOrders["Mita"];
                 UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default Mita order");
             }
@@ -287,6 +470,13 @@ public class AssetLoader
                 blendShapes.Add(new MeshAnimationAttachment { Name = $"DummyBlendShape_{i}" });
             }
 
+
+            if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+            {
+                yield return null;
+                frameStartTime = Time.realtimeSinceStartup;
+            }
+
             foreach (var blendShape in blendShapes)
             {
                 string name = blendShape.Name;
@@ -309,17 +499,24 @@ public class AssetLoader
                         var blendNormal = blendShape.Normals[i];
                         deltaNormals[i] = new Vector3(-blendNormal.X, blendNormal.Y, blendNormal.Z) - normals[i];
                     }
+
                 }
 
                 mesh.AddBlendShapeFrame(name, 100.0f, deltaVerts, deltaNormals, null);
-                //Debug.Log($"[INFO] New blendshape loaded: {name}");
+
+
+                if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+                {
+                    yield return null;
+                    frameStartTime = Time.realtimeSinceStartup;
+                }
             }
             Debug.Log($"[INFO] Blendshapes loaded");
         }
 
-        // Recalculations
+        // Final recalculations
         mesh.RecalculateBoundsImpl(MeshUpdateFlags.Default);
-        return mesh;
+        yield return mesh;
     }
 
     public static string FixedBoneName(string name) => name.Replace(" ", "_").Replace(".", "_");

@@ -17,6 +17,10 @@
       <HintPath>..\Dependencies\0Harmony.dll</HintPath>      
       <Private>false</Private>      
     </Reference>      
+    <Reference Include="MagicaClothV2">      
+      <HintPath>..\Dependencies\MagicaClothV2.dll</HintPath>      
+      <Private>false</Private>      
+    </Reference>      
     <Reference Include="Accessibility">   
       <HintPath>..\Dependencies\Accessibility.dll</HintPath>   
       <Private>false</Private>   
