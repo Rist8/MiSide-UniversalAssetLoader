@@ -1,0 +1,181 @@
+    <Reference Include="0Harmony"> 
+      <HintPath>..\Dependencies\0Harmony.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Accessibility"> 
+      <HintPath>..\Dependencies\Accessibility.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="AsmResolver"> 
+      <HintPath>..\Dependencies\AsmResolver.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="AsmResolver.DotNet"> 
+      <HintPath>..\Dependencies\AsmResolver.DotNet.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="AsmResolver.PE"> 
+      <HintPath>..\Dependencies\AsmResolver.PE.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="AsmResolver.PE.File"> 
+      <HintPath>..\Dependencies\AsmResolver.PE.File.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Assembly-CSharp-firstpass"> 
+      <HintPath>..\Dependencies\Assembly-CSharp-firstpass.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Assembly-CSharp"> 
+      <HintPath>..\Dependencies\Assembly-CSharp.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="AssetRipper.VersionUtilities"> 
+      <HintPath>..\Dependencies\AssetRipper.VersionUtilities.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="assimp"> 
+      <HintPath>..\Dependencies\assimp.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="AssimpNet"> 
+      <HintPath>..\Dependencies\AssimpNet.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="BepInEx.Core"> 
+      <HintPath>..\Dependencies\BepInEx.Core.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="BepInEx.Preloader.Core"> 
+      <HintPath>..\Dependencies\BepInEx.Preloader.Core.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="BepInEx.Unity.Common"> 
+      <HintPath>..\Dependencies\BepInEx.Unity.Common.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="BepInEx.Unity.IL2CPP"> 
+      <HintPath>..\Dependencies\BepInEx.Unity.IL2CPP.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Cpp2IL.Core"> 
+      <HintPath>..\Dependencies\Cpp2IL.Core.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Disarm"> 
+      <HintPath>..\Dependencies\Disarm.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="dobby"> 
+      <HintPath>..\Dependencies\dobby.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Gee.External.Capstone"> 
+      <HintPath>..\Dependencies\Gee.External.Capstone.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Iced"> 
+      <HintPath>..\Dependencies\Iced.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppInterop.Common"> 
+      <HintPath>..\Dependencies\Il2CppInterop.Common.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppInterop.Generator"> 
+      <HintPath>..\Dependencies\Il2CppInterop.Generator.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppInterop.HarmonySupport"> 
+      <HintPath>..\Dependencies\Il2CppInterop.HarmonySupport.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppInterop.Runtime"> 
+      <HintPath>..\Dependencies\Il2CppInterop.Runtime.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppMono.Security"> 
+      <HintPath>..\Dependencies\Il2CppMono.Security.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2Cppmscorlib"> 
+      <HintPath>..\Dependencies\Il2Cppmscorlib.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem.Configuration"> 
+      <HintPath>..\Dependencies\Il2CppSystem.Configuration.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem.Core"> 
+      <HintPath>..\Dependencies\Il2CppSystem.Core.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem"> 
+      <HintPath>..\Dependencies\Il2CppSystem.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem.Drawing"> 
+      <HintPath>..\Dependencies\Il2CppSystem.Drawing.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem.Numerics"> 
+      <HintPath>..\Dependencies\Il2CppSystem.Numerics.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem.Windows.Forms"> 
+      <HintPath>..\Dependencies\Il2CppSystem.Windows.Forms.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Il2CppSystem.Xml"> 
+      <HintPath>..\Dependencies\Il2CppSystem.Xml.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="LibCpp2IL"> 
+      <HintPath>..\Dependencies\LibCpp2IL.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="MagicaCloth"> 
+      <HintPath>..\Dependencies\MagicaCloth.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="MagicaClothV2"> 
+      <HintPath>..\Dependencies\MagicaClothV2.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Mono.Cecil"> 
+      <HintPath>..\Dependencies\Mono.Cecil.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Mono.Cecil.Mdb"> 
+      <HintPath>..\Dependencies\Mono.Cecil.Mdb.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Mono.Cecil.Pdb"> 
+      <HintPath>..\Dependencies\Mono.Cecil.Pdb.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Mono.Cecil.Rocks"> 
+      <HintPath>..\Dependencies\Mono.Cecil.Rocks.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="MonoMod.RuntimeDetour"> 
+      <HintPath>..\Dependencies\MonoMod.RuntimeDetour.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="MonoMod.Utils"> 
+      <HintPath>..\Dependencies\MonoMod.Utils.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="NaughtyAttributes.Core"> 
+      <HintPath>..\Dependencies\NaughtyAttributes.Core.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="Newtonsoft.Json"> 
+      <HintPath>..\Dependencies\Newtonsoft.Json.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="SemanticVersioning"> 
+      <HintPath>..\Dependencies\SemanticVersioning.dll</HintPath> 
+      <Private>false</Private> 
+    </Reference> 
+    <Reference Include="StableNameDotNet"> 

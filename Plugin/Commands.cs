@@ -14,7 +14,7 @@ public class Commands
     {
         if (mita == null)
         {
-            UnityEngine.Debug.LogWarning($"[WARNING] GameObject '{mita.name}' not found for command '{command.name}'.");
+            UnityEngine.Debug.LogWarning($"[WARNING] Mita object is null, skipping...");
             return true;
         }
         string mitaName = mita.name;
@@ -273,6 +273,7 @@ public class Commands
     public static void ApplyCreateSkinnedAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, bool Player = false)
     {
+
         if (ShouldSkip(3, command, mita))
             return;
 
