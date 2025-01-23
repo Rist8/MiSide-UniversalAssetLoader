@@ -10,8 +10,14 @@ public class Commands
 {
     public static List<string> BlendShapedSkinnedAppendix = new List<string>();
 
-    private static bool ShouldSkip(int start, (string name, string[] args) command, string mitaName)
+    private static bool ShouldSkip(int start, (string name, string[] args) command, GameObject mita)
     {
+        if (mita == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] GameObject '{mita.name}' not found for command '{command.name}'.");
+            return true;
+        }
+        string mitaName = mita.name;
         int i = start;
 
         // Log only the reason for skipping or applying, keeping logs concise
@@ -104,7 +110,7 @@ public class Commands
     public static void ApplyRemoveCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(2, command, mita.name))
+        if (ShouldSkip(2, command, mita))
             return;
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
@@ -132,7 +138,7 @@ public class Commands
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
 
-        if (ShouldSkip(2, command, mita.name))
+        if (ShouldSkip(2, command, mita))
             return;
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
@@ -154,7 +160,7 @@ public class Commands
     public static void ApplyReplaceTexCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(3, command, mita.name))
+        if (ShouldSkip(3, command, mita))
             return;
 
         string textureKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
@@ -197,7 +203,7 @@ public class Commands
     float maxFrameTime = 1f / 240f // max time per frame in seconds
 )
     {
-        if (ShouldSkip(4, command, mita.name))
+        if (ShouldSkip(4, command, mita))
             yield break;
 
         if (blendShapeKey == null)
@@ -267,7 +273,7 @@ public class Commands
     public static void ApplyCreateSkinnedAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, bool Player = false)
     {
-        if (ShouldSkip(3, command, mita.name))
+        if (ShouldSkip(3, command, mita))
             return;
 
         if (!renderers.ContainsKey(command.args[2]))
@@ -331,7 +337,7 @@ public class Commands
     public static void ApplyCreateStaticAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(3, command, mita.name))
+        if (ShouldSkip(3, command, mita))
             return;
 
         if (staticRenderers.ContainsKey(command.args[1]))
@@ -396,7 +402,7 @@ public class Commands
 
     public static void ApplySetScaleCommand((string name, string[] args) command, GameObject mita)
     {
-        if (ShouldSkip(5, command, mita.name))
+        if (ShouldSkip(5, command, mita))
             return;
 
         var obj = Utility.RecursiveFindChild(mita.transform, command.args[1]);
@@ -413,7 +419,7 @@ public class Commands
     public static void ApplyResizeMeshCommand((string name, string[] args) command, GameObject mita,
         Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(3, command, mita.name))
+        if (ShouldSkip(3, command, mita))
             return;
 
         if (renderers.ContainsKey(command.args[1]))
@@ -441,7 +447,7 @@ public class Commands
     public static void ApplyMoveMeshCommand((string name, string[] args) command, GameObject mita,
         Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(5, command, mita.name))
+        if (ShouldSkip(5, command, mita))
             return;
 
         if (renderers.ContainsKey(command.args[1]))
@@ -479,7 +485,7 @@ public class Commands
     public static void ApplyRotateMeshCommand((string name, string[] args) command, GameObject mita,
         Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(5, command, mita.name))
+        if (ShouldSkip(5, command, mita))
             return;
 
         if (renderers.ContainsKey(command.args[1]))
@@ -518,7 +524,7 @@ public class Commands
 
     public static void ApplyMovePositionCommand((string name, string[] args) command, GameObject mita)
     {
-        if (ShouldSkip(5, command, mita.name))
+        if (ShouldSkip(5, command, mita))
             return;
 
         var obj = Utility.RecursiveFindChild(mita.transform, command.args[1]);
@@ -535,7 +541,7 @@ public class Commands
 
     public static void ApplySetRotationCommand((string name, string[] args) command, GameObject mita)
     {
-        if (ShouldSkip(6, command, mita.name))
+        if (ShouldSkip(6, command, mita))
             return;
 
         var obj = Utility.RecursiveFindChild(mita.transform, command.args[1]);
@@ -624,7 +630,7 @@ public class Commands
 
     public static void ApplyShaderParamsCommand((string name, string[] args) command, GameObject mita, Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(3, command, mita.name))
+        if (ShouldSkip(3, command, mita))
             return;
 
         string txtKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
@@ -648,7 +654,7 @@ public class Commands
     public static void ApplyRemoveOutlineCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(2, command, mita.name))
+        if (ShouldSkip(2, command, mita))
             return;
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
@@ -671,7 +677,7 @@ public class Commands
     public static void ApplyAddOutlineCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {
-        if (ShouldSkip(2, command, mita.name))
+        if (ShouldSkip(2, command, mita))
             return;
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))

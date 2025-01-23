@@ -440,7 +440,7 @@ public class Plugin : MonoBehaviour
 
             if (mitaAnimators.Count <= i || mitaAnimators[i] == null)
                 continue;
-                
+
             mitas.Add(mitaAnimators[i]);
 
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
