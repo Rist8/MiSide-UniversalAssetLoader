@@ -445,7 +445,7 @@ public class Plugin : MonoBehaviour
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
             float maxFrameTime = distance <= 20 ? 1f / 120f : 1f / (120f * Mathf.Log(distance - 19, 8));
             UnityEngine.Debug.Log(distance);
-            yield return PatchMitaCoroutine(modName, mitas[i], false, disactivation, maxFrameTime);
+            yield return PatchMitaCoroutine(modName, mitaAnimators[i], false, disactivation, maxFrameTime);
         }
     }
 
@@ -695,7 +695,7 @@ public class Plugin : MonoBehaviour
                     Commands.ApplyReplaceTexCommand(command, mita, renderers, staticRenderers);
                     break;
                 case "replace_mesh":
-                    yield return Commands.ApplyReplaceMeshCommandCoroutine(command, mita, renderers, staticRenderers, mita.name, maxFrameTime);
+                    yield return Commands.ApplyReplaceMeshCommandCoroutine(command, mita, renderers, staticRenderers, null, maxFrameTime);
                     break;
                 case "resize_mesh":
                     Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
