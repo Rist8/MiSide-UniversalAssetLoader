@@ -224,7 +224,7 @@ public class AssetLoader
         float maxFrameTime = 1f / 240f // max time per frame in seconds
     )
     {
-        blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "");
+        blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "").Replace("(Clone)", "").Trim();
 
         float frameStartTime = Time.realtimeSinceStartup;
 
@@ -442,8 +442,22 @@ public class AssetLoader
 
             if (!blendShapeOrders.TryGetValue(blendShapeName, out var blendShapeOrder) || blendShapeOrder.Count == 0)
             {
-                blendShapeOrder = blendShapeOrders["Mita"];
-                UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default Mita order");
+
+                var potentialMatches = blendShapeOrders.Keys
+                    .Where(key => blendShapeName.Contains(key) || key.Contains(blendShapeName))
+                    .ToList();
+
+                if (potentialMatches.Count > 0)
+                {
+                    string closestMatch = potentialMatches.First();
+                    blendShapeOrder = blendShapeOrders[closestMatch];
+                    UnityEngine.Debug.LogWarning($"[WARNING] No exact blendshape order found for {blendShapeName}, using closest match {closestMatch} order");
+                }
+                else
+                {
+                    blendShapeOrder = blendShapeOrders["Mita"];
+                    UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default Mita order");
+                }
             }
 
             var blendShapeIndex = blendShapeOrder
