@@ -162,11 +162,12 @@ public class ClothesMenuPatcher
         var ml = clothesMenu.GetComponent<MenuLocation>();
         ml.objects.Clear();
         ml.objects.Add(tabs.GetComponent<RectTransform>());
+        ml.objects.Add(addonsList.GetComponent<RectTransform>());
     }
     public static void LogOnClick(string name)
     {
         bool active = !Plugin.Active[name];
-        if (Plugin.currentSceneName == "SceneMenu")
+        if (SceneHandler.currentSceneName == "SceneMenu")
         {
             Debug.Log($"[INFO] Clicked: {name}");
             addonButtons[name].GetComponent<RectTransform>().Find("Text").GetComponent<Text>().text = name + ((!active) ? "" : "(*)");
@@ -221,7 +222,7 @@ public class ClothesMenuPatcher
                     }
                     if (line.StartsWith("$"))
                     {
-                        Plugin.ConsoleEnter(line.Substring(1));
+                        ConsoleCommandHandler.ConsoleEnter(line.Substring(1));
                         continue;
                     }
                     // Handle active/inactive commands
@@ -233,7 +234,7 @@ public class ClothesMenuPatcher
 
                             // Remove commands from assetCommands and globalAppliedCommands
 
-                            Plugin.assetCommands.RemoveAll(command =>
+                            ConsoleCommandHandler.assetCommands.RemoveAll(command =>
                                 command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
                             RemoveCommandFromGlobal(parts1[0], parts1.Skip(1).ToArray());
                             continue;
@@ -249,7 +250,7 @@ public class ClothesMenuPatcher
 
                         // Remove commands from assetCommands and globalAppliedCommands
 
-                        Plugin.assetCommands.RemoveAll(command =>
+                        ConsoleCommandHandler.assetCommands.RemoveAll(command =>
                             command.name == parts1[0] && Enumerable.SequenceEqual(command.args, parts1.Skip(1).ToArray()));
                         RemoveCommandFromGlobal(parts1[0], parts1.Skip(1).ToArray());
                         continue;
@@ -258,18 +259,25 @@ public class ClothesMenuPatcher
                     // Add or remove commands based on the active state
                     string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
-                    Plugin.assetCommands.RemoveAll(command =>
+                    ConsoleCommandHandler.assetCommands.RemoveAll(command =>
                         command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
-                    Plugin.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
+                    ConsoleCommandHandler.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
                 }
             }
 
-            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
+            if (SceneHandler.synch)
+            {
+                Plugin.FindMita(name, !active);
+            }
+            else
+            {
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
+            }
 
             foreach (string line in oneTimeCommands)
             {
                 string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                Plugin.assetCommands.RemoveAll(command =>
+                ConsoleCommandHandler.assetCommands.RemoveAll(command =>
                     command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                 RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
             }

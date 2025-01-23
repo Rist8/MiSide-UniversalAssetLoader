@@ -170,7 +170,7 @@ public class Commands
             var materials = renderers[command.args[1]].materials;
             foreach (var mat in materials)
             {
-                mat.mainTexture = Plugin.loadedTextures[textureKey];
+                mat.mainTexture = AssetLoader.loadedTextures[textureKey];
                 mat.SetFloat("_EnableTextureTransparent", 1.0f);
             }
 
@@ -179,11 +179,11 @@ public class Commands
         else if (staticRenderers.ContainsKey(command.args[1]))
         {
             // Material material = staticRenderers[command.args[1]].material;
-            // material.mainTexture = Plugin.loadedTextures[textureKey];
+            // material.mainTexture = AssetLoader.loadedTextures[textureKey];
             var materials = staticRenderers[command.args[1]].materials;
             foreach (var mat in materials)
             {
-                mat.mainTexture = Plugin.loadedTextures[textureKey];
+                mat.mainTexture = AssetLoader.loadedTextures[textureKey];
                 mat.SetFloat("_EnableTextureTransparent", 1.0f);
             }
             UnityEngine.Debug.Log($"[INFO] Replaced texture for static renderer '{command.args[1]}' on '{mita.name}'.");
@@ -191,6 +191,40 @@ public class Commands
         else
         {
             UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for texture replacement.");
+        }
+    }
+
+    public static void ApplyReplaceMeshCommand((string name, string[] args) command, GameObject mita,
+    Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers, string blendShapeKey = null)
+    {
+        if (ShouldSkip(4, command, mita))
+            return;
+        if (blendShapeKey == null)
+            blendShapeKey = mita.name;
+        if (blendShapeKey == "Player" && command.args[1] == "Arms")
+            blendShapeKey = "PlayerArms";
+
+        string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
+        string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
+        Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+
+        if (renderers.ContainsKey(command.args[1]))
+        {
+            var skinnedRenderer = renderers[command.args[1]];
+            skinnedRenderer.sharedMesh = AssetLoader.BuildMesh(meshData, new AssetLoader.ArmatureData(skinnedRenderer),
+                ((command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms"), blendShapeKey);
+            UnityEngine.Debug.Log($"[INFO] Replaced mesh for skinned renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else if (staticRenderers.ContainsKey(command.args[1]))
+        {
+            var staticRenderer = staticRenderers[command.args[1]];
+            staticRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(meshData, null,
+                ((command.args[1] == "Head") || BlendShapedSkinnedAppendix.Contains(command.args[1]) || blendShapeKey == "PlayerArms"), blendShapeKey);
+            UnityEngine.Debug.Log($"[INFO] Replaced mesh for static renderer '{command.args[1]}' on '{mita.name}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}' for mesh replacement.");
         }
     }
 
@@ -214,7 +248,7 @@ public class Commands
         string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
 
-        Assimp.Mesh meshData = Plugin.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+        Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
 
         if (renderers.ContainsKey(command.args[1]))
         {
@@ -268,8 +302,6 @@ public class Commands
         }
     }
 
-
-
     public static void ApplyCreateSkinnedAppendixCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, bool Player = false)
     {
@@ -316,7 +348,7 @@ public class Commands
             }
         }
 
-        if (command.args[2] == "Body" && Plugin.currentSceneName == "Scene 10 - ManekenWorld")
+        if (command.args[2] == "Body" && SceneHandler.currentSceneName == "Scene 10 - ManekenWorld")
         {
             var location10 = mita.GetComponent<Location10_MitaInShadow>();
             if (location10 != null)
