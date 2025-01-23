@@ -7,10 +7,131 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Newtonsoft.Json;
 using MagicaCloth;
 using UnityEngine.Rendering;
-using UnityEngine.TextCore.Text;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 public class AssetLoader
 {
+    public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
+    public static Dictionary<string, Texture2D>? loadedTextures;
+    public static Dictionary<string, AudioClip>? loadedAudio;
+
+    public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
+    {
+        if (loadedModels != null) yield break;
+        Plugin.loaded = false;
+
+        loadedModels = new Dictionary<string, Assimp.Mesh[]>();
+        loadedTextures = new Dictionary<string, Texture2D>();
+        loadedAudio = new Dictionary<string, AudioClip>();
+
+        PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
+        var stopwatch = Stopwatch.StartNew();
+        float frameStartTime = Time.realtimeSinceStartup;
+
+        var audioFiles = GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg");
+        foreach (var file in audioFiles)
+        {
+            // Load audio files
+            AudioClip audioFile = null;
+            yield return LoadAudioCoroutine(Path.GetFileNameWithoutExtension(file), File.OpenRead(file), clip => audioFile = clip);
+            audioFile.hideFlags = HideFlags.DontSave;
+
+            string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+            filename = Path.ChangeExtension(filename, null);
+            if (!loadedAudio.ContainsKey(filename))
+            {
+                loadedAudio.Add(filename, audioFile);
+                PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
+            }
+        }
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all audio in {stopwatch.ElapsedMilliseconds}ms");
+
+        // Load model files
+        stopwatch.Restart();
+        var modelFiles = GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx");
+        var loadedModelsLocal = new ConcurrentDictionary<string, Assimp.Mesh[]>();
+
+        int maxParallelism = Math.Max(Environment.ProcessorCount - 1, 1);
+
+        foreach (var fileBatch in SplitIntoBatches(modelFiles, maxParallelism))
+        {
+            Parallel.ForEach(fileBatch, new ParallelOptions { MaxDegreeOfParallelism = maxParallelism }, file =>
+            {
+                var meshes = LoadFBX(file);
+                string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+                filename = Path.ChangeExtension(filename, null);
+                loadedModelsLocal.TryAdd(filename, meshes);
+                PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
+            });
+
+            foreach (var kvp in loadedModelsLocal)
+            {
+                if (!loadedModels.ContainsKey(kvp.Key))
+                {
+                    loadedModels.Add(kvp.Key, kvp.Value);
+                }
+            }
+            loadedModelsLocal.Clear();
+
+            // Yield control if needed
+            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
+            {
+                stopwatch.Stop(); // Pause the stopwatch
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+                stopwatch.Start(); // Resume the stopwatch
+            }
+        }
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all meshes in {stopwatch.ElapsedMilliseconds}ms");
+
+        // Load texture files
+        stopwatch.Restart();
+        var textureFiles = GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg");
+        foreach (var file in textureFiles)
+        {
+            var texture = LoadTexture(file);
+            if (texture != null)
+            {
+                string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
+                filename = Path.ChangeExtension(filename, null);
+                if (!loadedTextures.ContainsKey(filename))
+                {
+                    loadedTextures.Add(filename, texture);
+                    PluginInfo.Instance.Logger.LogInfo($"Loaded texture from file: '{filename}'");
+                }
+            }
+
+            // Yield every N files or if processing takes longer than a threshold
+            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
+            {
+                stopwatch.Stop(); // Pause the stopwatch
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+                stopwatch.Start(); // Resume the stopwatch
+            }
+        }
+        PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
+        Plugin.loaded = true;
+    }
+
+    private static IEnumerable<List<string>> SplitIntoBatches(IEnumerable<string> files, int batchSize)
+    {
+        var batch = new List<string>(batchSize);
+        foreach (var file in files)
+        {
+            batch.Add(file);
+            if (batch.Count >= batchSize)
+            {
+                yield return batch;
+                batch = new List<string>(batchSize);
+            }
+        }
+        if (batch.Count > 0)
+        {
+            yield return batch;
+        }
+    }
     public static Texture2D LoadTexture(string file) => LoadTexture(Path.GetFileNameWithoutExtension(file), File.OpenRead(file));
     public static Texture2D LoadTexture(string name, Stream stream)
     {
@@ -102,7 +223,7 @@ public class AssetLoader
             {
                 if (source.bones[i] == null)
                 {
-                    Debug.LogError($"Bone at index {i} is null!");
+                    UnityEngine.Debug.LogError($"Bone at index {i} is null!");
                     continue;
                 }
 
@@ -525,7 +646,7 @@ public class AssetLoader
                     frameStartTime = Time.realtimeSinceStartup;
                 }
             }
-            Debug.Log($"[INFO] Blendshapes loaded");
+            UnityEngine.Debug.Log($"[INFO] Blendshapes loaded");
         }
 
         // Final recalculations
@@ -533,6 +654,191 @@ public class AssetLoader
         yield return mesh;
     }
 
+    public static UnityEngine.Mesh BuildMesh(Assimp.Mesh fbxMesh, ArmatureData armature = null, bool addBlendShape = false, string blendShapeName = "Mita")
+    {
+        blendShapeName = blendShapeName.Replace("MitaPerson ", "").Replace("MilaPerson ", "");
+
+        var mesh = ConvertMeshToUnity(fbxMesh);
+
+        if (armature == null)
+        {
+            return mesh;
+        }
+
+        int boneCount = armature.bones.Count;
+        int bonesPerVertexLength = fbxMesh.VertexCount;
+
+        var bindposes = new UnityEngine.Matrix4x4[boneCount];
+        for (int i = 0; i < boneCount; i++)
+        {
+            bindposes[i] = UnityEngine.Matrix4x4.identity;
+        }
+
+        var bonesPerVertex = new List<BoneWeight1>[bonesPerVertexLength];
+
+        foreach (var bone in fbxMesh.Bones)
+        {
+            if (!armature.bones.TryGetValue(FixedBoneName(bone.Name), out var armatureBone))
+            {
+                continue;
+            }
+
+            int armatureBoneIndex = armatureBone.index;
+
+            foreach (var vertex in bone.VertexWeights)
+            {
+                int vertexID = vertex.VertexID;
+
+                if (vertexID >= bonesPerVertexLength)
+                {
+                    continue;
+                }
+
+                bonesPerVertex[vertexID] ??= new List<BoneWeight1>();
+
+                bonesPerVertex[vertexID].Add(new BoneWeight1()
+                {
+                    boneIndex = armatureBoneIndex,
+                    weight = vertex.Weight
+                });
+            }
+
+            if (armatureBoneIndex >= 0 && armatureBoneIndex < boneCount)
+            {
+                bindposes[armatureBoneIndex] = armatureBone.bindpose;
+            }
+        }
+
+        var bonesPerVertexArray = new NativeArray<byte>(bonesPerVertexLength, Allocator.Temp);
+        var weights = new List<BoneWeight1>();
+
+        for (int i = 0; i < bonesPerVertex.Length; i++)
+        {
+            var boneList = bonesPerVertex[i];
+            if (boneList != null)
+            {
+                boneList.Sort((a, b) => b.weight.CompareTo(a.weight));
+
+                if (boneList.Count > 4)
+                {
+                    boneList.RemoveRange(4, boneList.Count - 4);
+                }
+
+                float totalWeight = boneList.Sum(bw => bw.weight);
+                for (int j = 0; j < boneList.Count; j++)
+                {
+                    var boneWeight = boneList[j];
+                    boneWeight.weight /= totalWeight;
+                    boneList[j] = boneWeight;
+                }
+
+                bonesPerVertexArray[i] = (byte)boneList.Count;
+                weights.AddRange(boneList);
+            }
+            else
+            {
+                weights.Add(new BoneWeight1() { boneIndex = 0, weight = 0 });
+                bonesPerVertexArray[i] = 1;
+            }
+        }
+
+        var weightsArray = new NativeArray<BoneWeight1>(weights.Count, Allocator.Temp);
+        for (int i = 0; i < weights.Count; i++)
+        {
+            weightsArray[i] = weights[i];
+        }
+
+        mesh.SetBoneWeights(bonesPerVertexArray, weightsArray);
+        mesh.bindposes = bindposes;
+
+        foreach (var clothNode in armature.clothNodes)
+        {
+            clothNode.cullRendererList ??= new Il2CppSystem.Collections.Generic.List<Renderer> { };
+            clothNode.cullRendererList.Add(armature.source);
+        }
+
+        // Add Blendshape Processing
+        if (addBlendShape || fbxMesh.HasMeshAnimationAttachments)
+        {
+            UnityEngine.Debug.Log($"[INFO] Blendshape name: {blendShapeName}");
+
+            string blendShapeOrdersPath = Path.Combine(PluginInfo.AssetsFolder, "blendshape_orders.json");
+
+            var blendShapeOrders = new Dictionary<string, List<string>>();
+
+            if (File.Exists(blendShapeOrdersPath))
+            {
+                string jsonContent = File.ReadAllText(blendShapeOrdersPath);
+                blendShapeOrders = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(jsonContent);
+            }
+
+            if (!blendShapeOrders.TryGetValue(blendShapeName, out var blendShapeOrder) || blendShapeOrder.Count == 0)
+            {
+                // UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default fbx order");
+                // blendShapeOrder = fbxMesh.MeshAnimationAttachments.Select(bs => bs.Name).ToList();
+                // use Mita as default
+                blendShapeOrder = blendShapeOrders["Mita"];
+                UnityEngine.Debug.LogWarning($"[WARNING] No blendshape order found for {blendShapeName}, using default Mita order");
+            }
+
+            var blendShapeIndex = blendShapeOrder
+                .Select((name, index) => new { name, index })
+                .ToDictionary(x => x.name, x => x.index);
+
+            var blendShapes = fbxMesh.MeshAnimationAttachments
+                .Where(bs => blendShapeIndex.ContainsKey(bs.Name))
+                .OrderBy(bs => blendShapeIndex[bs.Name])
+                .ToList();
+
+            int vertexCount = mesh.vertexCount;
+            int normalCount = mesh.normals.Length;
+
+            var deltaVerts = new Vector3[vertexCount];
+            var deltaNormals = new Vector3[normalCount];
+
+            var vertices = mesh.vertices;
+            var normals = mesh.normals;
+
+            int missingBlendShapesCount = blendShapeOrder.Count - blendShapes.Count;
+            for (int i = 0; i < missingBlendShapesCount; i++)
+            {
+                blendShapes.Add(new MeshAnimationAttachment { Name = $"DummyBlendShape_{i}" });
+            }
+
+            foreach (var blendShape in blendShapes)
+            {
+                string name = blendShape.Name;
+
+                Array.Clear(deltaVerts, 0, vertexCount);
+                Array.Clear(deltaNormals, 0, normalCount);
+
+                int maxCount = Math.Max(blendShape.VertexCount, blendShape.Normals.Count);
+
+                for (int i = 0; i < maxCount; i++)
+                {
+                    if (blendShape.HasVertices && i < blendShape.VertexCount)
+                    {
+                        var blendVertex = blendShape.Vertices[i];
+                        deltaVerts[i] = new Vector3(-blendVertex.X, blendVertex.Y, blendVertex.Z) - vertices[i];
+                    }
+
+                    if (blendShape.HasNormals && i < blendShape.Normals.Count)
+                    {
+                        var blendNormal = blendShape.Normals[i];
+                        deltaNormals[i] = new Vector3(-blendNormal.X, blendNormal.Y, blendNormal.Z) - normals[i];
+                    }
+                }
+
+                mesh.AddBlendShapeFrame(name, 100.0f, deltaVerts, deltaNormals, null);
+                //Debug.Log($"[INFO] New blendshape loaded: {name}");
+            }
+            UnityEngine.Debug.Log($"[INFO] Blendshapes loaded");
+        }
+
+        // Recalculations
+        mesh.RecalculateBoundsImpl(MeshUpdateFlags.Default);
+        return mesh;
+    }
     public static string FixedBoneName(string name) => name.Replace(" ", "_").Replace(".", "_");
 
     public static byte[] ReadStream(Stream input)

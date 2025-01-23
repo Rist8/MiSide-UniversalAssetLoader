@@ -13,146 +13,18 @@ using static UtilityNamespace.LateCallUtility;
 
 public class Plugin : MonoBehaviour
 {
-    public static string? currentSceneName;
     public static bool startup = true;
 
     private void Start()
     {
         ReadAssetsConfig();
-        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(LoadAssetsForPatchCoroutine());
+        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
         ReadAddonsConfigs();
-        ConsoleMain.active = true;
-        ConsoleMain.eventEnter = new UnityEvent();
-        ConsoleMain.eventEnter.AddListener((UnityAction)(() => { ConsoleEnter(ConsoleMain.codeEnter); }));
+        ConsoleCommandHandler.Initialize();
     }
-    static GameObject greenScreenCameraObject = null;
-    static Camera greenScreenCamera = null;
+    
     public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
-    private static float dx = 0.0f, dy = 0.0f, dz = 0.0f, rdx = 0.0f, rdy = 0.0f;
     public static List<string> AddonsConfig = new List<string>();
-    public static void ConsoleEnter(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            return;
-
-        string[] parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 1)
-            return;
-
-        // Capitalize specific keywords
-        for (int i = 1; i < parts.Length; ++i)
-        {
-            switch (parts[i])
-            {
-                case "mita":
-                case "sweater":
-                case "attribute":
-                case "skirt":
-                case "pantyhose":
-                case "body":
-                case "hair":
-                case "head":
-                case "shoes":
-                    parts[i] = char.ToUpper(parts[i][0]) + parts[i].Substring(1);
-                    break;
-            }
-        }
-
-        UnityEngine.Debug.Log("[INFO] Console in: " + s);
-
-        assetCommands.RemoveAll(command =>
-            command.name == parts[0] && command.args.SequenceEqual(parts.Skip(1)));
-
-        if (!s.StartsWith("-"))
-        {
-            assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
-        }
-
-        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
-
-        assetCommands.RemoveAll(command =>
-            command.name == parts[0] && command.args.SequenceEqual(parts.Skip(1)));
-
-        if (parts[0] == "greenscreen")
-        {
-            HandleGreenScreenCommand(parts);
-        }
-
-        HandleAddonConfig(s);
-    }
-
-    private static void HandleGreenScreenCommand(string[] parts)
-    {
-        if (greenScreenCameraObject == null)
-        {
-            greenScreenCameraObject = new GameObject("GreenScreenCamera");
-        }
-
-        if (greenScreenCamera == null)
-        {
-            greenScreenCamera = greenScreenCameraObject.AddComponent<Camera>();
-            greenScreenCamera.clearFlags = CameraClearFlags.SolidColor;
-            greenScreenCamera.backgroundColor = Color.green;
-        }
-
-        // Set the camera's position and rotation defaults
-        greenScreenCamera.transform.position = new Vector3(0.65f + dx, 1.6f + dy, 0.85f + dz);
-        greenScreenCamera.transform.rotation = Quaternion.Euler(10 + rdx, -135 + rdy, 0);
-
-        if (parts.Length == 2)
-        {
-            bool isActive = parts[1] != "off";
-            greenScreenCameraObject.SetActive(isActive);
-            SetGreenScreenObjectsActive(isActive);
-        }
-        else
-        {
-            greenScreenCameraObject.SetActive(true);
-            SetGreenScreenObjectsActive(false);
-        }
-
-        if (parts.Length == 5 && parts[1] == "pos")
-        {
-            greenScreenCamera.transform.position = new Vector3(
-                float.Parse(parts[2]) + 0.65f,
-                float.Parse(parts[3]) + 1.6f,
-                float.Parse(parts[4]) + 0.85f);
-        }
-        else if (parts.Length == 5 && parts[1] == "rot")
-        {
-            greenScreenCamera.transform.rotation = Quaternion.Euler(
-                float.Parse(parts[2]) + 10,
-                float.Parse(parts[3]) - 135,
-                float.Parse(parts[4]));
-        }
-        else if (parts.Length == 9 && parts[1] == "pos" && parts[5] == "rot")
-        {
-            greenScreenCamera.transform.position = new Vector3(
-                float.Parse(parts[2]) + 0.65f,
-                float.Parse(parts[3]) + 1.6f,
-                float.Parse(parts[4]) + 0.85f);
-
-            greenScreenCamera.transform.rotation = Quaternion.Euler(
-                float.Parse(parts[6]) + 10,
-                float.Parse(parts[7]) - 135,
-                float.Parse(parts[8]));
-        }
-    }
-
-    private static void SetGreenScreenObjectsActive(bool isActive)
-    {
-        var partic = GameObject.Find("ParticlesBack");
-        if (partic != null)
-        {
-            partic.SetActive(isActive);
-        }
-
-        var cyl = GameObject.Find("Cylinder");
-        if (cyl != null)
-        {
-            cyl.SetActive(isActive);
-        }
-    }
 
     public static void ReadAddonsConfigs()
     {
@@ -177,7 +49,7 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    private static void HandleAddonConfig(string s)
+    public static void HandleAddonConfig(string s)
     {
         try
         {
@@ -199,16 +71,11 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
-    public static Dictionary<string, Texture2D>? loadedTextures;
-    public static Dictionary<string, AudioClip>? loadedAudio;
-    public static List<(string name, string[] args)> assetCommands;
 
-
-    void ReadAssetsConfig()
+    public static void ReadAssetsConfig()
     {
         string filePath = Path.Combine(PluginInfo.AssetsFolder, "assets_config.txt");
-        assetCommands = new List<(string name, string[] args)>();
+        ConsoleCommandHandler.assetCommands = new List<(string name, string[] args)>();
 
         try
         {
@@ -220,7 +87,7 @@ public class Plugin : MonoBehaviour
 
                 // Split line on commands with arguments list
                 string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
+                ConsoleCommandHandler.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
             }
         }
         catch (Exception e)
@@ -229,7 +96,7 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    void ReadActiveAddons()
+    public static void ReadActiveAddons()
     {
         string filePath = Path.Combine(PluginInfo.AssetsFolder, "active_mods.txt");
 
@@ -260,126 +127,7 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    static bool loaded = false;
-
-    static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
-    {
-        if (loadedModels != null) yield break;
-        loaded = false;
-
-        loadedModels = new Dictionary<string, Assimp.Mesh[]>();
-        loadedTextures = new Dictionary<string, Texture2D>();
-        loadedAudio = new Dictionary<string, AudioClip>();
-
-        PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
-        var stopwatch = Stopwatch.StartNew();
-        float frameStartTime = Time.realtimeSinceStartup;
-
-
-        var audioFiles = AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "ogg");
-        foreach (var file in audioFiles)
-        {
-            // Load audio files
-            AudioClip audioFile = null;
-            yield return AssetLoader.LoadAudioCoroutine(Path.GetFileNameWithoutExtension(file), File.OpenRead(file), clip => audioFile = clip);
-            audioFile.hideFlags = HideFlags.DontSave;
-
-            string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
-            filename = Path.ChangeExtension(filename, null);
-            if (!loadedAudio.ContainsKey(filename))
-            {
-                loadedAudio.Add(filename, audioFile);
-                PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
-            }
-        }
-        PluginInfo.Instance.Logger.LogInfo($"Loaded all audio in {stopwatch.ElapsedMilliseconds}ms");
-
-        // Load model files
-        stopwatch.Restart();
-        var modelFiles = AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "fbx");
-        var loadedModelsLocal = new ConcurrentDictionary<string, Assimp.Mesh[]>();
-
-        int maxParallelism = Math.Max(Environment.ProcessorCount - 1, 1);
-
-        foreach (var fileBatch in SplitIntoBatches(modelFiles, maxParallelism))
-        {
-            Parallel.ForEach(fileBatch, new ParallelOptions { MaxDegreeOfParallelism = maxParallelism }, file =>
-            {
-                var meshes = AssetLoader.LoadFBX(file);
-                string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
-                filename = Path.ChangeExtension(filename, null);
-                loadedModelsLocal.TryAdd(filename, meshes);
-                PluginInfo.Instance.Logger.LogInfo($"Loaded meshes from file: '{filename}', {meshes.Length} meshes");
-            });
-
-            foreach (var kvp in loadedModelsLocal)
-            {
-                if (!loadedModels.ContainsKey(kvp.Key))
-                {
-                    loadedModels.Add(kvp.Key, kvp.Value);
-                }
-            }
-            loadedModelsLocal.Clear();
-
-            // Yield control if needed
-            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
-            {
-                stopwatch.Stop(); // Pause the stopwatch
-                yield return null; // Yield control back to Unity
-                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
-                stopwatch.Start(); // Resume the stopwatch
-            }
-        }
-        PluginInfo.Instance.Logger.LogInfo($"Loaded all meshes in {stopwatch.ElapsedMilliseconds}ms");
-
-        // Load texture files
-        stopwatch.Restart();
-        var textureFiles = AssetLoader.GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg");
-        foreach (var file in textureFiles)
-        {
-            var texture = AssetLoader.LoadTexture(file);
-            if (texture != null)
-            {
-                string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
-                filename = Path.ChangeExtension(filename, null);
-                if (!loadedTextures.ContainsKey(filename))
-                {
-                    loadedTextures.Add(filename, texture);
-                    PluginInfo.Instance.Logger.LogInfo($"Loaded texture from file: '{filename}'");
-                }
-            }
-
-            // Yield every N files or if processing takes longer than a threshold
-            if ((Time.realtimeSinceStartup - frameStartTime) * 1000 > 30)
-            {
-                stopwatch.Stop(); // Pause the stopwatch
-                yield return null; // Yield control back to Unity
-                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
-                stopwatch.Start(); // Resume the stopwatch
-            }
-        }
-        PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
-        loaded = true;
-    }
-
-    private static IEnumerable<List<string>> SplitIntoBatches(IEnumerable<string> files, int batchSize)
-    {
-        var batch = new List<string>(batchSize);
-        foreach (var file in files)
-        {
-            batch.Add(file);
-            if (batch.Count >= batchSize)
-            {
-                yield return batch;
-                batch = new List<string>(batchSize);
-            }
-        }
-        if (batch.Count > 0)
-        {
-            yield return batch;
-        }
-    }
-
+    public static bool loaded = false;
 
 
     public static string[] mitaNames = { "Usual", "MitaTrue", "ShortHairs", "Kind", "Cap",
@@ -394,12 +142,10 @@ public class Plugin : MonoBehaviour
 
     public static List<GameObject> mitas = new List<GameObject>();
 
-    public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
+    private static List<GameObject> GetMitaAnimators()
     {
         var animators = Reflection.FindObjectsOfType<Animator>(true);
-        List<GameObject> mitaAnimators = new List<GameObject>();
-
-        mitas.Clear();
+        var mitaAnimators = new List<GameObject>();
 
         foreach (var obj in animators)
         {
@@ -408,20 +154,27 @@ public class Plugin : MonoBehaviour
 
             if (runtimeController != null)
             {
-                for (int i = 0; i < mitaNames.Length; ++i)
+                foreach (var mitaName in mitaNames)
                 {
-                    string mitaName = mitaNames[i];
                     if (runtimeController.name.Contains(mitaName) || obj.name.Contains(mitaName))
                     {
-                        if (mitaAnimators.Contains(anim.gameObject))
-                            continue;
-                        mitaAnimators.Add(anim.gameObject);
+                        if (!mitaAnimators.Contains(anim.gameObject))
+                        {
+                            mitaAnimators.Add(anim.gameObject);
+                        }
                         break;
                     }
                 }
             }
-
         }
+
+        return mitaAnimators;
+    }
+
+    public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
+    {
+        var mitaAnimators = GetMitaAnimators();
+        mitas.Clear();
 
 
         Transform player = null;
@@ -441,11 +194,29 @@ public class Plugin : MonoBehaviour
             if (mitaAnimators.Count <= i || mitaAnimators[i] == null)
                 continue;
             mitas.Add(mitaAnimators[i]);
-
+            int targetFrameRate = UnityEngine.Application.targetFrameRate;
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
-            float maxFrameTime = distance <= 20 ? 1f / 120f : 1f / (120f * Mathf.Log(distance - 19, 8));
+            float maxFrameTime = distance <= 20 ? 1f / targetFrameRate : 1f / (targetFrameRate * Mathf.Log(distance - 19, 8));
             UnityEngine.Debug.Log(distance);
             yield return PatchMitaCoroutine(modName, mitaAnimators[i], false, disactivation, maxFrameTime);
+        }
+    }
+
+    public static void FindMita(string modName = "", bool disactivation = false)
+    {
+        var mitaAnimators = GetMitaAnimators();
+        mitas.Clear();
+
+        // Patch each Mita over multiple frames
+        for (int i = 0; i < mitaNames.Length; ++i)
+        {
+            string mitaName = mitaNames[i];
+            string fullName = mitaName;
+
+            if (mitaAnimators.Count <= i || mitaAnimators[i] == null)
+                continue;
+            mitas.Add(mitaAnimators[i]);
+            PatchMita(modName, mitaAnimators[i], false, disactivation);
         }
     }
 
@@ -630,6 +401,160 @@ public class Plugin : MonoBehaviour
 
         UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
     }
+    public static void RestoreMeshBackup(
+        string modName,
+        Dictionary<string, SkinnedMeshRenderer> skinnedRenderers,
+        Dictionary<string, MeshRenderer> staticRenderers
+    )
+    {
+        UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{modName}'");
+
+        var skinnedAppendix = new HashSet<string>();
+        var staticAppendix = new HashSet<string>();
+        var replacedMeshes = new HashSet<string>();
+        var removedMeshes = new HashSet<string>();
+
+        bool found = false;
+        string currentName = "";
+
+        // Parse `AddonsConfig` line by line (this can be optimized further if needed)
+        foreach (string line in AddonsConfig)
+        {
+            if (line.StartsWith("*"))
+            {
+                currentName = line.Substring(1);
+                if (found)
+                    break;
+                continue;
+            }
+            if (line.StartsWith("-") || string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                continue;
+
+            if (currentName == modName)
+            {
+                found = true;
+                string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts1.Length > 2)
+                {
+                    switch (parts1[0])
+                    {
+                        case "create_static_appendix":
+                            if (!staticRenderers.ContainsKey(parts1[2] + "_backup"))
+                            {
+                                staticAppendix.Add(parts1[2]);
+                            }
+                            else
+                            {
+                                replacedMeshes.Add(parts1[2]);
+                            }
+                            break;
+                        case "create_skinned_appendix":
+                            if (!skinnedRenderers.ContainsKey(parts1[2] + "_backup"))
+                            {
+                                skinnedAppendix.Add(parts1[2]);
+                            }
+                            else
+                            {
+                                replacedMeshes.Add(parts1[2]);
+                            }
+                            break;
+                        case "replace_mesh":
+                        case "replace_tex":
+                            if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
+                                replacedMeshes.Add(parts1[2]);
+                            break;
+                        case "remove":
+                            if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
+                                removedMeshes.Add(parts1[2]);
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Process skinned renderers
+        int processedCount = 0;
+        foreach (var renderer in skinnedRenderers.Values)
+        {
+            if (skinnedAppendix.Contains(renderer.name))
+            {
+                UnityEngine.Object.Destroy(renderer.gameObject);
+                skinnedAppendix.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (replacedMeshes.Contains(renderer.name))
+            {
+                var backup = renderer.transform.parent.Find(renderer.name + "_backup");
+                if (backup != null)
+                {
+                    var backupRenderer = backup.GetComponent<SkinnedMeshRenderer>();
+                    var armatureBackup = new AssetLoader.ArmatureData(backupRenderer);
+                    var armature = new AssetLoader.ArmatureData(renderer);
+
+                    renderer.sharedMesh = backupRenderer.sharedMesh;
+                    renderer.material = backupRenderer.material;
+
+                    for (int i = 0; i < armature.clothNodes.Count; ++i)
+                    {
+                        armature.clothNodes[i].cullRendererList = armatureBackup.clothNodes[i].cullRendererList;
+                    }
+
+                    renderer.gameObject.SetActive(true);
+                }
+
+                replacedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (removedMeshes.Contains(renderer.name))
+            {
+                renderer.gameObject.SetActive(true);
+                removedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+        }
+
+        // Process static renderers
+        foreach (var renderer in staticRenderers.Values)
+        {
+            if (staticAppendix.Contains(renderer.name))
+            {
+                UnityEngine.Object.Destroy(renderer.gameObject);
+                staticAppendix.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (replacedMeshes.Contains(renderer.name))
+            {
+                var backup = renderer.transform.parent.Find(renderer.name + "_backup");
+                if (backup != null)
+                {
+                    renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
+                    renderer.material = backup.GetComponent<MeshRenderer>().material;
+                    renderer.gameObject.SetActive(true);
+                }
+
+                replacedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+
+            if (removedMeshes.Contains(renderer.name))
+            {
+                renderer.gameObject.SetActive(true);
+                removedMeshes.Remove(renderer.name);
+                processedCount++;
+                continue;
+            }
+        }
+
+        UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
+    }
 
     // Global dictionary to track applied commands per object
     public static Dictionary<GameObject, HashSet<string>> globalAppliedCommands = new();
@@ -661,7 +586,7 @@ public class Plugin : MonoBehaviour
         foreach (var renderer in staticRenderersList)
             staticRenderers[renderer.name.Trim()] = renderer;
 
-        if (currentSceneName == "SceneMenu")
+        if (SceneHandler.currentSceneName == "SceneMenu")
         {
             CreateMeshBackup(renderers);
             if (disactivation)
@@ -670,7 +595,7 @@ public class Plugin : MonoBehaviour
             }
         }
 
-        foreach (var command in assetCommands)
+        foreach (var command in ConsoleCommandHandler.assetCommands)
         {
             if (command.args.Length == 0 || command.args[0] != "Mita")
                 continue;
@@ -750,6 +675,115 @@ public class Plugin : MonoBehaviour
         stopwatch.Stop();
         UnityEngine.Debug.Log($"[INFO] Patched '{mita.name}' in {stopwatch.ElapsedMilliseconds}ms.");
     }
+    
+    public static void PatchMita(string modName, GameObject mita, bool recursive = false, bool disactivation = false)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        float frameStartTime = Time.realtimeSinceStartup;
+
+        if (!globalAppliedCommands.ContainsKey(mita))
+        {
+            globalAppliedCommands[mita] = new HashSet<string>();
+        }
+
+        if (mita.name == "MitaTrue(Clone)" && !recursive)
+        {
+            PatchMita(modName, mita.transform.Find("MitaUsual").gameObject, true, disactivation);
+            mita = mita.transform.Find("MitaTrue").gameObject;
+        }
+
+        var renderersList = Reflection.GetComponentsInChildren<SkinnedMeshRenderer>(mita, true);
+        var staticRenderersList = Reflection.GetComponentsInChildren<MeshRenderer>(mita, true);
+        var renderers = new Dictionary<string, SkinnedMeshRenderer>();
+        var staticRenderers = new Dictionary<string, MeshRenderer>();
+
+        foreach (var renderer in renderersList)
+            renderers[renderer.name.Trim()] = renderer;
+
+        foreach (var renderer in staticRenderersList)
+            staticRenderers[renderer.name.Trim()] = renderer;
+
+        if (SceneHandler.currentSceneName == "SceneMenu")
+        {
+            CreateMeshBackup(renderers);
+            if (disactivation)
+            {
+                RestoreMeshBackup(modName, renderers, staticRenderers);
+            }
+        }
+
+        foreach (var command in ConsoleCommandHandler.assetCommands)
+        {
+            if (command.args.Length == 0 || command.args[0] != "Mita")
+                continue;
+
+            string commandKey = $"{command.name} {string.Join(" ", command.args)}";
+
+            if (globalAppliedCommands[mita].Contains(commandKey))
+            {
+                UnityEngine.Debug.Log($"[INFO] Skipping already applied command: {commandKey} on '{mita.name}'");
+                continue;
+            }
+
+            switch (command.name)
+            {
+                case "remove":
+                    Commands.ApplyRemoveCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "recover":
+                    Commands.ApplyRecoverCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "replace_tex":
+                    Commands.ApplyReplaceTexCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "replace_mesh":
+                    Commands.ApplyReplaceMeshCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "resize_mesh":
+                    Commands.ApplyResizeMeshCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "move_mesh":
+                    Commands.ApplyMoveMeshCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "rotate_mesh":
+                    Commands.ApplyRotateMeshCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "create_skinned_appendix":
+                    Commands.ApplyCreateSkinnedAppendixCommand(command, mita, renderers);
+                    break;
+                case "create_static_appendix":
+                    Commands.ApplyCreateStaticAppendixCommand(command, mita, staticRenderers);
+                    break;
+                case "set_scale":
+                    Commands.ApplySetScaleCommand(command, mita);
+                    break;
+                case "move_position":
+                    Commands.ApplyMovePositionCommand(command, mita);
+                    break;
+                case "set_rotation":
+                    Commands.ApplySetRotationCommand(command, mita);
+                    break;
+                case "shader_params":
+                    Commands.ApplyShaderParamsCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "remove_outline":
+                    Commands.ApplyRemoveOutlineCommand(command, mita, renderers, staticRenderers);
+                    break;
+                case "recover_outline":
+                    Commands.ApplyAddOutlineCommand(command, mita, renderers, staticRenderers);
+                    break;
+                default:
+                    UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
+                    break;
+            }
+
+            globalAppliedCommands[mita].Add(commandKey);
+
+        }
+
+        stopwatch.Stop();
+        UnityEngine.Debug.Log($"[INFO] Patched '{mita.name}' in {stopwatch.ElapsedMilliseconds}ms.");
+    }
 
 
     public static void FindPlayer()
@@ -786,7 +820,7 @@ public class Plugin : MonoBehaviour
         foreach (var renderer in meshRenderers)
             staticRenderers[renderer.name.Trim()] = renderer;
 
-        foreach (var command in Plugin.assetCommands)
+        foreach (var command in ConsoleCommandHandler.assetCommands)
         {
             if (command.args.Length == 0 || command.args[0] != "Player")
                 continue;
@@ -814,7 +848,7 @@ public class Plugin : MonoBehaviour
                         Commands.ApplyReplaceTexCommand(command, player, renderers, staticRenderers);
                         break;
                     case "replace_mesh":
-                        Commands.ApplyReplaceMeshCommandCoroutine(command, player, renderers, staticRenderers, "Player");
+                        Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
                         break;
                     case "resize_mesh":
                         Commands.ApplyResizeMeshCommand(command, player, renderers, staticRenderers);
@@ -860,117 +894,7 @@ public class Plugin : MonoBehaviour
 
     VideoPlayer currentVideoPlayer = null;
     Action onCurrentVideoEnded = null;
-    Image logo = null;
-    Transform sceneObjectTransform = null;
-
-    void PatchMenuScene()
-    {
-        sceneObjectTransform = GameObject.Find("MenuGame/Scene").transform;
-        gameObjectCount = sceneObjectTransform.childCount;
-        UnityEngine.Debug.Log($"[INFO] Patching game scene.");
-        var hide_ver = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_game_version", (null, null));
-        var hide_glowing = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_glowing_effect", (null, null));
-        var command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
-        if (command.name != null)
-        {
-            var animators = Reflection.FindObjectsOfType<Animator>(true);
-            GameObject gameName = null;
-            foreach (var obj in animators)
-                if (obj.name == "NameGame")
-                {
-                    gameName = obj.Cast<Animator>().gameObject;
-                    Destroy(obj);
-                    break;
-                }
-
-            for (int i = 0; i < gameName.transform.childCount; i++)
-            {
-                var tr = gameName.transform.GetChild(i);
-                if (tr.name == "Background")
-                {
-                    Texture2D tex = loadedTextures[command.args[0]];
-                    if (hide_glowing.name != null)
-                        Destroy(Reflection.GetComponent<UIShiny>(tr));
-                    logo = Reflection.GetComponent<Image>(tr);
-                    logo.preserveAspect = true;
-                    logo.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one / 2.0f);
-                    Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
-                }
-                else if (tr.name != "TextVersion")
-                    tr.gameObject.SetActive(false);
-                else
-                {
-                    if (hide_ver.name == null)
-                    {
-                        Color color = Reflection.GetComponent<Text>(tr).color;
-                        color.a = 1;
-                        Reflection.GetComponent<Text>(tr).color = color;
-                    }
-                }
-            }
-        }
-
-        command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "resize_logo", (null, null));
-        if (command.name != null)
-        {
-            Reflection.GetComponent<RectTransform>(logo.transform).localScale = new Vector3(float.Parse(command.args[0]), float.Parse(command.args[1]), 1);
-        }
-
-        command = assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
-        if (command.name != null)
-        {
-            var musicSources = Reflection.FindObjectsOfType<AudioSource>(true);
-            foreach (var source in musicSources)
-                if (source.name == "Music")
-                {
-                    source.clip = loadedAudio[command.args[0]];
-                    source.volume = GlobalGame.VolumeGame;
-                    source.Play();
-                    break;
-                }
-        }
-
-        ClothesMenuPatcher.Run();
-
-        UnityEngine.Debug.Log($"[INFO] Game scene patching completed.");
-
-        if (startup)
-        {
-            ReadActiveAddons();
-            startup = false;
-        }
-    }
-
-    private static float baseMovementSpeed = 0.03f;
-    private static float maxMovementSpeed = 0.1f;
-    private static float mouseSensitivity = 0.7f;
-
-    private static int gameObjectCount = 0;
-
-    public static System.Collections.IEnumerator SceneLoading(string sceneName)
-    {
-        // Start the scene loading process
-        UnityEngine.Debug.Log("Waiting for assets loading...");
-
-        var sceneLoading = Reflection.FindObjectsOfType<SceneLoading>(true)[0];
-
-        bool initialState = sceneLoading.loadReady;
-
-        // Wait until assets are loaded
-        while (!loaded)
-        {
-            if (sceneLoading.loadReady)
-                initialState = true;
-            sceneLoading.loadReady = false;
-            yield return null; // Keep yielding until assets are fully loaded
-        }
-
-        sceneLoading.loadReady = initialState;
-
-        UnityEngine.Debug.Log("Assets have been loaded, activating scene...");
-
-    }
-
+    public static Image logo = null;
 
     void Update()
     {
@@ -980,75 +904,36 @@ public class Plugin : MonoBehaviour
             ConsoleMain.liteVersion = false;
         }
 
-        if (currentSceneName != SceneManager.GetActiveScene().name)
+        if (SceneHandler.currentSceneName != SceneManager.GetActiveScene().name)
         {
-            currentSceneName = SceneManager.GetActiveScene().name;
-            OnSceneChanged();
+            if (SceneHandler.currentSceneName == "SceneMenu")
+                SceneHandler.synch = false;
+            SceneHandler.currentSceneName = SceneManager.GetActiveScene().name;
+            SceneHandler.OnSceneChanged();
         }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
         {
-            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(LoadAssetsForPatchCoroutine());
-            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
+            if (SceneHandler.synch)
+            {
+                FindMita();
+            }
+            else
+            {
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
+            }
             FindPlayer();
         }
 
+
+
         if (UnityEngine.Input.GetKeyDown(KeyCode.F10))
         {
-            if (greenScreenCameraObject == null || !greenScreenCameraObject.active)
-                ConsoleEnter("greenscreen");
-            else
-                ConsoleEnter("greenscreen off");
+            GreenScreenHandler.ToggleGreenScreen();
         }
 
-        if (greenScreenCameraObject != null && greenScreenCameraObject.active)
-        {
-            // Mouse Input for Rotation
-            float mouseX = UnityEngine.Input.GetAxis("Mouse X") * mouseSensitivity;
-            float mouseY = UnityEngine.Input.GetAxis("Mouse Y") * mouseSensitivity;
-
-            // Update rotation deltas
-            rdy += mouseX; // Horizontal rotation (Y-axis)
-            rdx -= mouseY; // Vertical rotation (X-axis)
-
-            // Clamp the vertical rotation to prevent flipping
-            rdx = Mathf.Clamp(rdx, -90f, 90f);
-
-            // Movement Input
-            Vector3 forward = greenScreenCamera.transform.forward;
-            Vector3 right = greenScreenCamera.transform.right;
-            Vector3 up = greenScreenCamera.transform.up;
-
-            forward.y = 0; // Ignore vertical component for planar movement
-            right.y = 0;
-
-            forward.Normalize();
-            right.Normalize();
-
-            // Adjust speed if Shift is held
-            if (UnityEngine.Input.GetKey(KeyCode.LeftShift))
-            {
-                baseMovementSpeed = Mathf.Min(baseMovementSpeed * 1.02f, maxMovementSpeed);
-            }
-            else
-            {
-                baseMovementSpeed = 0.03f;
-            }
-
-            Vector3 movement = Vector3.zero;
-            if (UnityEngine.Input.GetKey(KeyCode.W)) movement += forward * baseMovementSpeed;
-            if (UnityEngine.Input.GetKey(KeyCode.S)) movement -= forward * baseMovementSpeed;
-            if (UnityEngine.Input.GetKey(KeyCode.D)) movement += right * baseMovementSpeed;
-            if (UnityEngine.Input.GetKey(KeyCode.A)) movement -= right * baseMovementSpeed;
-            if (UnityEngine.Input.GetKey(KeyCode.Space)) movement += up * baseMovementSpeed;
-            if (UnityEngine.Input.GetKey(KeyCode.LeftControl)) movement -= up * baseMovementSpeed;
-
-            // Update Camera Transform
-            Vector3 newPosition = greenScreenCamera.transform.position + movement;
-            Quaternion newRotation = Quaternion.Euler(rdx, -135 + rdy, 0);
-
-            greenScreenCamera.transform.SetPositionAndRotation(newPosition, newRotation);
-        }
+        GreenScreenHandler.HandleGreenScreenCameraMovement();
 
         if (currentVideoPlayer != null)
         {
@@ -1062,36 +947,9 @@ public class Plugin : MonoBehaviour
             }
         }
 
-        if (currentSceneName == "SceneMenu")
+        if (SceneHandler.currentSceneName == "SceneMenu")
         {
-            if (logo != null)
-                logo.color = Color.white;
-            if (sceneObjectTransform.childCount != gameObjectCount)
-            {
-                gameObjectCount = sceneObjectTransform.childCount;
-                if (sceneObjectTransform.childCount == 6 && !sceneObjectTransform.GetChild(5).gameObject.name.Contains("Particle"))
-                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
-            }
-        }
-    }
-    void OnSceneChanged()
-    {
-        try
-        {
-            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
-            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(LoadAssetsForPatchCoroutine());
-            globalAppliedCommands.Clear();
-            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
-            FindPlayer();
-            if (currentSceneName == "SceneMenu")
-                PatchMenuScene();
-            else if (currentSceneName == "SceneLoading")
-                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(SceneLoading("SceneMenu"));
-        }
-        catch (Exception e)
-        {
-            UnityEngine.Debug.LogError($"[ERROR] {e}");
-            enabled = false;
+            SceneHandler.HandleSceneMenu();
         }
     }
 
