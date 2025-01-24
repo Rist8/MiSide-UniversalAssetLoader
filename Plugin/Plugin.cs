@@ -10,6 +10,8 @@ using BepInEx.Unity.IL2CPP.Utils;
 using UnityEngine.Playables;
 using Il2CppSystem.Windows.Forms;
 using static UtilityNamespace.LateCallUtility;
+using Il2CppInterop.Runtime;
+using System.Text.RegularExpressions;
 
 public class Plugin : MonoBehaviour
 {
@@ -85,8 +87,17 @@ public class Plugin : MonoBehaviour
                 if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
                     continue;
 
-                // Split line on commands with arguments list
-                string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                // Regex to match arguments, preserving quoted substrings
+                var matches = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                var parts = matches.Cast<Match>().Select(m => m.Value).ToArray();
+
+                // Remove surrounding quotes from quoted arguments
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    parts[i] = parts[i].Trim('\"');
+                }
+
+                // Add command and arguments to assetCommands
                 ConsoleCommandHandler.assetCommands.Add((parts[0], parts.Skip(1).ToArray()));
             }
         }
@@ -124,6 +135,59 @@ public class Plugin : MonoBehaviour
         catch (Exception e)
         {
             Console.WriteLine("Error: " + e.Message);
+        }
+    }
+
+    public static void PatchAssets()
+    {
+        try
+        {
+            var textures = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Texture2D>());
+            var textureDict = new Dictionary<string, Texture2D>();
+            var sprites = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Sprite>());
+            var spritesDict = new Dictionary<string, Sprite>();
+
+            foreach (var texture in textures)
+            {
+                var tex = texture.Cast<Texture2D>();
+                if (tex != null && !textureDict.ContainsKey(tex.name))
+                {
+                    textureDict.Add(tex.name, tex);
+                }
+            }
+
+            foreach (var sprite in sprites)
+            {
+                var spr = sprite.Cast<Sprite>();
+                if (spr != null && !spritesDict.ContainsKey(spr.name))
+                {
+                    spritesDict.Add(spr.name, spr);
+                }
+            }
+
+            foreach (var command in ConsoleCommandHandler.assetCommands)
+            {
+                if (command.args.Length == 0)
+                    continue;
+
+                string commandKey = $"{command.name} {string.Join(" ", command.args)}";
+
+                switch (command.name)
+                {
+                    case "replace_2D":
+                        Commands.ApplyReplace2DCommand(command, textureDict);
+                        break;
+                    case "replace_sprite":
+                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceSprite(command, spritesDict));
+                        break;
+                }
+
+
+            }
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"[ERROR] {e}");
         }
     }
 

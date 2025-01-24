@@ -1,5 +1,7 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
+using System.IO.Compression;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UtilityNamespace
 {
@@ -20,7 +22,69 @@ namespace UtilityNamespace
             }
             return null;
         }
+
+        public static byte[] Compress(byte[] data)
+        {
+            using (var output = new MemoryStream())
+            {
+                using (var gzip = new GZipStream(output, CompressionMode.Compress))
+                {
+                    gzip.Write(data, 0, data.Length);
+                }
+                return output.ToArray();
+            }
+        }
+
+        public static byte[] Decompress(byte[] compressedData)
+        {
+            using (var input = new MemoryStream(compressedData))
+            using (var gzip = new GZipStream(input, CompressionMode.Decompress))
+            using (var output = new MemoryStream())
+            {
+                gzip.CopyTo(output);
+                return output.ToArray();
+            }
+        }
+
+        public static bool ReplaceSpriteInReferences(Sprite oldSprite, Sprite newSprite)
+        {
+            if (oldSprite == null || newSprite == null)
+            {
+                Debug.LogError("Old Sprite or New Sprite is not assigned!");
+                return false;
+            }
+
+
+            bool replacementSucceeded = false;
+
+            // Replace references in all SpriteRenderer components
+            foreach (SpriteRenderer renderer in Reflection.FindObjectsOfType<SpriteRenderer>(false))
+            {
+                if (renderer.sprite != newSprite && renderer.sprite == oldSprite)
+                {
+                    renderer.sprite = newSprite;
+                    Debug.Log($"Replaced sprite in SpriteRenderer on GameObject: {renderer.gameObject.name}");
+                    replacementSucceeded = true;
+                }
+            }
+
+            // Replace references in all UI Image components
+            foreach (Image image in Reflection.FindObjectsOfType<Image>(false))
+            {
+                if (image.activeSprite != newSprite && image.sprite == oldSprite)
+                {
+                    image.m_OverrideSprite = newSprite;
+                    image.gameObject.SetActive(false);
+                    image.gameObject.SetActive(true);
+                    Debug.Log($"Replaced sprite in Image on GameObject: {image.gameObject.name}");
+                    replacementSucceeded = true;
+                }
+            }
+
+            return replacementSucceeded;
+        }
     }
+
 
 
 

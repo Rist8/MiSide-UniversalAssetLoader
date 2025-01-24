@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Net;
+using System.Text.RegularExpressions;
 using BepInEx.Unity.IL2CPP.Utils;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Drawing;
@@ -230,7 +231,15 @@ public class ClothesMenuPatcher
                     {
                         if (!line.StartsWith("-"))
                         {
-                            string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            // Regex to match arguments, preserving quoted substrings
+                            var matches1 = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                            var parts1 = matches1.Cast<Match>().Select(m => m.Value).ToArray();
+
+                            // Remove surrounding quotes from quoted arguments
+                            for (int i = 0; i < parts1.Length; i++)
+                            {
+                                parts1[i] = parts1[i].Trim('\"');
+                            }
 
                             // Remove commands from assetCommands and globalAppliedCommands
 
@@ -246,7 +255,15 @@ public class ClothesMenuPatcher
                     else if (line.StartsWith("-"))
                     {
                         line = line.Substring(1);
-                        string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        // Regex to match arguments, preserving quoted substrings
+                        var matches1 = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                        var parts1 = matches1.Cast<Match>().Select(m => m.Value).ToArray();
+
+                        // Remove surrounding quotes from quoted arguments
+                        for (int i = 0; i < parts1.Length; i++)
+                        {
+                            parts1[i] = parts1[i].Trim('\"');
+                        }
 
                         // Remove commands from assetCommands and globalAppliedCommands
 
@@ -257,7 +274,15 @@ public class ClothesMenuPatcher
                     }
 
                     // Add or remove commands based on the active state
-                    string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    // Regex to match arguments, preserving quoted substrings
+                    var matches = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                    var parts = matches.Cast<Match>().Select(m => m.Value).ToArray();
+
+                    // Remove surrounding quotes from quoted arguments
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        parts[i] = parts[i].Trim('\"');
+                    }
                     RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());
                     ConsoleCommandHandler.assetCommands.RemoveAll(command =>
                         command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
@@ -276,7 +301,15 @@ public class ClothesMenuPatcher
 
             foreach (string line in oneTimeCommands)
             {
-                string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                // Regex to match arguments, preserving quoted substrings
+                var matches = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                var parts = matches.Cast<Match>().Select(m => m.Value).ToArray();
+
+                // Remove surrounding quotes from quoted arguments
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    parts[i] = parts[i].Trim('\"');
+                }
                 ConsoleCommandHandler.assetCommands.RemoveAll(command =>
                     command.name == parts[0] && Enumerable.SequenceEqual(command.args, parts.Skip(1).ToArray()));
                 RemoveCommandFromGlobal(parts[0], parts.Skip(1).ToArray());

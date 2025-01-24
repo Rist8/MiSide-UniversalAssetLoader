@@ -14,6 +14,7 @@ public class AssetLoader
 {
     public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
     public static Dictionary<string, Texture2D>? loadedTextures;
+    public static Dictionary<string, Il2CppStructArray<byte>>? loadedTexturesRaw;
     public static Dictionary<string, AudioClip>? loadedAudio;
 
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
@@ -23,6 +24,7 @@ public class AssetLoader
 
         loadedModels = new Dictionary<string, Assimp.Mesh[]>();
         loadedTextures = new Dictionary<string, Texture2D>();
+        loadedTexturesRaw = new Dictionary<string, Il2CppStructArray<byte>>();
         loadedAudio = new Dictionary<string, AudioClip>();
 
         PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
@@ -90,7 +92,7 @@ public class AssetLoader
         var textureFiles = GetAllFilesWithExtensions(PluginInfo.AssetsFolder, "png", "jpg", "jpeg");
         foreach (var file in textureFiles)
         {
-            var texture = LoadTexture(file);
+            var texture = LoadTexture(file, out var rawData);
             if (texture != null)
             {
                 string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
@@ -98,6 +100,8 @@ public class AssetLoader
                 if (!loadedTextures.ContainsKey(filename))
                 {
                     loadedTextures.Add(filename, texture);
+                    var compressedData = UtilityNamespace.Utility.Compress(rawData);
+                    loadedTexturesRaw.Add(filename, compressedData);
                     PluginInfo.Instance.Logger.LogInfo($"Loaded texture from file: '{filename}'");
                 }
             }
@@ -132,13 +136,13 @@ public class AssetLoader
             yield return batch;
         }
     }
-    public static Texture2D LoadTexture(string file) => LoadTexture(Path.GetFileNameWithoutExtension(file), File.OpenRead(file));
-    public static Texture2D LoadTexture(string name, Stream stream)
+    public static Texture2D LoadTexture(string file, out Il2CppStructArray<byte> rawData) => LoadTexture(Path.GetFileNameWithoutExtension(file), File.OpenRead(file), out rawData);
+    public static Texture2D LoadTexture(string name, Stream stream, out Il2CppStructArray<byte> rawData)
     {
         Texture2D texture = new Texture2D(2, 2);
-        var result = Reflection.ForceUseStaticMethod<bool>(typeof(ImageConversion), "LoadImage", texture, (Il2CppStructArray<byte>)ReadStream(stream));
+        rawData = ReadStream(stream);
+        var result = Reflection.ForceUseStaticMethod<bool>(typeof(ImageConversion), "LoadImage", texture, rawData);
         if (!result) return null;
-
         texture.name = name;
         texture.hideFlags = HideFlags.DontSave;
         return texture;
@@ -202,7 +206,9 @@ public class AssetLoader
     {
         AssimpContext importer = new AssimpContext();
         importer.SetConfig(new NormalSmoothingAngleConfig(66.0f));
-        var fbxFile = importer.ImportFileFromStream(stream, PostProcessSteps.Triangulate | PostProcessSteps.FlipWindingOrder);
+        var fbxFile = importer.ImportFileFromStream(stream, PostProcessSteps.Triangulate |
+            PostProcessSteps.FlipWindingOrder |
+            PostProcessSteps.JoinIdenticalVertices);
         return fbxFile.Meshes.ToArray();
     }
 

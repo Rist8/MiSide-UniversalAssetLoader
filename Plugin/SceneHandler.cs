@@ -17,6 +17,7 @@ public class SceneHandler
     {
         try
         {
+            Plugin.PatchAssets();
             if (currentSceneName == "SceneMenu")
             {
                 synch = true;
@@ -166,6 +167,7 @@ public class SceneHandler
                 {
                     UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
                 }
+                Plugin.PatchAssets();
             }
         }
     }

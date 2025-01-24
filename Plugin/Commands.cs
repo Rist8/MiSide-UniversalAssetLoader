@@ -1,5 +1,6 @@
 using EPOOutline;
 using HarmonyLib;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -727,5 +728,60 @@ public class Commands
         {
             UnityEngine.Debug.LogWarning($"[WARNING] Renderer '{command.args[1]}' not found on '{mita.name}'.");
         }
+    }
+
+    public static void ApplyReplace2DCommand((string name, string[] args) command, Dictionary<string, Texture2D> textures)
+    {
+        UnityEngine.Debug.Log($"[INFO] Replacing Texture 2D '{command.args[0]}' with '{command.args[1]}'.");
+        if (textures.ContainsKey(command.args[0]))
+        {
+            string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+            Reflection.ForceUseStaticMethod<bool>(
+                typeof(ImageConversion),
+                "LoadImage",
+                textures[command.args[0]],
+                (Il2CppStructArray<byte>)Utility.Decompress(loadedTexturesRaw[textureKey])
+            );
+            UnityEngine.Debug.Log($"[INFO] Replaced Texture 2D '{command.args[0]}' with '{textureKey}'.");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Texture 2D '{command.args[0]}' not found in the game.");
+        }
+    }
+    public static System.Collections.IEnumerator ApplyReplaceSprite((string name, string[] args) command, Dictionary<string, Sprite> sprites)
+    {
+        UnityEngine.Debug.Log($"[INFO] Replacing Sprite '{command.args[0]}' with '{command.args[1]}'.");
+
+        if(!sprites.ContainsKey(command.args[0]))
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Sprite '{command.args[0]}' not found.");
+            yield break;
+        }
+
+        string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+
+        Sprite newSprite = null;
+        bool success = false;
+        while (!success || SceneHandler.currentSceneName == "Scene 18 - 2D")
+        {
+            if (loadedTextures.ContainsKey(textureKey) && newSprite == null)
+            {
+                var texture = loadedTextures[textureKey];
+                newSprite = Sprite.Create(
+                    texture,
+                    new Rect(0, 0, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    100f
+                );
+                newSprite.name = command.args[1];
+            }
+
+            success = Utility.ReplaceSpriteInReferences(sprites[command.args[0]], newSprite);
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        UnityEngine.Debug.Log($"[INFO] Successfully replaced Sprite '{command.args[0]}' with '{textureKey}'.");
     }
 }
