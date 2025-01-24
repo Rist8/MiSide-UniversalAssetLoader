@@ -75,6 +75,13 @@
 //   rotate_mesh Mita Name x y z w KeyWords
 //     # Rotate the mesh using quaternion angles (x, y, z, w).
 
+// ==================== FOR 2D TEXTURES AND SPRITES ==========================
+// Commands for sprites and 2d textures replacement:
+//
+//   replace_2D TextureName TextureFilename
+//   replace_sprite SpriteName SpriteTextureFilename
+//     # See the Carnage2D mod for novel sprites' names and example usage     
+
 
 *TrailerMode
 trailer
@@ -130,3 +137,4 @@ recover Mita BodyTowel !Washes !Clone Mila Glasses
 -recover Mita Body !Washes !Clone Mila Glasses
 -recover Mita Skirt !Washes !Clone Mila Glasses
 -remove Mita BodyTowel !Washes !Clone Mila Glasses
+

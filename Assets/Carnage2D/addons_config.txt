@@ -1,0 +1,22 @@
+*Carnage2D
+
+//Mita stands still
+replace_sprite "Mita Стоит" Carnage2D\\carnage
+
+//Player stands still
+replace_sprite "Player Стоит" Carnage2D\\carnagewhite
+
+//Mita is sad
+replace_sprite "Mita Грустит" Carnage2D\\carnageblack
+
+//Mita showing the ring on her finger
+replace_sprite "Mita Показывает кольцо на пальце" Carnage2D\\carnagecircle
+
+//Mita is displeased
+replace_sprite "Mita Стоит Недовольно" Carnage2D\\carnagered
+
+//Mita is scared
+replace_sprite "Mita Напугана" Carnage2D\\carnageblue
+
+//Mita stands still happily
+replace_sprite "Mita Стоит Веселится" Carnage2D\\carnageyellow
