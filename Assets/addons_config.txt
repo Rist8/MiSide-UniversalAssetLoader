@@ -75,12 +75,13 @@
 //   rotate_mesh Mita Name x y z w KeyWords
 //     # Rotate the mesh using quaternion angles (x, y, z, w).
 
-// ==================== FOR 2D TEXTURES AND SPRITES ==========================
+// ==================== FOR REPLACING ASSETS ==========================
 // Commands for sprites and 2d textures replacement:
 //
 //   replace_2D TextureName TextureFilename
 //   replace_sprite SpriteName SpriteTextureFilename
-//     # See the Carnage2D mod for novel sprites' names and example usage     
+//     # See the Carnage2D mod for novel sprites' names and example usage  
+//   replace_audio AudioName AudioFilename   
 
 
 *TrailerMode

@@ -146,6 +146,8 @@ public class Plugin : MonoBehaviour
             var textureDict = new Dictionary<string, Texture2D>();
             var sprites = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Sprite>());
             var spritesDict = new Dictionary<string, Sprite>();
+            var audios = Resources.FindObjectsOfTypeAll(Il2CppType.Of<AudioClip>());
+            var audioDict = new Dictionary<string, AudioClip>();
 
             foreach (var texture in textures)
             {
@@ -170,6 +172,16 @@ public class Plugin : MonoBehaviour
                 }
             }
 
+            foreach (var audio in audios)
+            {
+                var aud = audio.Cast<AudioClip>();
+                if (aud != null && !audioDict.ContainsKey(aud.name))
+                {
+                    audioDict.Add(aud.name, aud);
+                    UnityEngine.Debug.LogWarning($"[INFO] Found audio: {aud.name}");
+                }
+            }
+
             foreach (var command in ConsoleCommandHandler.assetCommands)
             {
                 if (command.args.Length == 0)
@@ -184,6 +196,9 @@ public class Plugin : MonoBehaviour
                         break;
                     case "replace_sprite":
                         UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceSprite(command, spritesDict));
+                        break;
+                    case "replace_audio":
+                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceAudioCommand(command, audioDict));
                         break;
                 }
 
@@ -304,7 +319,7 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    
+
     public static void RestoreMeshBackup(
         string modName,
         Dictionary<string, SkinnedMeshRenderer> skinnedRenderers,

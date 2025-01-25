@@ -84,6 +84,36 @@ namespace UtilityNamespace
 
             return replacementSucceeded;
         }
+
+        public static bool ReplaceAudioClipInReferences(AudioClip oldClip, AudioClip newClip)
+        {
+            if (oldClip == null || newClip == null)
+            {
+                return false;
+            }
+
+            bool replacementSucceeded = false;
+            bool found = false;
+
+            foreach (AudioSource audioSource in Reflection.FindObjectsOfType<AudioSource>(false))
+            {
+                if (!audioSource.gameObject.activeSelf) continue;
+                if (audioSource.clip != newClip && audioSource.clip == oldClip && audioSource.clip.name == oldClip.name)
+                {
+                    audioSource.clip = newClip;
+                    audioSource.Play();
+                    Debug.Log($"Replaced AudioClip in AudioSource on GameObject: {audioSource.gameObject.name}");
+                    found = true;
+                }
+                if (found && audioSource == null)
+                {
+                    replacementSucceeded = true;
+                    break;
+                }
+            }
+
+            return replacementSucceeded;
+        }
     }
 
 
