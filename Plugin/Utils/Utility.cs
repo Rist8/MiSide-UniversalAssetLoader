@@ -50,17 +50,17 @@ namespace UtilityNamespace
         {
             if (oldSprite == null || newSprite == null)
             {
-                Debug.LogError("Old Sprite or New Sprite is not assigned!");
+                // Debug.LogError("Old Sprite or New Sprite is not assigned!");
                 return false;
             }
-
 
             bool replacementSucceeded = false;
 
             // Replace references in all SpriteRenderer components
             foreach (SpriteRenderer renderer in Reflection.FindObjectsOfType<SpriteRenderer>(false))
             {
-                if (renderer.sprite != newSprite && renderer.sprite == oldSprite)
+                if (!renderer.gameObject.activeSelf) continue;
+                if (renderer.sprite != newSprite && renderer.sprite == oldSprite && renderer.sprite.name == oldSprite.name)
                 {
                     renderer.sprite = newSprite;
                     Debug.Log($"Replaced sprite in SpriteRenderer on GameObject: {renderer.gameObject.name}");
@@ -71,7 +71,8 @@ namespace UtilityNamespace
             // Replace references in all UI Image components
             foreach (Image image in Reflection.FindObjectsOfType<Image>(false))
             {
-                if (image.activeSprite != newSprite && image.sprite == oldSprite)
+                if (!image.gameObject.activeSelf) continue;
+                if (image.activeSprite != newSprite && image.sprite == oldSprite && image.sprite.name == oldSprite.name)
                 {
                     image.m_OverrideSprite = newSprite;
                     image.gameObject.SetActive(false);

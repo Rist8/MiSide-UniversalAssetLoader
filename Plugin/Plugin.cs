@@ -24,7 +24,7 @@ public class Plugin : MonoBehaviour
         ReadAddonsConfigs();
         ConsoleCommandHandler.Initialize();
     }
-    
+
     public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
     public static List<string> AddonsConfig = new List<string>();
 
@@ -739,7 +739,7 @@ public class Plugin : MonoBehaviour
         stopwatch.Stop();
         UnityEngine.Debug.Log($"[INFO] Patched '{mita.name}' in {stopwatch.ElapsedMilliseconds}ms.");
     }
-    
+
     public static void PatchMita(string modName, GameObject mita, bool recursive = false, bool disactivation = false)
     {
         var stopwatch = Stopwatch.StartNew();

@@ -753,7 +753,7 @@ public class Commands
     {
         UnityEngine.Debug.Log($"[INFO] Replacing Sprite '{command.args[0]}' with '{command.args[1]}'.");
 
-        if(!sprites.ContainsKey(command.args[0]))
+        if (!sprites.ContainsKey(command.args[0]))
         {
             UnityEngine.Debug.LogWarning($"[WARNING] Sprite '{command.args[0]}' not found.");
             yield break;
@@ -765,9 +765,8 @@ public class Commands
         bool success = false;
         while (!success || SceneHandler.currentSceneName == "Scene 18 - 2D")
         {
-            if (loadedTextures.ContainsKey(textureKey) && newSprite == null)
+            if (loadedTextures.TryGetValue(textureKey, out var texture) && newSprite == null)
             {
-                var texture = loadedTextures[textureKey];
                 newSprite = Sprite.Create(
                     texture,
                     new Rect(0, 0, texture.width, texture.height),
