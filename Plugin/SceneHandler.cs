@@ -107,7 +107,6 @@ public class SceneHandler
                 if (source.name == "Music")
                 {
                     source.clip = AssetLoader.loadedAudio[command.args[0]];
-                    source.volume = GlobalGame.VolumeGame;
                     source.Play();
                     break;
                 }
