@@ -154,6 +154,11 @@ public class Plugin : MonoBehaviour
                 {
                     textureDict.Add(tex.name, tex);
                 }
+                else if (tex != null && textureDict.ContainsKey(tex.name))
+                {
+                    // registering a new created texture from the game
+                    textureDict[tex.name] = tex;
+                }
             }
 
             foreach (var sprite in sprites)
@@ -299,172 +304,7 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    public static System.Collections.IEnumerator RestoreMeshBackupCoroutine(
-        string modName,
-        Dictionary<string, SkinnedMeshRenderer> skinnedRenderers,
-        Dictionary<string, MeshRenderer> staticRenderers
-    )
-    {
-        UnityEngine.Debug.Log($"[INFO] Attempt to remove mod: '{modName}'");
-
-        var skinnedAppendix = new HashSet<string>();
-        var staticAppendix = new HashSet<string>();
-        var replacedMeshes = new HashSet<string>();
-        var removedMeshes = new HashSet<string>();
-
-        bool found = false;
-        string currentName = "";
-
-        // Parse `AddonsConfig` line by line (this can be optimized further if needed)
-        foreach (string line in AddonsConfig)
-        {
-            if (line.StartsWith("*"))
-            {
-                currentName = line.Substring(1);
-                if (found)
-                    break;
-                continue;
-            }
-            if (line.StartsWith("-") || string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
-                continue;
-
-            if (currentName == modName)
-            {
-                found = true;
-                string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts1.Length > 2)
-                {
-                    switch (parts1[0])
-                    {
-                        case "create_static_appendix":
-                            if (!staticRenderers.ContainsKey(parts1[2] + "_backup"))
-                            {
-                                staticAppendix.Add(parts1[2]);
-                            }
-                            else
-                            {
-                                replacedMeshes.Add(parts1[2]);
-                            }
-                            break;
-                        case "create_skinned_appendix":
-                            if (!skinnedRenderers.ContainsKey(parts1[2] + "_backup"))
-                            {
-                                skinnedAppendix.Add(parts1[2]);
-                            }
-                            else
-                            {
-                                replacedMeshes.Add(parts1[2]);
-                            }
-                            break;
-                        case "replace_mesh":
-                        case "replace_tex":
-                            if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))
-                                replacedMeshes.Add(parts1[2]);
-                            break;
-                        case "remove":
-                            if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]) && !replacedMeshes.Contains(parts1[2]))
-                                removedMeshes.Add(parts1[2]);
-                            break;
-                    }
-                }
-            }
-        }
-
-        // Process skinned renderers
-        int processedCount = 0;
-        foreach (var renderer in skinnedRenderers.Values)
-        {
-            if (skinnedAppendix.Contains(renderer.name))
-            {
-                UnityEngine.Object.Destroy(renderer.gameObject);
-                skinnedAppendix.Remove(renderer.name);
-                processedCount++;
-                continue;
-            }
-
-            if (replacedMeshes.Contains(renderer.name))
-            {
-                var backup = renderer.transform.parent.Find(renderer.name + "_backup");
-                if (backup != null)
-                {
-                    var backupRenderer = backup.GetComponent<SkinnedMeshRenderer>();
-                    var armatureBackup = new AssetLoader.ArmatureData(backupRenderer);
-                    var armature = new AssetLoader.ArmatureData(renderer);
-
-                    renderer.sharedMesh = backupRenderer.sharedMesh;
-                    renderer.material = backupRenderer.material;
-
-                    for (int i = 0; i < armature.clothNodes.Count; ++i)
-                    {
-                        armature.clothNodes[i].cullRendererList = armatureBackup.clothNodes[i].cullRendererList;
-                    }
-
-                    renderer.gameObject.SetActive(true);
-                }
-
-                replacedMeshes.Remove(renderer.name);
-                processedCount++;
-                continue;
-            }
-
-            if (removedMeshes.Contains(renderer.name))
-            {
-                renderer.gameObject.SetActive(true);
-                removedMeshes.Remove(renderer.name);
-                processedCount++;
-                continue;
-            }
-
-            // Yield control every 10 renderers to avoid freezing
-            if (processedCount % 10 == 0)
-            {
-                yield return null;
-            }
-        }
-
-        // Process static renderers
-        foreach (var renderer in staticRenderers.Values)
-        {
-            if (staticAppendix.Contains(renderer.name))
-            {
-                UnityEngine.Object.Destroy(renderer.gameObject);
-                staticAppendix.Remove(renderer.name);
-                processedCount++;
-                continue;
-            }
-
-            if (replacedMeshes.Contains(renderer.name))
-            {
-                var backup = renderer.transform.parent.Find(renderer.name + "_backup");
-                if (backup != null)
-                {
-                    renderer.GetComponent<MeshFilter>().sharedMesh = backup.GetComponent<MeshFilter>().sharedMesh;
-                    renderer.material = backup.GetComponent<MeshRenderer>().material;
-                    renderer.gameObject.SetActive(true);
-                }
-
-                replacedMeshes.Remove(renderer.name);
-                processedCount++;
-                continue;
-            }
-
-            if (removedMeshes.Contains(renderer.name))
-            {
-                renderer.gameObject.SetActive(true);
-                removedMeshes.Remove(renderer.name);
-                processedCount++;
-                continue;
-            }
-
-            // Yield control every 10 renderers to avoid freezing
-            if (processedCount % 10 == 0)
-            {
-                yield return null;
-            }
-        }
-
-        UnityEngine.Debug.Log($"[INFO] Mod '{modName}' deactivated successfully.");
-    }
+    
     public static void RestoreMeshBackup(
         string modName,
         Dictionary<string, SkinnedMeshRenderer> skinnedRenderers,
@@ -649,15 +489,6 @@ public class Plugin : MonoBehaviour
 
         foreach (var renderer in staticRenderersList)
             staticRenderers[renderer.name.Trim()] = renderer;
-
-        if (SceneHandler.currentSceneName == "SceneMenu")
-        {
-            CreateMeshBackup(renderers);
-            if (disactivation)
-            {
-                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(RestoreMeshBackupCoroutine(modName, renderers, staticRenderers));
-            }
-        }
 
         foreach (var command in ConsoleCommandHandler.assetCommands)
         {

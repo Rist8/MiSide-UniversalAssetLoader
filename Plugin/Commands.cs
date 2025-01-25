@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UtilityNamespace;
 using static AssetLoader;
+using Il2CppInterop.Runtime;
 
 public class Commands
 {
@@ -736,12 +737,8 @@ public class Commands
         if (textures.ContainsKey(command.args[0]))
         {
             string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
-            Reflection.ForceUseStaticMethod<bool>(
-                typeof(ImageConversion),
-                "LoadImage",
-                textures[command.args[0]],
-                (Il2CppStructArray<byte>)Utility.Decompress(loadedTexturesRaw[textureKey])
-            );
+            var imageData = Utility.Decompress(loadedTexturesRaw[textureKey]);
+            textures[command.args[0]].LoadImage(imageData);
             UnityEngine.Debug.Log($"[INFO] Replaced Texture 2D '{command.args[0]}' with '{textureKey}'.");
         }
         else

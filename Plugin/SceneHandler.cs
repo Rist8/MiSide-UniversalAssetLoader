@@ -17,7 +17,6 @@ public class SceneHandler
     {
         try
         {
-            Plugin.PatchAssets();
             if (currentSceneName == "SceneMenu")
             {
                 synch = true;
@@ -30,6 +29,7 @@ public class SceneHandler
 
             UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
             Plugin.globalAppliedCommands.Clear();
+            Plugin.PatchAssets();
             if (synch)
             {
                 Plugin.FindMita();
