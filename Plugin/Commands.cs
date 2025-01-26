@@ -69,31 +69,40 @@ public class Commands
         return false; // Do not skip
     }
 
-    public static void RemoveOutlineTarget(Renderer RendererObject)
+    public static void RemoveOutlineTarget(Renderer RendererObject, GameObject mita)
     {
         var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                            .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
-                            .ToArray();
-        if (outlinables.Length > 0)
+                        .Where(mat => mat.gameObject.name == "Interactive" ||
+                            mat.gameObject.name.Contains("Mita") ||
+                            mat.gameObject.name.Contains("Mila") ||
+                            mat.gameObject.name.Contains(mita.name)
+                        )
+                        .ToArray();
+
+        foreach (var outlinable in outlinables)
         {
-            for (int i = 0; i <= outlinables[0].outlineTargets.Count - 1; i++)
+            for (int i = 0; i <= outlinable.outlineTargets.Count - 1; i++)
             {
-                if (outlinables[0].outlineTargets[i].Renderer == RendererObject)
+                if (outlinable.outlineTargets[i].Renderer == RendererObject)
                 {
-                    outlinables[0].outlineTargets.RemoveAt(i--);
+                    outlinable.outlineTargets.RemoveAt(i--);
                 }
             }
 
         }
     }
 
-    public static void AddOutlineTarget(Renderer RendererObject)
+    public static void AddOutlineTarget(Renderer RendererObject, GameObject mita)
     {
         var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                        .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("Mila"))
+                        .Where(mat => mat.gameObject.name == "Interactive" ||
+                            mat.gameObject.name.Contains("Mita") ||
+                            mat.gameObject.name.Contains("Mila") ||
+                            mat.gameObject.name.Contains(mita.name)
+                        )
                         .ToArray();
 
-        if (outlinables.Length > 0)
+        foreach (var outlinable in outlinables)
         {
             // Create an OutlineTarget instance
             OutlineTarget target = new OutlineTarget(RendererObject)
@@ -104,7 +113,7 @@ public class Commands
             };
 
             // Add the OutlineTarget to the first matching outlinable
-            outlinables[0].outlineTargets.Add(target);
+            outlinable.outlineTargets.Add(target);
         }
     }
 
@@ -117,7 +126,7 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(renderers[command.args[1]]);
+            RemoveOutlineTarget(renderers[command.args[1]], mita);
             if (BlendShapedSkinnedAppendix.Contains(command.args[1]))
                 BlendShapedSkinnedAppendix.Remove(command.args[1]);
 
@@ -126,7 +135,7 @@ public class Commands
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(staticRenderers[command.args[1]]);
+            RemoveOutlineTarget(staticRenderers[command.args[1]], mita);
             staticRenderers[command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed static renderer '{command.args[1]}' on '{mita.name}'.");
         }
@@ -328,9 +337,13 @@ public class Commands
                 .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame"))
                 .ToArray();
 
-            if (materials.Length > 0)
+            foreach (var material in materials)
             {
-                var material = materials[0];
+                if (material.gameObject.transform.FindChild(mita.name) == null && material.gameObject != mita)
+                {
+                    continue;
+                }
+
                 var meshes = material.meshes;
 
                 // Create a new array with one additional slot
@@ -359,7 +372,7 @@ public class Commands
             }
         }
 
-        AddOutlineTarget(objSkinned);
+        AddOutlineTarget(objSkinned, mita);
 
         renderers[command.args[1]] = objSkinned;
 
@@ -388,7 +401,7 @@ public class Commands
         var obj = new GameObject().AddComponent<MeshRenderer>();
         obj.name = command.args[1];
         obj.material = new Material(RecursiveFindMaterial(mita));
-        obj.material.renderQueue = 5000;
+        obj.material.renderQueue = 2499;
         obj.gameObject.AddComponent<MeshFilter>();
 
         obj.transform.parent = Utility.RecursiveFindChild(mita.transform, command.args[2]);
@@ -402,9 +415,16 @@ public class Commands
                 .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame"))
                 .ToArray();
 
-            if (materials.Length > 0)
+            foreach(var material in materials)
             {
-                var material = materials[0];
+                if(!material.gameObject.name.Contains("MenuGame") &&
+                    material.gameObject.transform.GetChild(0).gameObject != mita &&
+                    material.gameObject != mita
+                ) 
+                {
+                    continue;
+                }
+
                 var meshes = material.meshes;
 
                 // Create a new array with one additional slot
@@ -424,7 +444,7 @@ public class Commands
             }
         }
 
-        AddOutlineTarget(obj);
+        AddOutlineTarget(obj, mita);
 
         staticRenderers[command.args[1]] = obj;
         UnityEngine.Debug.Log($"[INFO] Created static appendix {obj.name} on '{mita.name}'.");
@@ -694,12 +714,12 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(renderers[command.args[1]]);
+            RemoveOutlineTarget(renderers[command.args[1]], mita);
             UnityEngine.Debug.Log($"[INFO] Removed outline from skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(staticRenderers[command.args[1]]);
+            RemoveOutlineTarget(staticRenderers[command.args[1]], mita);
             UnityEngine.Debug.Log($"[INFO] Removed outline from static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
@@ -717,12 +737,12 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            AddOutlineTarget(renderers[command.args[1]]);
+            AddOutlineTarget(renderers[command.args[1]], mita);
             UnityEngine.Debug.Log($"[INFO] Added outline to skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            AddOutlineTarget(staticRenderers[command.args[1]]);
+            AddOutlineTarget(staticRenderers[command.args[1]], mita);
             UnityEngine.Debug.Log($"[INFO] Added outline to static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else

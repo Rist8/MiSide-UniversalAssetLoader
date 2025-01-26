@@ -178,7 +178,7 @@ public class Plugin : MonoBehaviour
                 if (aud != null && !audioDict.ContainsKey(aud.name))
                 {
                     audioDict.Add(aud.name, aud);
-                    UnityEngine.Debug.LogWarning($"[INFO] Found audio: {aud.name}");
+                    //UnityEngine.Debug.LogWarning($"[INFO] Found audio: {aud.name}");
                 }
             }
 
