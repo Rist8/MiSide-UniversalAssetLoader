@@ -7,6 +7,10 @@ using UnityEngine.Rendering;
 using UtilityNamespace;
 using static AssetLoader;
 using Il2CppInterop.Runtime;
+using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 public class Commands
 {
@@ -763,7 +767,7 @@ public class Commands
                 return;
             }
             string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
-            var imageData = Utility.Decompress(loadedTexturesRaw[textureKey]);
+            var imageData = LZ4Pickler.Unpickle(loadedTexturesRaw[textureKey]);
             textures[command.args[0]].LoadImage(imageData);
             UnityEngine.Debug.Log($"[INFO] Replaced Texture 2D '{command.args[0]}' with '{textureKey}'.");
         }
@@ -824,9 +828,25 @@ public class Commands
             return;
         }
 
-        float[] audioData = loadedAudioData[audioKey];
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        byte[] decompressedData;
+        using (var compressedStream = new MemoryStream(loadedAudioData[audioKey]))
+        using (var lz4Stream = LZ4Stream.Decode(compressedStream))
+        {
+            using (var decompressedStream = new MemoryStream())
+            {
+                lz4Stream.CopyTo(decompressedStream);
+                decompressedData = decompressedStream.ToArray();
+            }
+        }
+
+        // Convert back to float array
+        float[] audioData = MemoryMarshal.Cast<byte, float>(decompressedData.AsSpan()).ToArray();
         AudioClip.SetData(audioClips[command.args[0]], audioData, ((System.Array)audioData).Length / audioClips[command.args[0]].channels, 0);
 
-        UnityEngine.Debug.Log($"[INFO] Successfully replaced AudioClip '{command.args[0]}' with '{audioKey}'.");
+        stopwatch.Stop();
+        UnityEngine.Debug.Log($"[INFO] Successfully replaced AudioClip '{command.args[0]}' with '{audioKey}' in {stopwatch.ElapsedMilliseconds}ms.");
     }
 }

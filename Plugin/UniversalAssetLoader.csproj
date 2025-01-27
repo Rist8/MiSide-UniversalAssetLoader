@@ -569,5 +569,21 @@
       <HintPath>..\Dependencies\Newtonsoft.Json.dll</HintPath>  
       <Private>false</Private>
     </Reference>
+	<Reference Include="K4os.Compression.LZ4.Streams">
+	  <HintPath>..\Dependencies\K4os.Compression.LZ4.Streams.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="K4os.Hash.xxHash">
+	  <HintPath>..\Dependencies\K4os.Hash.xxHash.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="System.IO.Pipelines">
+	  <HintPath>..\Dependencies\System.IO.Pipelines.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="K4os.Compression.LZ4">
+	  <HintPath>..\Dependencies\K4os.Compression.LZ4.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
   </ItemGroup> 
 </Project> 

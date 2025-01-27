@@ -29,7 +29,7 @@ public class SceneHandler
 
             UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
             Plugin.globalAppliedCommands.Clear();
-            Plugin.PatchAssets();
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
             if (synch)
             {
                 Plugin.FindMita();
@@ -166,7 +166,7 @@ public class SceneHandler
                 {
                     UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
                 }
-                Plugin.PatchAssets();
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
             }
         }
     }

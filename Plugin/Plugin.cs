@@ -148,75 +148,94 @@ public class Plugin : MonoBehaviour
         }
     }
 
-    public static void PatchAssets()
+    public static System.Collections.IEnumerator PatchAssets()
     {
-        try
+        float frameStartTime = Time.realtimeSinceStartup;
+        var textures = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Texture2D>());
+        var textureDict = new Dictionary<string, Texture2D>();
+        var sprites = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Sprite>());
+        var spritesDict = new Dictionary<string, Sprite>();
+        var audios = Resources.FindObjectsOfTypeAll(Il2CppType.Of<AudioClip>());
+        var audioDict = new Dictionary<string, AudioClip>();
+
+        foreach (var texture in textures)
         {
-            var textures = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Texture2D>());
-            var textureDict = new Dictionary<string, Texture2D>();
-            var sprites = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Sprite>());
-            var spritesDict = new Dictionary<string, Sprite>();
-            var audios = Resources.FindObjectsOfTypeAll(Il2CppType.Of<AudioClip>());
-            var audioDict = new Dictionary<string, AudioClip>();
-
-            foreach (var texture in textures)
+            var tex = texture.Cast<Texture2D>();
+            if (tex != null && !textureDict.ContainsKey(tex.name))
             {
-                var tex = texture.Cast<Texture2D>();
-                if (tex != null && !textureDict.ContainsKey(tex.name))
-                {
-                    textureDict.Add(tex.name, tex);
-                }
-                else if (tex != null && textureDict.ContainsKey(tex.name))
-                {
-                    // registering a new created texture from the game
-                    textureDict[tex.name] = tex;
-                }
+                textureDict.Add(tex.name, tex);
             }
-
-            foreach (var sprite in sprites)
+            else if (tex != null && textureDict.ContainsKey(tex.name))
             {
-                var spr = sprite.Cast<Sprite>();
-                if (spr != null && !spritesDict.ContainsKey(spr.name))
-                {
-                    spritesDict.Add(spr.name, spr);
-                }
-            }
-
-            foreach (var audio in audios)
-            {
-                var aud = audio.Cast<AudioClip>();
-                if (aud != null && !audioDict.ContainsKey(aud.name))
-                {
-                    audioDict.Add(aud.name, aud);
-                }
-            }
-
-            foreach (var command in ConsoleCommandHandler.assetCommands)
-            {
-                if (command.args.Length == 0)
-                    continue;
-
-                string commandKey = $"{command.name} {string.Join(" ", command.args)}";
-
-                switch (command.name)
-                {
-                    case "replace_2D":
-                        Commands.ApplyReplace2DCommand(command, textureDict);
-                        break;
-                    case "replace_sprite":
-                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceSprite(command, spritesDict));
-                        break;
-                    case "replace_audio":
-                        Commands.ApplyReplaceAudioCommand(command, audioDict);
-                        break;
-                }
-
-
+                // registering a new created texture from the game
+                textureDict[tex.name] = tex;
             }
         }
-        catch (Exception e)
+
+
+        if ((Time.realtimeSinceStartup - frameStartTime) > 1 / UnityEngine.Application.targetFrameRate)
         {
-            UnityEngine.Debug.LogError($"[ERROR] {e}");
+            yield return null; // Yield control back to Unity
+            frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+        }
+
+        foreach (var sprite in sprites)
+        {
+            var spr = sprite.Cast<Sprite>();
+            if (spr != null && !spritesDict.ContainsKey(spr.name))
+            {
+                spritesDict.Add(spr.name, spr);
+            }
+        }
+
+
+        if ((Time.realtimeSinceStartup - frameStartTime) > 1 / UnityEngine.Application.targetFrameRate)
+        {
+            yield return null; // Yield control back to Unity
+            frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+        }
+
+        foreach (var audio in audios)
+        {
+            var aud = audio.Cast<AudioClip>();
+            if (aud != null && !audioDict.ContainsKey(aud.name))
+            {
+                audioDict.Add(aud.name, aud);
+            }
+        }
+
+
+        if ((Time.realtimeSinceStartup - frameStartTime) > 1 / UnityEngine.Application.targetFrameRate)
+        {
+            yield return null; // Yield control back to Unity
+            frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+        }
+
+        foreach (var command in ConsoleCommandHandler.assetCommands)
+        {
+            if (command.args.Length == 0)
+                continue;
+
+            string commandKey = $"{command.name} {string.Join(" ", command.args)}";
+
+            switch (command.name)
+            {
+                case "replace_2D":
+                    Commands.ApplyReplace2DCommand(command, textureDict);
+                    break;
+                case "replace_sprite":
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceSprite(command, spritesDict));
+                    break;
+                case "replace_audio":
+                    Commands.ApplyReplaceAudioCommand(command, audioDict);
+                    break;
+            }
+
+            if ((Time.realtimeSinceStartup - frameStartTime) > 1 / UnityEngine.Application.targetFrameRate)
+            {
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+            }
         }
     }
 

@@ -9,13 +9,16 @@ using MagicaCloth;
 using UnityEngine.Rendering;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
+using System.Runtime.InteropServices;
 
 public class AssetLoader
 {
     public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
     public static Dictionary<string, Texture2D>? loadedTextures;
     public static Dictionary<string, Il2CppStructArray<byte>>? loadedTexturesRaw;
-    public static Dictionary<string, float[]>? loadedAudioData;
+    public static Dictionary<string, byte[]>? loadedAudioData;
     public static Dictionary<string, AudioClip>? loadedAudio;
 
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
@@ -103,7 +106,7 @@ public class AssetLoader
                 if (!loadedTextures.ContainsKey(filename))
                 {
                     loadedTextures.Add(filename, texture);
-                    var compressedData = UtilityNamespace.Utility.Compress(rawData);
+                    var compressedData = LZ4Pickler.Pickle(rawData); // Compress rawData using LZ4
                     loadedTexturesRaw.Add(filename, compressedData);
                     PluginInfo.Instance.Logger.LogInfo($"Loaded texture from file: '{filename}'");
                 }
@@ -180,9 +183,20 @@ public class AssetLoader
             // Save the audio data
             if (loadedAudioData == null)
             {
-                loadedAudioData = new Dictionary<string, float[]>();
+                loadedAudioData = new Dictionary<string, byte[]>();
             }
-            loadedAudioData[fullpath] = audioData;
+
+            ReadOnlySpan<byte> byteSpan = MemoryMarshal.AsBytes(audioData.AsSpan());
+
+            // Compress the byteSpan using LZ4.Stream
+            using (var compressedStream = new MemoryStream())
+            {
+                using (var lz4Stream = LZ4Stream.Encode(compressedStream))
+                {
+                    lz4Stream.Write(byteSpan);
+                }
+                loadedAudioData[fullpath] = compressedStream.ToArray();
+            }
 
             // Create the AudioClip on the main thread
             var audio = AudioClip.Create(name, (int)(audioData.Length / 2), 2, 44100, false); // 2 channels, 44.1kHz sample rate
