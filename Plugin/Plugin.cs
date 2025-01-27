@@ -19,6 +19,7 @@ public class Plugin : MonoBehaviour
 
     private void Start()
     {
+        CheckDevMode();
         ReadAssetsConfig();
         UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
         ReadAddonsConfigs();
@@ -27,6 +28,15 @@ public class Plugin : MonoBehaviour
 
     public static Dictionary<string, bool> Active = new Dictionary<string, bool>();
     public static List<string> AddonsConfig = new List<string>();
+
+    public static void CheckDevMode()
+    {
+        if (System.IO.File.Exists(PluginInfo.AssetsFolder + "/devmode.txt"))
+        {
+            UnityEngine.Debug.LogError("[INFO] Developer mode enabled.");
+            ClothesMenuPatcher.DeveloperMode = true;
+        }
+    }
 
     public static void ReadAddonsConfigs()
     {
@@ -178,7 +188,6 @@ public class Plugin : MonoBehaviour
                 if (aud != null && !audioDict.ContainsKey(aud.name))
                 {
                     audioDict.Add(aud.name, aud);
-                    UnityEngine.Debug.LogWarning($"[INFO] Found audio: {aud.name}");
                 }
             }
 
@@ -198,7 +207,7 @@ public class Plugin : MonoBehaviour
                         UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceSprite(command, spritesDict));
                         break;
                     case "replace_audio":
-                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceAudioCommand(command, audioDict));
+                        Commands.ApplyReplaceAudioCommand(command, audioDict);
                         break;
                 }
 

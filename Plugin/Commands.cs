@@ -781,33 +781,26 @@ public class Commands
         UnityEngine.Debug.Log($"[INFO] Successfully replaced Sprite '{command.args[0]}' with '{textureKey}'.");
     }
 
-    public static System.Collections.IEnumerator ApplyReplaceAudioCommand((string name, string[] args) command, Dictionary<string, AudioClip> audioClips)
+    public static void ApplyReplaceAudioCommand((string name, string[] args) command, Dictionary<string, AudioClip> audioClips)
     {
         UnityEngine.Debug.Log($"[INFO] Replacing AudioClip '{command.args[0]}' with '{command.args[1]}'.");
         if (!audioClips.ContainsKey(command.args[0]))
         {
             UnityEngine.Debug.LogWarning($"[WARNING] AudioClip '{command.args[0]}' not found.");
-            yield break;
+            return;
         }
 
         string audioKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
 
-        AudioClip newClip = null;
-        bool success = false;
-        while (!success)
+        if (!loadedAudio.ContainsKey(audioKey))
         {
-            if (loadedAudio.TryGetValue(audioKey, out var clip) && newClip == null)
-            {
-                newClip = clip;
-                newClip.name = command.args[1];
-            }
-
-            success = Utility.ReplaceAudioClipInReferences(audioClips[command.args[0]], newClip);
-
-            yield return new WaitForSeconds(0.1f);
+            UnityEngine.Debug.LogWarning($"[WARNING] AudioClip '{audioKey}' not found in loaded audio.");
+            return;
         }
 
-        UnityEngine.Debug.Log($"[INFO] Successfully replaced AudioClip '{command.args[0]}' with '{audioKey}'.");
+        float[] audioData = loadedAudioData[audioKey];
+        AudioClip.SetData(audioClips[command.args[0]], audioData, ((System.Array)audioData).Length / audioClips[command.args[0]].channels, 0);
 
+        UnityEngine.Debug.Log($"[INFO] Successfully replaced AudioClip '{command.args[0]}' with '{audioKey}'.");
     }
 }

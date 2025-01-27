@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class ClothesMenuPatcher
 {
+    public static bool DeveloperMode = false;
     public static void Run()
     {
         try
@@ -172,6 +173,12 @@ public class ClothesMenuPatcher
         {
             Debug.Log($"[INFO] Clicked: {name}");
             addonButtons[name].GetComponent<RectTransform>().Find("Text").GetComponent<Text>().text = name + ((!active) ? "" : "(*)");
+
+            if (DeveloperMode)
+            {
+                Debug.LogWarning($"[WARNING] Developer mode is enabled. Reloading addons config file.");
+                Plugin.ReadAddonsConfigs();
+            }
         }
 
         MitaClothesResource clothes =
@@ -290,13 +297,16 @@ public class ClothesMenuPatcher
                 }
             }
 
-            if (SceneHandler.synch)
+            if (!Plugin.startup)
             {
-                Plugin.FindMita(name, !active);
-            }
-            else
-            {
-                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
+                if (SceneHandler.synch)
+                {
+                    Plugin.FindMita(name, !active);
+                }
+                else
+                {
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
+                }
             }
 
             foreach (string line in oneTimeCommands)

@@ -15,6 +15,7 @@ public class AssetLoader
     public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
     public static Dictionary<string, Texture2D>? loadedTextures;
     public static Dictionary<string, Il2CppStructArray<byte>>? loadedTexturesRaw;
+    public static Dictionary<string, float[]>? loadedAudioData;
     public static Dictionary<string, AudioClip>? loadedAudio;
 
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
@@ -36,11 +37,13 @@ public class AssetLoader
         {
             // Load audio files
             AudioClip audioFile = null;
-            yield return LoadAudioCoroutine(Path.GetFileNameWithoutExtension(file), File.OpenRead(file), clip => audioFile = clip);
-            audioFile.hideFlags = HideFlags.DontSave;
-
             string filename = Path.GetRelativePath(PluginInfo.AssetsFolder, file);
             filename = Path.ChangeExtension(filename, null);
+            // use asset path location for FullPath parameter, for example if the files is found in Assets/Audio/AudioFile.ogg, the FullPath should be "Audio\AudioFile"
+            yield return LoadAudioCoroutine(Path.GetFileNameWithoutExtension(file), filename, File.OpenRead(file), clip => audioFile = clip);
+            audioFile.hideFlags = HideFlags.DontSave;
+
+
             if (!loadedAudio.ContainsKey(filename))
             {
                 loadedAudio.Add(filename, audioFile);
@@ -148,7 +151,8 @@ public class AssetLoader
         return texture;
     }
 
-    public static System.Collections.IEnumerator LoadAudioCoroutine(string name, Stream stream, Action<AudioClip> onAudioLoaded)
+
+    public static System.Collections.IEnumerator LoadAudioCoroutine(string name, string fullpath, Stream stream, Action<AudioClip> onAudioLoaded)
     {
         float[] audioData = null;
 
@@ -173,6 +177,13 @@ public class AssetLoader
         // Once the audio data is loaded, create the AudioClip on the main thread
         if (audioData != null)
         {
+            // Save the audio data
+            if (loadedAudioData == null)
+            {
+                loadedAudioData = new Dictionary<string, float[]>();
+            }
+            loadedAudioData[fullpath] = audioData;
+
             // Create the AudioClip on the main thread
             var audio = AudioClip.Create(name, (int)(audioData.Length / 2), 2, 44100, false); // 2 channels, 44.1kHz sample rate
             AudioClip.SetData(audio, audioData, ((System.Array)audioData).Length / audio.channels, 0);
