@@ -415,12 +415,12 @@ public class Commands
                 .Where(mat => mat.gameObject.name.Contains("Mita") || mat.gameObject.name.Contains("MenuGame"))
                 .ToArray();
 
-            foreach(var material in materials)
+            foreach (var material in materials)
             {
-                if(!material.gameObject.name.Contains("MenuGame") &&
+                if (!material.gameObject.name.Contains("MenuGame") &&
                     material.gameObject.transform.GetChild(0).gameObject != mita &&
                     material.gameObject != mita
-                ) 
+                )
                 {
                     continue;
                 }
@@ -756,6 +756,12 @@ public class Commands
         UnityEngine.Debug.Log($"[INFO] Replacing Texture 2D '{command.args[0]}' with '{command.args[1]}'.");
         if (textures.ContainsKey(command.args[0]))
         {
+            if (command.args[0] == "Cursor")
+            {
+                Cursor.SetCursor(loadedTextures[command.args[1]], Vector2.zero, CursorMode.Auto);
+                UnityEngine.Debug.Log($"[INFO] Replaced Cursor with '{command.args[1]}'.");
+                return;
+            }
             string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
             var imageData = Utility.Decompress(loadedTexturesRaw[textureKey]);
             textures[command.args[0]].LoadImage(imageData);
