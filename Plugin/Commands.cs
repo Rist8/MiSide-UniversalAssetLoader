@@ -76,39 +76,42 @@ public class Commands
     public static void RemoveOutlineTarget(Renderer RendererObject, GameObject mita)
     {
         var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                        .Where(mat => mat.gameObject.name == "Interactive" ||
-                            mat.gameObject.name.Contains("Mita") ||
-                            mat.gameObject.name.Contains("Mila") ||
-                            mat.gameObject.name.Contains(mita.name)
-                        )
-                        .ToArray();
+            .Where(mat => mat.gameObject.name.Contains("Interactive") ||
+                          mat.gameObject.name.Contains("Mita") ||
+                          mat.gameObject.name.Contains("Mila") ||
+                          mat.gameObject.name.Contains(mita.name))
+            .ToArray();
 
-        foreach (var outlinable in outlinables)
+        if (outlinables.Length == 0)
         {
-            for (int i = 0; i <= outlinable.outlineTargets.Count - 1; i++)
-            {
-                if (outlinable.outlineTargets[i].Renderer == RendererObject)
-                {
-                    outlinable.outlineTargets.RemoveAt(i--);
-                }
-            }
-
+            return;
         }
-    }
 
-    public static void AddOutlineTarget(Renderer RendererObject, GameObject mita)
-    {
-        var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-                        .Where(mat => mat.gameObject.name == "Interactive" ||
-                            mat.gameObject.name.Contains("Mita") ||
-                            mat.gameObject.name.Contains("Mila") ||
-                            mat.gameObject.name.Contains(mita.name)
-                        )
-                        .ToArray();
+        // Find all Outlinables closest to the RendererObject's transform within the threshold
+        List<Outlinable> closestOutlinables = new List<Outlinable>();
+        float closestDistance = float.MaxValue;
+        Vector3 rendererPosition = RendererObject.transform.position;
 
         foreach (var outlinable in outlinables)
         {
-            // Create an OutlineTarget instance
+            Vector3 outlinablePosition = outlinable.outlineTargets[0].Renderer.gameObject.transform.position;
+            float distanceXZ = Vector2.Distance(new Vector2(rendererPosition.x, rendererPosition.z),
+                                                 new Vector2(outlinablePosition.x, outlinablePosition.z));
+            if (distanceXZ < closestDistance)
+            {
+                closestDistance = distanceXZ;
+                closestOutlinables.Clear();
+                closestOutlinables.Add(outlinable);
+            }
+            else if (Mathf.Abs(distanceXZ - closestDistance) <= 0.05f)
+            {
+                closestOutlinables.Add(outlinable);
+            }
+        }
+
+        if (closestOutlinables.Count > 0)
+        {
+            // Create an OutlineTarget instance for each closest Outlinable
             OutlineTarget target = new OutlineTarget(RendererObject)
             {
                 BoundsMode = BoundsMode.Manual,
@@ -116,10 +119,72 @@ public class Commands
                 Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
             };
 
-            // Add the OutlineTarget to the first matching outlinable
-            outlinable.outlineTargets.Add(target);
+            foreach (var closestOutlinable in closestOutlinables)
+            {
+                for (int i = 0; i <= closestOutlinable.outlineTargets.Count - 1; i++)
+                {
+                    if (closestOutlinable.outlineTargets[i].Renderer == RendererObject)
+                    {
+                        closestOutlinable.outlineTargets.RemoveAt(i--);
+                    }
+                }
+            }
         }
     }
+
+    public static void AddOutlineTarget(Renderer rendererObject, GameObject mita)
+    {
+        var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+            .Where(mat => mat.gameObject.name.Contains("Interactive") ||
+                          mat.gameObject.name.Contains("Mita") ||
+                          mat.gameObject.name.Contains("Mila") ||
+                          mat.gameObject.name.Contains(mita.name))
+            .ToArray();
+
+        if (outlinables.Length == 0)
+        {
+            return;
+        }
+
+        // Find all Outlinables closest to the RendererObject's transform within the threshold
+        List<Outlinable> closestOutlinables = new List<Outlinable>();
+        float closestDistance = float.MaxValue;
+        Vector3 rendererPosition = rendererObject.transform.position;
+
+        foreach (var outlinable in outlinables)
+        {
+            Vector3 outlinablePosition = outlinable.outlineTargets[0].Renderer.gameObject.transform.position;
+            float distanceXZ = Vector2.Distance(new Vector2(rendererPosition.x, rendererPosition.z),
+                                                 new Vector2(outlinablePosition.x, outlinablePosition.z));
+            if (distanceXZ < closestDistance)
+            {
+                closestDistance = distanceXZ;
+                closestOutlinables.Clear();
+                closestOutlinables.Add(outlinable);
+            }
+            else if (Mathf.Abs(distanceXZ - closestDistance) <= 0.05f)
+            {
+                closestOutlinables.Add(outlinable);
+            }
+        }
+
+        if (closestOutlinables.Count > 0)
+        {
+            // Create an OutlineTarget instance for each closest Outlinable
+            OutlineTarget target = new OutlineTarget(rendererObject)
+            {
+                BoundsMode = BoundsMode.Manual,
+                CullMode = UnityEngine.Rendering.CullMode.Off,
+                Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
+            };
+
+            foreach (var outlinable in closestOutlinables)
+            {
+                outlinable.outlineTargets.Add(target);
+            }
+        }
+    }
+
 
 
     public static void ApplyRemoveCommand((string name, string[] args) command, GameObject mita,
@@ -844,7 +909,22 @@ public class Commands
 
         // Convert back to float array
         float[] audioData = MemoryMarshal.Cast<byte, float>(decompressedData.AsSpan()).ToArray();
-        AudioClip.SetData(audioClips[command.args[0]], audioData, ((System.Array)audioData).Length / audioClips[command.args[0]].channels, 0);
+
+        var targetClip = audioClips[command.args[0]];
+        int totalSamples = audioData.Length;
+        int channels = targetClip.channels;
+        totalSamples /= channels;
+
+        if (targetClip.samples < totalSamples)
+        {
+            UnityEngine.Debug.Log("[INFO] AudioClip samples are less than the new audio data, cropping the audio data.");
+            totalSamples = targetClip.samples;
+            float[] batch = new float[totalSamples * channels];
+            Array.Copy(audioData, 0, batch, 0, totalSamples * channels);
+            audioData = batch;
+        }
+
+        AudioClip.SetData(targetClip, audioData, totalSamples, 0);
 
         stopwatch.Stop();
         UnityEngine.Debug.Log($"[INFO] Successfully replaced AudioClip '{command.args[0]}' with '{audioKey}' in {stopwatch.ElapsedMilliseconds}ms.");
