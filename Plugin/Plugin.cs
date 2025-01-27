@@ -161,14 +161,20 @@ public class Plugin : MonoBehaviour
         foreach (var texture in textures)
         {
             var tex = texture.Cast<Texture2D>();
-            if (tex != null && !textureDict.ContainsKey(tex.name))
+            if (tex != null)
             {
-                textureDict.Add(tex.name, tex);
-            }
-            else if (tex != null && textureDict.ContainsKey(tex.name))
-            {
-                // registering a new created texture from the game
-                textureDict[tex.name] = tex;
+                string baseName = tex.name;
+                string uniqueName = baseName;
+                int counter = 1;
+
+                // Generate a unique name if a texture with the same name already exists
+                while (textureDict.ContainsKey(uniqueName))
+                {
+                    uniqueName = $"{baseName}#{counter}";
+                    counter++;
+                }
+
+                textureDict[uniqueName] = tex;
             }
         }
 
@@ -182,9 +188,20 @@ public class Plugin : MonoBehaviour
         foreach (var sprite in sprites)
         {
             var spr = sprite.Cast<Sprite>();
-            if (spr != null && !spritesDict.ContainsKey(spr.name))
+            if (spr != null)
             {
-                spritesDict.Add(spr.name, spr);
+                string baseName = spr.name;
+                string uniqueName = baseName;
+                int counter = 1;
+
+                // Generate a unique name if a sprite with the same name already exists
+                while (audioDict.ContainsKey(uniqueName))
+                {
+                    uniqueName = $"{baseName}#{counter}";
+                    counter++;
+                }
+
+                spritesDict[uniqueName] = spr;
             }
         }
 
@@ -198,9 +215,20 @@ public class Plugin : MonoBehaviour
         foreach (var audio in audios)
         {
             var aud = audio.Cast<AudioClip>();
-            if (aud != null && !audioDict.ContainsKey(aud.name))
+            if (aud != null)
             {
-                audioDict.Add(aud.name, aud);
+                string baseName = aud.name;
+                string uniqueName = baseName;
+                int counter = 1;
+
+                // Generate a unique name if a audio with the same name already exists
+                while (audioDict.ContainsKey(uniqueName))
+                {
+                    uniqueName = $"{baseName}#{counter}";
+                    counter++;
+                }
+
+                audioDict[uniqueName] = aud;
             }
         }
 
