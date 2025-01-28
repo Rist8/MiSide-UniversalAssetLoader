@@ -30,6 +30,7 @@ public class AssetLoader
         loadedTextures = new Dictionary<string, Texture2D>();
         loadedTexturesRaw = new Dictionary<string, Il2CppStructArray<byte>>();
         loadedAudio = new Dictionary<string, AudioClip>();
+        loadedAudioData = new Dictionary<string, byte[]>();
 
         PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
         var stopwatch = Stopwatch.StartNew();
@@ -180,12 +181,6 @@ public class AssetLoader
         // Once the audio data is loaded, create the AudioClip on the main thread
         if (audioData != null)
         {
-            // Save the audio data
-            if (loadedAudioData == null)
-            {
-                loadedAudioData = new Dictionary<string, byte[]>();
-            }
-
             ReadOnlySpan<byte> byteSpan = MemoryMarshal.AsBytes(audioData.AsSpan());
 
             // Compress the byteSpan using LZ4.Stream

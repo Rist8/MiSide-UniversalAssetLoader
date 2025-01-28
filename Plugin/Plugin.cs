@@ -16,9 +16,11 @@ using System.Text.RegularExpressions;
 public class Plugin : MonoBehaviour
 {
     public static bool startup = true;
+    public static int targetFrameRate = 120;
 
     private void Start()
     {
+        int targetFrameRate = UnityEngine.Application.targetFrameRate;
         CheckDevMode();
         ReadAssetsConfig();
         UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
@@ -338,7 +340,7 @@ public class Plugin : MonoBehaviour
             if (mitaAnimators.Count <= i || mitaAnimators[i] == null)
                 continue;
             mitas.Add(mitaAnimators[i]);
-            int targetFrameRate = UnityEngine.Application.targetFrameRate;
+            
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
             float maxFrameTime = distance <= 20 ? 1f / targetFrameRate : 1f / (targetFrameRate * Mathf.Log(distance - 19, 8));
             UnityEngine.Debug.Log(distance);
@@ -766,7 +768,6 @@ public class Plugin : MonoBehaviour
                 GameObject personObject = animator.gameObject;
                 UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {personObject.name}");
                 PatchPlayer(personObject);
-                // return;
             }
         }
     }
@@ -862,6 +863,124 @@ public class Plugin : MonoBehaviour
         }
     }
 
+    public static System.Collections.IEnumerator FindPlayerCoroutine()
+    {
+        var animators = Reflection.FindObjectsOfType<Animator>(true);
+        foreach (var animator in animators)
+        {
+            if (animator.name.Contains("Person") || animator.name.Contains("Player"))
+            {
+                GameObject personObject = animator.gameObject;
+                UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {personObject.name}");
+
+                // Start PatchPlayer coroutine
+                yield return PatchPlayerCoroutine(personObject, 1 / targetFrameRate);
+            }
+        }
+    }
+
+    public static System.Collections.IEnumerator PatchPlayerCoroutine(GameObject player, float maxFrameTime = 1f / 120f)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        float frameStartTime = Time.realtimeSinceStartup;
+
+        if(player == null) 
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Player object is null.");
+            yield break;
+        }
+
+        // Ensure the object is tracked in the global dictionary
+        if (!Plugin.globalAppliedCommands.ContainsKey(player))
+            Plugin.globalAppliedCommands[player] = new HashSet<string>();
+
+        var renderers = new Dictionary<string, SkinnedMeshRenderer>();
+        var staticRenderers = new Dictionary<string, MeshRenderer>();
+
+        var skinnedRenderers = player.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        foreach (var renderer in skinnedRenderers)
+            renderers[renderer.name.Trim()] = renderer;
+
+        var meshRenderers = player.GetComponentsInChildren<MeshRenderer>(true);
+        foreach (var renderer in meshRenderers)
+            staticRenderers[renderer.name.Trim()] = renderer;
+
+        foreach (var command in ConsoleCommandHandler.assetCommands)
+        {
+            if (command.args.Length == 0 || command.args[0] != "Player")
+                continue;
+
+            string commandKey = $"{command.name} {string.Join(" ", command.args)}";
+
+            // Check the globalAppliedCommands dictionary to skip already applied commands
+            if (Plugin.globalAppliedCommands[player].Contains(commandKey))
+            {
+                UnityEngine.Debug.Log($"[INFO] Skipping already applied command: {commandKey} on '{player.name}'.");
+                continue;
+            }
+
+            switch (command.name)
+            {
+                case "remove":
+                    Commands.ApplyRemoveCommand(command, player, renderers, staticRenderers);
+                    break;
+                case "recover":
+                    Commands.ApplyRecoverCommand(command, player, renderers, staticRenderers);
+                    break;
+                case "replace_tex":
+                    Commands.ApplyReplaceTexCommand(command, player, renderers, staticRenderers);
+                    break;
+                case "replace_mesh":
+                    Commands.ApplyReplaceMeshCommand(command, player, renderers, staticRenderers, "Player");
+                    break;
+                case "resize_mesh":
+                    Commands.ApplyResizeMeshCommand(command, player, renderers, staticRenderers);
+                    break;
+                case "move_mesh":
+                    Commands.ApplyMoveMeshCommand(command, player, renderers, staticRenderers);
+                    break;
+                case "rotate_mesh":
+                    Commands.ApplyRotateMeshCommand(command, player, renderers, staticRenderers);
+                    break;
+                case "create_skinned_appendix":
+                    Commands.ApplyCreateSkinnedAppendixCommand(command, player, renderers, true);
+                    break;
+                case "create_static_appendix":
+                    Commands.ApplyCreateStaticAppendixCommand(command, player, staticRenderers);
+                    break;
+                case "set_scale":
+                    Commands.ApplySetScaleCommand(command, player);
+                    break;
+                case "move_position":
+                    Commands.ApplyMovePositionCommand(command, player);
+                    break;
+                case "set_rotation":
+                    Commands.ApplySetRotationCommand(command, player);
+                    break;
+                default:
+                    UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
+                    break;
+
+            }
+            // Mark command as applied in the global dictionary
+            Plugin.globalAppliedCommands[player].Add(commandKey);
+
+            if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+            {
+                stopwatch.Stop(); // Pause the stopwatch
+                yield return null; // Yield control back to Unity
+                frameStartTime = Time.realtimeSinceStartup; // Reset the frame timer
+                stopwatch.Start(); // Resume the stopwatch
+            }
+
+            // Wait for the next frame to avoid blocking the main thread
+            yield return null;
+        }
+
+        stopwatch.Stop();
+        UnityEngine.Debug.Log($"[INFO] Patched '{player.name}' in {stopwatch.ElapsedMilliseconds}ms.");
+    }
+
     VideoPlayer currentVideoPlayer = null;
     Action onCurrentVideoEnded = null;
     public static Image logo = null;
@@ -885,15 +1004,17 @@ public class Plugin : MonoBehaviour
         if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
         {
             UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
+            globalAppliedCommands.Clear();
             if (SceneHandler.synch)
             {
                 FindMita();
+                FindPlayer();
             }
             else
             {
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindPlayerCoroutine());
             }
-            FindPlayer();
         }
 
 

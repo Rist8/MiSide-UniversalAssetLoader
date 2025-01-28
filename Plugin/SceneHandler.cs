@@ -27,18 +27,19 @@ public class SceneHandler
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(SceneLoading());
             }
 
-            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}.");
+            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}, synch is {synch}.");
             Plugin.globalAppliedCommands.Clear();
             UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
             if (synch)
             {
                 Plugin.FindMita();
+                Plugin.FindPlayer();
             }
             else
             {
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindPlayerCoroutine());
             }
-            Plugin.FindPlayer();
         }
         catch (Exception e)
         {

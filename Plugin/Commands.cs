@@ -11,6 +11,7 @@ using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using BepInEx.Unity.IL2CPP.Utils;
 
 public class Commands
 {
@@ -67,8 +68,11 @@ public class Commands
         return false; // Do not skip
     }
 
-    public static void RemoveOutlineTarget(Renderer RendererObject, GameObject mita)
+    public static System.Collections.IEnumerator RemoveOutlineTargetCoroutine(Renderer rendererObject, GameObject mita,
+        float maxFrameTime = 1f / 240f)
     {
+        float frameStartTime = Time.realtimeSinceStartup;
+
         var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
             .Where(mat => mat.gameObject.name.Contains("Interactive") ||
                           mat.gameObject.name.Contains("Mita") ||
@@ -78,66 +82,7 @@ public class Commands
 
         if (outlinables.Length == 0)
         {
-            return;
-        }
-
-        // Find all Outlinables closest to the RendererObject's transform within the threshold
-        List<Outlinable> closestOutlinables = new List<Outlinable>();
-        float closestDistance = float.MaxValue;
-        Vector3 rendererPosition = RendererObject.transform.position;
-
-        foreach (var outlinable in outlinables)
-        {
-            Vector3 outlinablePosition = outlinable.outlineTargets[0].Renderer.gameObject.transform.position;
-            float distanceXZ = Vector2.Distance(new Vector2(rendererPosition.x, rendererPosition.z),
-                                                 new Vector2(outlinablePosition.x, outlinablePosition.z));
-            if (distanceXZ < closestDistance)
-            {
-                closestDistance = distanceXZ;
-                closestOutlinables.Clear();
-                closestOutlinables.Add(outlinable);
-            }
-            else if (Mathf.Abs(distanceXZ - closestDistance) <= 0.05f)
-            {
-                closestOutlinables.Add(outlinable);
-            }
-        }
-
-        if (closestOutlinables.Count > 0)
-        {
-            // Create an OutlineTarget instance for each closest Outlinable
-            OutlineTarget target = new OutlineTarget(RendererObject)
-            {
-                BoundsMode = BoundsMode.Manual,
-                CullMode = UnityEngine.Rendering.CullMode.Off,
-                Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
-            };
-
-            foreach (var closestOutlinable in closestOutlinables)
-            {
-                for (int i = 0; i <= closestOutlinable.outlineTargets.Count - 1; i++)
-                {
-                    if (closestOutlinable.outlineTargets[i].Renderer == RendererObject)
-                    {
-                        closestOutlinable.outlineTargets.RemoveAt(i--);
-                    }
-                }
-            }
-        }
-    }
-
-    public static void AddOutlineTarget(Renderer rendererObject, GameObject mita)
-    {
-        var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
-            .Where(mat => mat.gameObject.name.Contains("Interactive") ||
-                          mat.gameObject.name.Contains("Mita") ||
-                          mat.gameObject.name.Contains("Mila") ||
-                          mat.gameObject.name.Contains(mita.name))
-            .ToArray();
-
-        if (outlinables.Length == 0)
-        {
-            return;
+            yield break;
         }
 
         // Find all Outlinables closest to the RendererObject's transform within the threshold
@@ -147,6 +92,11 @@ public class Commands
 
         foreach (var outlinable in outlinables)
         {
+            if (outlinable.outlineTargets[0].Renderer == null)
+            {
+                continue;
+            }
+
             Vector3 outlinablePosition = outlinable.outlineTargets[0].Renderer.gameObject.transform.position;
             float distanceXZ = Vector2.Distance(new Vector2(rendererPosition.x, rendererPosition.z),
                                                  new Vector2(outlinablePosition.x, outlinablePosition.z));
@@ -160,11 +110,79 @@ public class Commands
             {
                 closestOutlinables.Add(outlinable);
             }
+            yield return null;
         }
 
         if (closestOutlinables.Count > 0)
         {
-            // Create an OutlineTarget instance for each closest Outlinable
+            foreach (var closestOutlinable in closestOutlinables)
+            {
+                for (int i = 0; i <= closestOutlinable.outlineTargets.Count - 1; i++)
+                {
+                    if (closestOutlinable.outlineTargets[i].Renderer == rendererObject)
+                    {
+                        closestOutlinable.outlineTargets.RemoveAt(i--);
+                    }
+                }
+                yield return null;
+            }
+        }
+
+        UnityEngine.Debug.Log($"[INFO] Removed outline target for '{rendererObject.name}' on '{mita.name}'.");
+    }
+
+    public static System.Collections.IEnumerator AddOutlineTargetCoroutine(Renderer rendererObject, GameObject mita,
+        float maxFrameTime = 1f / 240f)
+    {
+        float frameStartTime = Time.realtimeSinceStartup;
+
+        var outlinables = Reflection.FindObjectsOfType<Outlinable>(true)
+            .Where(mat => mat.gameObject.name.Contains("Interactive") ||
+                          mat.gameObject.name.Contains("Mita") ||
+                          mat.gameObject.name.Contains("Mila") ||
+                          mat.gameObject.name.Contains(mita.name))
+            .ToArray();
+
+        if (outlinables.Length == 0)
+        {
+            yield break;
+        }
+
+        // Find all Outlinables closest to the RendererObject's transform within the threshold
+        List<Outlinable> closestOutlinables = new List<Outlinable>();
+        float closestDistance = float.MaxValue;
+        Vector3 rendererPosition = rendererObject.transform.position;
+
+        foreach (var outlinable in outlinables)
+        {
+            if (outlinable.outlineTargets[0].Renderer == null)
+            {
+                continue;
+            }
+
+            Vector3 outlinablePosition = outlinable.outlineTargets[0].Renderer.gameObject.transform.position;
+            float distanceXZ = Vector2.Distance(new Vector2(rendererPosition.x, rendererPosition.z),
+                                                 new Vector2(outlinablePosition.x, outlinablePosition.z));
+            if (distanceXZ < closestDistance)
+            {
+                closestDistance = distanceXZ;
+                closestOutlinables.Clear();
+                closestOutlinables.Add(outlinable);
+            }
+            else if (Mathf.Abs(distanceXZ - closestDistance) <= 0.05f)
+            {
+                closestOutlinables.Add(outlinable);
+            }
+
+            if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+            {
+                yield return null;
+                frameStartTime = Time.realtimeSinceStartup;
+            }
+        }
+
+        if (closestOutlinables.Count > 0)
+        {
             OutlineTarget target = new OutlineTarget(rendererObject)
             {
                 BoundsMode = BoundsMode.Manual,
@@ -175,11 +193,17 @@ public class Commands
             foreach (var outlinable in closestOutlinables)
             {
                 outlinable.outlineTargets.Add(target);
+
+                if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
+                {
+                    yield return null;
+                    frameStartTime = Time.realtimeSinceStartup;
+                }
             }
         }
+
+        UnityEngine.Debug.Log($"[INFO] Added outline target for '{rendererObject.name}' on '{mita.name}'.");
     }
-
-
 
     public static void ApplyRemoveCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
@@ -189,7 +213,7 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(renderers[command.args[1]], mita);
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(RemoveOutlineTargetCoroutine(renderers[command.args[1]], mita, 1 / Plugin.targetFrameRate));
             if (BlendShapedSkinnedAppendix.Contains(command.args[1]))
                 BlendShapedSkinnedAppendix.Remove(command.args[1]);
 
@@ -198,7 +222,7 @@ public class Commands
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(staticRenderers[command.args[1]], mita);
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(RemoveOutlineTargetCoroutine(staticRenderers[command.args[1]], mita, 1 / Plugin.targetFrameRate));
             staticRenderers[command.args[1]].gameObject.SetActive(false);
             UnityEngine.Debug.Log($"[INFO] Removed static renderer '{command.args[1]}' on '{mita.name}'.");
         }
@@ -435,7 +459,7 @@ public class Commands
             }
         }
 
-        AddOutlineTarget(objSkinned, mita);
+        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AddOutlineTargetCoroutine(objSkinned, mita, 1 / Plugin.targetFrameRate));
 
         renderers[command.args[1]] = objSkinned;
 
@@ -513,7 +537,7 @@ public class Commands
             }
         }
 
-        AddOutlineTarget(obj, mita);
+        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AddOutlineTargetCoroutine(obj, mita, 1 / Plugin.targetFrameRate));
 
         staticRenderers[command.args[1]] = obj;
         UnityEngine.Debug.Log($"[INFO] Created static appendix {obj.name} on '{mita.name}'.");
@@ -783,13 +807,13 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(renderers[command.args[1]], mita);
-            UnityEngine.Debug.Log($"[INFO] Removed outline from skinned renderer '{command.args[1]}' on '{mita.name}'.");
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(RemoveOutlineTargetCoroutine(renderers[command.args[1]], mita, 1 / Plugin.targetFrameRate));
+            UnityEngine.Debug.Log($"[INFO] Started outline removing coroutine from skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            RemoveOutlineTarget(staticRenderers[command.args[1]], mita);
-            UnityEngine.Debug.Log($"[INFO] Removed outline from static renderer '{command.args[1]}' on '{mita.name}'.");
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(RemoveOutlineTargetCoroutine(staticRenderers[command.args[1]], mita, 1 / Plugin.targetFrameRate));
+            UnityEngine.Debug.Log($"[INFO] Started outline removing coroutine from static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
         {
@@ -806,13 +830,13 @@ public class Commands
 
         if (renderers != null && renderers.ContainsKey(command.args[1]))
         {
-            AddOutlineTarget(renderers[command.args[1]], mita);
-            UnityEngine.Debug.Log($"[INFO] Added outline to skinned renderer '{command.args[1]}' on '{mita.name}'.");
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AddOutlineTargetCoroutine(renderers[command.args[1]], mita, 1 / Plugin.targetFrameRate));
+            UnityEngine.Debug.Log($"[INFO]Started outline adding coroutine to skinned renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else if (staticRenderers != null && staticRenderers.ContainsKey(command.args[1]))
         {
-            AddOutlineTarget(staticRenderers[command.args[1]], mita);
-            UnityEngine.Debug.Log($"[INFO] Added outline to static renderer '{command.args[1]}' on '{mita.name}'.");
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AddOutlineTargetCoroutine(staticRenderers[command.args[1]], mita, 1 / Plugin.targetFrameRate));
+            UnityEngine.Debug.Log($"[INFO] Started outline adding coroutine to static renderer '{command.args[1]}' on '{mita.name}'.");
         }
         else
         {
