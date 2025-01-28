@@ -308,6 +308,7 @@ public class ClothesMenuPatcher
                     UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
                 }
             }
+            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
 
             foreach (string line in oneTimeCommands)
             {
