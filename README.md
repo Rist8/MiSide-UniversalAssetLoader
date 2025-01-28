@@ -21,8 +21,8 @@ This project is based on a fork of the original [MiSide-AssetLoader](https://git
 - **Adds a free camera** with greenscreen support on f10 (note: greenscreen currently has issues).
   > Добавляет свободную камеру с поддержкой зеленого экрана на f10 *(зелёный экран пока работает неполноценно)*.
 
-- By default has **CatEars** config, which adds cat ears to all Mitas except Chibi.  
-  > По умолчанию имеет **CatEars** конфиг, который добавляет кошачьи уши всем Митам, кроме Чиби.
+- By default has **CatEars** config, which adds cat ears to all Mitas except Chibi, and other examples of assets replacement.  
+  > По умолчанию имеет **CatEars** конфиг, который добавляет кошачьи уши всем Митам, кроме Чиби, и другие примеры замены ресурсов.
 
 For a complete list of features, refer to the `readme.txt` file.  
 > Полный список функций доступен в файле `readme.txt`.
