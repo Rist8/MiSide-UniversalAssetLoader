@@ -17,7 +17,7 @@
 //   "Black", "Dreamer", "Mila", "Washes", "Creepy", "Core", "MitaGame",
 //   "MitaPerson Mita", "Dream", "Future", "Broke", "Glasses",
 //   "MitaPerson Future", "CreepyMita", "Know", "Longer", "OnlyBody",
-//   "NewVersion"
+//   "NewVersion", "ChibiMita", "ChibiRacer", "MitaSkin"
 
 // ========================= AVAILABLE COMMANDS =========================
 // Unique commands (no disactivation command needed):
