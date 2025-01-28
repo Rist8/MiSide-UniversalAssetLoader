@@ -823,7 +823,7 @@ public class Commands
     public static void ApplyReplace2DCommand((string name, string[] args) command, Dictionary<string, Texture2D> textures)
     {
         UnityEngine.Debug.Log($"[INFO] Replacing Texture 2D '{command.args[0]}' with '{command.args[1]}'.");
-        if (textures.ContainsKey(command.args[0]))
+        if (textures.ContainsKey(command.args[0]) && textures[command.args[0]] != null)
         {
             if (command.args[0] == "Cursor")
             {
@@ -845,7 +845,7 @@ public class Commands
     {
         UnityEngine.Debug.Log($"[INFO] Replacing Sprite '{command.args[0]}' with '{command.args[1]}'.");
 
-        if (!sprites.ContainsKey(command.args[0]))
+        if (!sprites.ContainsKey(command.args[0]) || sprites[command.args[0]] == null)
         {
             UnityEngine.Debug.LogWarning($"[WARNING] Sprite '{command.args[0]}' not found.");
             yield break;
@@ -879,7 +879,7 @@ public class Commands
     public static void ApplyReplaceAudioCommand((string name, string[] args) command, Dictionary<string, AudioClip> audioClips)
     {
         UnityEngine.Debug.Log($"[INFO] Replacing AudioClip '{command.args[0]}' with '{command.args[1]}'.");
-        if (!audioClips.ContainsKey(command.args[0]))
+        if (!audioClips.ContainsKey(command.args[0]) || audioClips[command.args[0]] == null)
         {
             UnityEngine.Debug.LogWarning($"[WARNING] AudioClip '{command.args[0]}' not found.");
             return;

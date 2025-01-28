@@ -1,6 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 dotnet build Plugin -c Release -o Compiled
+if not exist ".\Compiled\Dependencies" mkdir ".\Compiled\Dependencies"
 
 
 for /f "tokens=3" %%a in ('REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath ^|findstr /ri "REG_SZ"') do set SteamPath=%%a
@@ -75,19 +76,15 @@ if defined path2 (
     )
 )
 
-copy ".\Dependencies\AssimpNet.dll" ".\Compiled"
-copy ".\Dependencies\AssimpNet.pdb" ".\Compiled"
-copy ".\Dependencies\Newtonsoft.Json.dll" ".\Compiled"
-copy ".\Dependencies\Newtonsoft.Json.pdb" ".\Compiled"
-
-set readme_file=".\Compiled\README.txt"
-del %readme_file%
-echo WARNING: assimp.dll in game folder right beside MiSide.exe is required for mod to work. You can find it in 'Dependencies/assimp.dll'. >> %readme_file%
-echo If you want to load specific assets, edit the 'assets_config.txt' file. >> %readme_file%
-echo. - .png, .jpg, .jpeg as texture files >> %readme_file%
-echo. - .fbx as mesh files >> %readme_file%
-echo. - .ogg as audio files >> %readme_file%
-echo. - .mp4 as video files >> %readme_file%
+copy ".\Dependencies\AssimpNet.dll" ".\Compiled\Dependencies"
+copy ".\Dependencies\AssimpNet.pdb" ".\Compiled\Dependencies"
+copy ".\Dependencies\Newtonsoft.Json.dll" ".\Compiled\Dependencies"
+copy ".\Dependencies\Newtonsoft.Json.pdb" ".\Compiled\Dependencies"
+copy ".\Dependencies\assimp.dll" ".\Compiled\Dependencies"
+copy ".\Dependencies\K4os.Compression.LZ4.dll" ".\Compiled\Dependencies"
+copy ".\Dependencies\K4os.Hash.xxHash.dll" ".\Compiled\Dependencies"
+copy ".\Dependencies\K4os.Hash.xxHash.dll" ".\Compiled\Dependencies"
+copy ".\Dependencies\System.IO.Pipelines.dll" ".\Compiled\Dependencies"
 
 
 robocopy ".\Compiled" "%GameFolder%\BepInEx\plugins\UniversalAssetLoader" /E /np /nfl /njh /njs /ndl /nc /ns
