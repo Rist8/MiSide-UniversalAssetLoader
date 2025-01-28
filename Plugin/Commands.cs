@@ -33,9 +33,6 @@ public class Commands
 
             if (command.args[i].StartsWith("!"))
             {
-                // Negative keyword check (e.g., "!Mita")
-                if (command.args[i] == "!Mita")
-                    argsName = "!MitaPerson Mita";
 
                 if (mitaName.Contains(string.Join("", argsName.Skip(1))))
                 {
@@ -47,9 +44,6 @@ public class Commands
             }
             else
             {
-                // Positive keyword check
-                if (command.args[i] == "Mita")
-                    argsName = "MitaPerson Mita";
 
                 if (!mitaName.Contains(argsName))
                 {
