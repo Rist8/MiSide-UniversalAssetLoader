@@ -409,7 +409,7 @@ public class Commands
 
         if (!renderers.ContainsKey(command.args[2]))
         {
-            UnityEngine.Debug.Log($"[WARNING] Parent renderer '{command.args[2]}' not found: skipping command {command.name} on '{mita.name}'.");
+            UnityEngine.Debug.LogWarning($"[WARNING] Parent renderer '{command.args[2]}' not found: skipping command {command.name} on '{mita.name}'.");
             return;
         }
         var parent = renderers[command.args[2]];
