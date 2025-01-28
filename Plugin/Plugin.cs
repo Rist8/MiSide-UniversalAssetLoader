@@ -301,6 +301,10 @@ public class Plugin : MonoBehaviour
                         if (!mitaAnimators.Contains(anim.gameObject))
                         {
                             mitaAnimators.Add(anim.gameObject);
+                            if (anim.gameObject.transform.parent.name.Contains("Car"))
+                            {
+                                mitaAnimators[mitaAnimators.Count - 1].name = "ChibiRacer";
+                            }
                         }
                         break;
                     }
