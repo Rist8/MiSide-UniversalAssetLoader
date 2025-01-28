@@ -474,6 +474,12 @@ public class Commands
         obj.gameObject.AddComponent<MeshFilter>();
 
         obj.transform.parent = Utility.RecursiveFindChild(mita.transform, command.args[2]);
+        if (obj.transform.parent == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Parent '{command.args[2]}' not found for static renderer '{command.args[1]}' on '{mita.name}'.");
+            UnityEngine.Object.Destroy(obj.gameObject);
+            return;
+        }
         obj.transform.localPosition = Vector3.zero;
         obj.transform.localScale = Vector3.one;
         obj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
