@@ -5,29 +5,29 @@ using System.Reflection;
 
 public static class PluginInfo
 {
-	public const string PLUGIN_GUID = "UniversalAssetLoader";
-	public const string PLUGIN_NAME = "Universal Asset Loader";
-	public const string PLUGIN_VERSION = "0.11.3";
+    public const string PLUGIN_GUID = "UniversalAssetLoader";
+    public const string PLUGIN_NAME = "Universal Asset Loader";
+    public const string PLUGIN_VERSION = "0.11.4";
 
-	public static PluginLoader Instance;
-	public static string AssetsFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Assets";
-	public static string DependenciesFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Dependencies";
+    public static PluginLoader Instance;
+    public static string AssetsFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Assets";
+    public static string DependenciesFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Dependencies";
 }
 
-[BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.11.3")]
+[BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.11.4")]
 public class PluginLoader : BasePlugin
 {
-	public ManualLogSource Logger { get; private set; }
+    public ManualLogSource Logger { get; private set; }
 
     public PluginLoader()
     {
         Logger = null!; // Initialize Logger to a non-null value to satisfy the compiler
     }
 
-	public override void Load()
-	{
-		Logger = (this as BasePlugin).Log;
-		PluginInfo.Instance = this;
+    public override void Load()
+    {
+        Logger = (this as BasePlugin).Log;
+        PluginInfo.Instance = this;
 
         var assimpPath = Path.Join(PluginInfo.DependenciesFolder, "assimp.dll");
         if (File.Exists(assimpPath))
@@ -39,7 +39,7 @@ public class PluginLoader : BasePlugin
 
         IL2CPPChainloader.AddUnityComponent(typeof(Plugin));
         IL2CPPChainloader.AddUnityComponent(typeof(UtilityNamespace.LateCallUtility.CoroutineHandler));
-	}
+    }
 
     private static Assembly? ResolveAssembly(object? sender, ResolveEventArgs args)
     {
@@ -55,7 +55,7 @@ public class PluginLoader : BasePlugin
         // Check if the file exists and load it
         if (File.Exists(assemblyPath))
         {
-            if(assemblyName == "assimp")
+            if (assemblyName == "assimp")
             {
                 return null;
             }
