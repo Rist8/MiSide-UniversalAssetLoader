@@ -17,9 +17,11 @@ public class AssetLoader
 {
     public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
     public static Dictionary<string, Texture2D>? loadedTextures;
+    public static List<int> loadedTextureInstanceIds;
     public static Dictionary<string, Il2CppStructArray<byte>>? loadedTexturesRaw;
     public static Dictionary<string, byte[]>? loadedAudioData;
     public static Dictionary<string, AudioClip>? loadedAudio;
+    public static List<int> loadedAudioInstanceIds;
 
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
     {
@@ -31,6 +33,9 @@ public class AssetLoader
         loadedTexturesRaw = new Dictionary<string, Il2CppStructArray<byte>>();
         loadedAudio = new Dictionary<string, AudioClip>();
         loadedAudioData = new Dictionary<string, byte[]>();
+
+        loadedTextureInstanceIds = new List<int>();
+        loadedAudioInstanceIds = new List<int>();
 
         PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
         var stopwatch = Stopwatch.StartNew();
@@ -51,6 +56,7 @@ public class AssetLoader
             if (!loadedAudio.ContainsKey(filename))
             {
                 loadedAudio.Add(filename, audioFile);
+                loadedAudioInstanceIds.Add(audioFile.GetInstanceID());
                 PluginInfo.Instance.Logger.LogInfo($"Loaded audio from file: '{filename}'");
             }
         }
@@ -107,6 +113,7 @@ public class AssetLoader
                 if (!loadedTextures.ContainsKey(filename))
                 {
                     loadedTextures.Add(filename, texture);
+                    loadedTextureInstanceIds.Add(texture.GetInstanceID());
                     var compressedData = LZ4Pickler.Pickle(rawData); // Compress rawData using LZ4
                     loadedTexturesRaw.Add(filename, compressedData);
                     PluginInfo.Instance.Logger.LogInfo($"Loaded texture from file: '{filename}'");

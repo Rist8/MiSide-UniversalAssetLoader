@@ -10,6 +10,7 @@ using BepInEx.Unity.IL2CPP.Utils;
 using UnityEngine.Playables;
 using Il2CppSystem.Windows.Forms;
 using static UtilityNamespace.LateCallUtility;
+using static AssetLoader;
 using Il2CppInterop.Runtime;
 using System.Text.RegularExpressions;
 
@@ -162,6 +163,9 @@ public class Plugin : MonoBehaviour
 
         foreach (var texture in textures)
         {
+            if (loadedTextureInstanceIds.Contains(texture.GetInstanceID()))
+                continue;
+
             var tex = texture.Cast<Texture2D>();
             if (tex != null)
             {
@@ -216,6 +220,9 @@ public class Plugin : MonoBehaviour
 
         foreach (var audio in audios)
         {
+            if (loadedAudioInstanceIds.Contains(audio.GetInstanceID()))
+                continue;
+                
             var aud = audio.Cast<AudioClip>();
             if (aud != null)
             {
@@ -340,7 +347,7 @@ public class Plugin : MonoBehaviour
             if (mitaAnimators.Count <= i || mitaAnimators[i] == null)
                 continue;
             mitas.Add(mitaAnimators[i]);
-            
+
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
             float maxFrameTime = distance <= 20 ? 1f / targetFrameRate : 1f / (targetFrameRate * Mathf.Log(distance - 19, 8));
             UnityEngine.Debug.Log(distance);
@@ -884,7 +891,7 @@ public class Plugin : MonoBehaviour
         var stopwatch = Stopwatch.StartNew();
         float frameStartTime = Time.realtimeSinceStartup;
 
-        if(player == null) 
+        if (player == null)
         {
             UnityEngine.Debug.LogWarning($"[WARNING] Player object is null.");
             yield break;
