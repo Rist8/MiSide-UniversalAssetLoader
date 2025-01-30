@@ -569,7 +569,15 @@ public class Plugin : MonoBehaviour
         var staticRenderers = new Dictionary<string, MeshRenderer>();
 
         foreach (var renderer in renderersList)
-            renderers[renderer.name.Trim()] = renderer;
+            // rename Mita True shorthair in the last chapter where she expose her skin
+            if (renderer.transform.parent.name == "HairsManeken" && renderer.name == "Hair")
+            {
+                renderers["HairTrue"] = renderer;
+            }
+            else
+            {
+                renderers[renderer.name.Trim()] = renderer;
+            }
 
         foreach (var renderer in staticRenderersList)
             staticRenderers[renderer.name.Trim()] = renderer;
