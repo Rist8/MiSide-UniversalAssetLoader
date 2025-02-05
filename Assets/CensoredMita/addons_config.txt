@@ -1,0 +1,44 @@
+*Censored Mita
+create_skinned_appendix Mita C_Head_D Head
+create_skinned_appendix Mita C_Sweater Sweater
+create_skinned_appendix Mita C_Pantyhose Pantyhose
+create_skinned_appendix Mita C_Skirt Skirt
+create_skinned_appendix Mita C_Hair_D Hair
+create_skinned_appendix Mita C_Hairs Hairs
+create_skinned_appendix Mita C_Shoes Shoes
+create_skinned_appendix Mita C_Body Body
+create_skinned_appendix Mita C_Clothes Clothes
+create_skinned_appendix Mita C_Cloth Clothes
+create_skinned_appendix Mita C_Attribute Attribute 
+create_skinned_appendix Mita C_FaceLayer_D FaceLayer
+
+create_skinned_appendix Player C_Clothes Clothes
+create_skinned_appendix Player C_Face Face
+create_skinned_appendix Player C_Arms Arms
+create_skinned_appendix Player C_Hair_D Hair
+create_skinned_appendix Player C_HairMirror HairMirror
+create_skinned_appendix Player C_Head_D Head
+create_skinned_appendix Player C_HeadMirror HeadMirror
+create_skinned_appendix Player C_Arm Arm
+
+shader_params Mita C_Head_D UnityMita\Censor
+shader_params Mita C_Sweater UnityMita\Censor
+shader_params Mita C_Pantyhose UnityMita\Censor
+shader_params Mita C_Skirt UnityMita\Censor
+shader_params Mita C_Hair_D UnityMita\Censor
+shader_params Mita C_Hairs UnityMita\Censor
+shader_params Mita C_Shoes UnityMita\Censor
+shader_params Mita C_Body UnityMita\Censor
+shader_params Mita C_Clothes UnityMita\Censor
+shader_params Mita C_Cloth UnityMita\Censor
+shader_params Mita C_Attribute UnityMita\Censor
+shader_params Mita C_FaceLayer_D UnityMita\Censor
+
+shader_params Player C_Clothes UnityMita\Censor
+shader_params Player C_Face UnityMita\Censor
+shader_params Player C_Arms UnityMita\Censor
+shader_params Player C_Hair_D UnityMita\Censor
+shader_params Player C_HairMirror UnityMita\Censor
+shader_params Player C_Head_D UnityMita\Censor
+shader_params Player C_HeadMirror UnityMita\Censor
+shader_params Player C_Arm UnityMita\Censor
