@@ -870,6 +870,9 @@ public class Plugin : MonoBehaviour
                     case "set_rotation":
                         Commands.ApplySetRotationCommand(command, player);
                         break;
+                    case "shader_params":
+                        Commands.ApplyShaderParamsCommand(command, player, renderers, staticRenderers);
+                        break;
                     default:
                         UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
                         break;
@@ -981,6 +984,9 @@ public class Plugin : MonoBehaviour
                     break;
                 case "set_rotation":
                     Commands.ApplySetRotationCommand(command, player);
+                    break;
+                case "shader_params":
+                    Commands.ApplyShaderParamsCommand(command, player, renderers, staticRenderers);
                     break;
                 default:
                     UnityEngine.Debug.LogWarning($"[WARNING] Unknown command: {command.name}");
