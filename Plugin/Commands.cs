@@ -12,6 +12,7 @@ using K4os.Compression.LZ4.Streams;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using BepInEx.Unity.IL2CPP.Utils;
+using System.Text.RegularExpressions;
 
 public class Commands
 {
@@ -718,11 +719,20 @@ public class Commands
                     if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
                         continue;
 
-                    string[] parts = line.Split(' ');
+                    var matches1 = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                    var parts = matches1.Cast<Match>().Select(m => m.Value).ToArray();
+
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        parts[i] = parts[i].Trim('\"');
+                    }
                     try
                     {
                         switch (parts[0])
                         {
+                            case "SetShader":
+                                material.shader = Shader.Find(parts[1]);
+                                break;
                             case "EnableKeyword":
                                 material.EnableKeyword(parts[1]);
                                 break;
@@ -756,6 +766,10 @@ public class Commands
                                 }
 
                                 material.SetColor(parts[1], color);
+                                break;
+                            case "SetTexture2D":
+                                string textureKey = parts[2].Replace(@"\\", @"\").TrimStart('.', '\\');
+                                material.SetTexture(parts[1], AssetLoader.loadedTextures[textureKey]);
                                 break;
                             default:
                                 UnityEngine.Debug.LogWarning($"[WARNING] Unknown shader parameter '{parts[0]}' in shader '{material.shader.name}'.");

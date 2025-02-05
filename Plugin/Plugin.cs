@@ -222,7 +222,7 @@ public class Plugin : MonoBehaviour
         {
             if (loadedAudioInstanceIds.Contains(audio.GetInstanceID()))
                 continue;
-                
+
             var aud = audio.Cast<AudioClip>();
             if (aud != null)
             {
@@ -421,7 +421,13 @@ public class Plugin : MonoBehaviour
             if (currentName == modName)
             {
                 found = true;
-                string[] parts1 = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var matches1 = Regex.Matches(line, @"[\""].+?[\""]|[^ ]+");
+                var parts1 = matches1.Cast<Match>().Select(m => m.Value).ToArray();
+
+                for (int i = 0; i < parts1.Length; i++)
+                {
+                    parts1[i] = parts1[i].Trim('\"');
+                }
                 if (parts1.Length > 2)
                 {
                     switch (parts1[0])
@@ -446,6 +452,10 @@ public class Plugin : MonoBehaviour
                                 replacedMeshes.Add(parts1[2]);
                             }
                             break;
+                        case "resize_mesh":
+                        case "move_mesh":
+                        case "rotate_mesh":
+                        case "shader_params":
                         case "replace_mesh":
                         case "replace_tex":
                             if (!skinnedAppendix.Contains(parts1[2]) && !staticAppendix.Contains(parts1[2]))

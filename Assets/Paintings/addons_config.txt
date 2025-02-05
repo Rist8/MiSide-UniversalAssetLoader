@@ -1,0 +1,9 @@
+*Paintings
+replace_2D LIvingRoomPicturesNoMita Paintings\\LivingRoomPictures_fan
+replace_2D LIvingRoomPicturesShorthairs Paintings\\LivingRoomPictures_fan
+replace_2D LIvingRoomPicturesMita Paintings\\LivingRoomPictures_fan
+replace_2D LIvingRoomPicturesDream Paintings\\LivingRoomPictures_fan
+replace_2D LIvingRoomPicturesCap Paintings\\LivingRoomPictures_fan
+replace_2D LIvingRoomPictures Paintings\\LivingRoomPictures_fan
+replace_2D PictureGhost Paintings\\DrawingGhost
+replace_2D PictureGhost#1 Paintings\\PictureGhost_fan

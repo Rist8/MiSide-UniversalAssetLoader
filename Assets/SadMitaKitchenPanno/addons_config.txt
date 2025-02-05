@@ -1,2 +1,0 @@
-*SadMitaKitchenPanno
-replace_2D "KitchenPanno" SadMitaKitchenPanno\\sad

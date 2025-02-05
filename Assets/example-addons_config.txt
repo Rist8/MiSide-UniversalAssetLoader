@@ -17,7 +17,7 @@
 //   "Black", "Dreamer", "Mila", "Washes", "Creepy", "Core", "MitaGame",
 //   "MitaPerson Mita", "Dream", "Future", "Broke", "Glasses",
 //   "MitaPerson Future", "CreepyMita", "Know", "Longer", "OnlyBody",
-//   "NewVersion", "ChibiMita", "ChibiRacer", "MitaSkin"
+//   "NewVersion"
 
 // ========================= AVAILABLE COMMANDS =========================
 // Unique commands (no disactivation command needed):
@@ -75,67 +75,9 @@
 //   rotate_mesh Mita Name x y z w KeyWords
 //     # Rotate the mesh using quaternion angles (x, y, z, w).
 
-// ==================== FOR REPLACING ASSETS ==========================
+// ==================== FOR 2D TEXTURES AND SPRITES ==========================
 // Commands for sprites and 2d textures replacement:
 //
 //   replace_2D TextureName TextureFilename
 //   replace_sprite SpriteName SpriteTextureFilename
-//     # See the Carnage2D mod for novel sprites' names and example usage  
-//   replace_audio AudioName AudioFilename   
-
-
-*TrailerMode
-trailer
-
-*Halloween
-halloween
-
-*Christmas
-christmas
-
-*RemoveSkirt
-remove Mita Skirt
--recover Mita Skirt
-
-*RemoveSweater
-remove Mita Sweater
--recover Mita Sweater
-
-*RemoveAttribute
-remove Mita Attribute
--recover Mita Attribute
-
-*RemoveHair
-remove Mita Hair
-remove Mita Hairs
--recover Mita Hair
--recover Mita Hairs
-
-*RemoveBody
-remove Mita Body
--recover Mita Body
-
-*RemoveHead
-remove Mita Head
--recover Mita Head
-
-*RemovePantyhose
-remove Mita Pantyhose
--recover Mita Pantyhose
-
-*RemoveShoes
-remove Mita Shoes
--recover Mita Shoes
-
-*MilaRemoveGlasses
-remove Mita GlassesObject Mila Glasses
--recover Mita GlassesObject Mila Glasses
-
-*MilaBathTowel
-remove Mita Body !Washes !Clone Mila Glasses
-remove Mita Skirt !Washes !Clone Mila Glasses
-recover Mita BodyTowel !Washes !Clone Mila Glasses
--recover Mita Body !Washes !Clone Mila Glasses
--recover Mita Skirt !Washes !Clone Mila Glasses
--remove Mita BodyTowel !Washes !Clone Mila Glasses
-
+//     # See the Carnage2D mod for novel sprites' names and example usage     

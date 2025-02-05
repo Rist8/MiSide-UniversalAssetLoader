@@ -1,0 +1,55 @@
+*TrailerMode
+trailer
+
+*Halloween
+halloween
+
+*Christmas
+christmas
+
+*RemoveSkirt
+remove Mita Skirt
+-recover Mita Skirt
+
+*RemoveSweater
+remove Mita Sweater
+-recover Mita Sweater
+
+*RemoveAttribute
+remove Mita Attribute
+-recover Mita Attribute
+
+*RemoveHair
+remove Mita Hair
+remove Mita Hairs
+-recover Mita Hair
+-recover Mita Hairs
+
+*RemoveBody
+remove Mita Body
+-recover Mita Body
+
+*RemoveHead
+remove Mita Head
+-recover Mita Head
+
+*RemovePantyhose
+remove Mita Pantyhose
+-recover Mita Pantyhose
+
+*RemoveShoes
+remove Mita Shoes
+-recover Mita Shoes
+
+*MilaRemoveGlasses
+remove Mita GlassesObject Mila Glasses
+-recover Mita GlassesObject Mila Glasses
+
+*MilaBathTowel
+remove Mita Body !Washes !Clone Mila Glasses
+remove Mita Skirt !Washes !Clone Mila Glasses
+recover Mita BodyTowel !Washes !Clone Mila Glasses
+-recover Mita Body !Washes !Clone Mila Glasses
+-recover Mita Skirt !Washes !Clone Mila Glasses
+-remove Mita BodyTowel !Washes !Clone Mila Glasses
+

@@ -1,0 +1,11 @@
+*Unity Shader Mita
+shader_params Mita Head UnityMita\Unity
+shader_params Mita Sweater UnityMita\Unity
+shader_params Mita Pantyhose UnityMita\Unity
+shader_params Mita Skirt UnityMita\Unity
+shader_params Mita Hair UnityMita\Unity
+shader_params Mita Hairs UnityMita\Unity
+shader_params Mita Shoes UnityMita\Unity
+shader_params Mita Body UnityMita\Unity
+shader_params Mita Clothes UnityMita\Unity
+shader_params Mita Cloth UnityMita\Unity
