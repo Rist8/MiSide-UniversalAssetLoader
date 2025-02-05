@@ -869,7 +869,18 @@ public class Commands
                 UnityEngine.Debug.Log($"[INFO] Replaced Cursor with '{command.args[1]}'.");
                 return;
             }
+
+
             string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+            if (command.args.Length > 2)
+            {
+                if (!SceneHandler.currentSceneName.Contains(command.args[2]))
+                {
+                    UnityEngine.Debug.Log($"[INFO] Skipped replacement of Texture 2D '{command.args[0]}' with '{textureKey}' because of SceneName keyword.");
+                    return;
+                }
+            }
+
             var imageData = LZ4Pickler.Unpickle(loadedTexturesRaw[textureKey]);
             textures[command.args[0]].LoadImage(imageData);
             UnityEngine.Debug.Log($"[INFO] Replaced Texture 2D '{command.args[0]}' with '{textureKey}'.");

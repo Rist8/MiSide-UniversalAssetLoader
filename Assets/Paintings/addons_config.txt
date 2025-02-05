@@ -7,3 +7,5 @@ replace_2D LIvingRoomPicturesCap Paintings\\LivingRoomPictures_fan
 replace_2D LIvingRoomPictures Paintings\\LivingRoomPictures_fan
 replace_2D PictureGhost Paintings\\DrawingGhost
 replace_2D PictureGhost#1 Paintings\\PictureGhost_fan
+replace_2D BedroomPictures Paintings\\BedroomPictures_Ghost 11
+replace_2D BedroomPictures Paintings\\BedroomPictures_Crazy 15

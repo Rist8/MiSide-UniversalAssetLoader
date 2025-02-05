@@ -445,11 +445,6 @@ public class AssetLoader
         });
 
 
-        if ((Time.realtimeSinceStartup - frameStartTime) > maxFrameTime)
-        {
-            yield return null;
-            frameStartTime = Time.realtimeSinceStartup;
-        }
 
         var bonesPerVertexTask = Task.Run(() =>
         {
