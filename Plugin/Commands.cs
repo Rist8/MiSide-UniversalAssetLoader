@@ -69,6 +69,42 @@ public class Commands
         return false; // Do not skip
     }
 
+    private static bool ShouldSkipScene(int start, (string name, string[] args) command)
+    {
+        int i = start;
+        for(; i < command.args.Length && command.args[i] != "all"; i++)
+        {
+            string argsName = command.args[i];
+            if (command.args[i].StartsWith("!"))
+            {
+                if (SceneHandler.currentSceneName.Contains(string.Join("", argsName.Skip(1))))
+                {
+                    UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{SceneHandler.currentSceneName}' due to negative keyword '{argsName}'.");
+                    return true;
+                }
+                continue;
+            }
+            else
+            {
+                if (!SceneHandler.currentSceneName.Contains(argsName))
+                {
+                    if (i == command.args.Length - 1)
+                    {
+                        UnityEngine.Debug.Log($"[INFO] Skipping command '{command.name}' on '{SceneHandler.currentSceneName}' because keyword '{argsName}' was not found.");
+                        return true;
+                    }
+                    continue;
+                }
+                break;
+            }
+        }
+        if (i == command.args.Length)
+        {
+            UnityEngine.Debug.Log($"[INFO] Applying command '{command.name}' on '{SceneHandler.currentSceneName}' as no exclusion keywords were matched.");
+        }
+        return false;
+    }
+
     public static System.Collections.IEnumerator RemoveOutlineTargetCoroutine(Renderer rendererObject, GameObject mita,
         float maxFrameTime = 1f / 240f)
     {
@@ -860,6 +896,8 @@ public class Commands
 
     public static void ApplyReplace2DCommand((string name, string[] args) command, Dictionary<string, Texture2D> textures)
     {
+        if (ShouldSkipScene(2, command))
+            return;
         UnityEngine.Debug.Log($"[INFO] Replacing Texture 2D '{command.args[0]}' with '{command.args[1]}'.");
         if (textures.ContainsKey(command.args[0]) && textures[command.args[0]] != null)
         {
@@ -872,15 +910,6 @@ public class Commands
 
 
             string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
-            if (command.args.Length > 2)
-            {
-                if (!SceneHandler.currentSceneName.Contains(command.args[2]))
-                {
-                    UnityEngine.Debug.Log($"[INFO] Skipped replacement of Texture 2D '{command.args[0]}' with '{textureKey}' because of SceneName keyword.");
-                    return;
-                }
-            }
-
             var imageData = LZ4Pickler.Unpickle(loadedTexturesRaw[textureKey]);
             textures[command.args[0]].LoadImage(imageData);
             UnityEngine.Debug.Log($"[INFO] Replaced Texture 2D '{command.args[0]}' with '{textureKey}'.");
@@ -892,6 +921,8 @@ public class Commands
     }
     public static System.Collections.IEnumerator ApplyReplaceSprite((string name, string[] args) command, Dictionary<string, Sprite> sprites)
     {
+        if (ShouldSkipScene(2, command))
+            yield break;
         UnityEngine.Debug.Log($"[INFO] Replacing Sprite '{command.args[0]}' with '{command.args[1]}'.");
 
         if (!sprites.ContainsKey(command.args[0]) || sprites[command.args[0]] == null)
@@ -927,6 +958,8 @@ public class Commands
 
     public static void ApplyReplaceAudioCommand((string name, string[] args) command, Dictionary<string, AudioClip> audioClips)
     {
+        if (ShouldSkipScene(2, command))
+            return;
         UnityEngine.Debug.Log($"[INFO] Replacing AudioClip '{command.args[0]}' with '{command.args[1]}'.");
         if (!audioClips.ContainsKey(command.args[0]) || audioClips[command.args[0]] == null)
         {
