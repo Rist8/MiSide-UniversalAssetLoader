@@ -343,6 +343,12 @@ public class Commands
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
         Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
 
+        if(meshData == null)
+        {
+            UnityEngine.Debug.LogWarning($"Mesh {subMeshName} not found in {meshKey}!");
+            return;
+        }
+
         if (renderers.ContainsKey(command.args[1]))
         {
             var skinnedRenderer = renderers[command.args[1]];
