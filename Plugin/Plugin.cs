@@ -899,10 +899,11 @@ public class Plugin : MonoBehaviour
             if (animator.name.Contains("Person") || animator.name.Contains("Player"))
             {
                 GameObject personObject = animator.gameObject;
-                UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {personObject.name}");
-
-                // Start PatchPlayer coroutine
-                yield return PatchPlayerCoroutine(personObject, 1 / targetFrameRate);
+                UnityEngine.Debug.Log($"[INFO] Found 'Person' object with Animator: {(personObject == null ? "null" : personObject.name)}");
+                if (personObject != null)
+                {
+                    yield return PatchPlayerCoroutine(personObject, 1 / targetFrameRate);
+                }
             }
         }
     }
