@@ -345,7 +345,7 @@ public class Commands
 
         if(meshData == null)
         {
-            UnityEngine.Debug.LogWarning($"Mesh {subMeshName} not found in {meshKey}!");
+            UnityEngine.Debug.LogWarning($"[WARNING] Mesh {subMeshName} not found in {meshKey}!");
             return;
         }
 
