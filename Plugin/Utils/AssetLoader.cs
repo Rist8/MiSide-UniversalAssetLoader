@@ -579,7 +579,7 @@ public class AssetLoader
         {
             UnityEngine.Debug.Log($"[INFO] Blendshape name: {blendShapeName}");
 
-            string blendShapeOrdersPath = Path.Combine(PluginInfo.AssetsFolder, "blendshape_orders.json");
+            string blendShapeOrdersPath = Path.Combine(PluginInfo.DependenciesFolder, "blendshape_orders.json");
 
             var blendShapeOrders = new Dictionary<string, List<string>>();
 
@@ -790,7 +790,7 @@ public class AssetLoader
         {
             UnityEngine.Debug.Log($"[INFO] Blendshape name: {blendShapeName}");
 
-            string blendShapeOrdersPath = Path.Combine(PluginInfo.AssetsFolder, "blendshape_orders.json");
+            string blendShapeOrdersPath = Path.Combine(PluginInfo.DependenciesFolder, "blendshape_orders.json");
 
             var blendShapeOrders = new Dictionary<string, List<string>>();
 

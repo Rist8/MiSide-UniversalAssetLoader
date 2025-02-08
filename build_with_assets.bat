@@ -87,7 +87,7 @@ copy ".\Dependencies\K4os.Compression.LZ4.Streams.dll" ".\Compiled\Dependencies"
 copy ".\Dependencies\K4os.Hash.xxHash.dll" ".\Compiled\Dependencies"
 copy ".\Dependencies\K4os.Hash.xxHash.dll" ".\Compiled\Dependencies"
 copy ".\Dependencies\System.IO.Pipelines.dll" ".\Compiled\Dependencies"
-
+copy ".\Dependencies\blendshape_orders.json" ".\Compiled\Dependencies"
 
 robocopy "./Assets" "./Compiled/Assets" /E /np /nfl /njh /njs /ndl /nc /ns
 robocopy ".\Compiled" "%GameFolder%\BepInEx\plugins\UniversalAssetLoader" /E /np /nfl /njh /njs /ndl /nc /ns
