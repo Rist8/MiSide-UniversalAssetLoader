@@ -1045,6 +1045,8 @@ public class Plugin : MonoBehaviour
             {
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindMitaCoroutine());
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(FindPlayerCoroutine());
+                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(PatchAssets());
+
             }
         }
 
