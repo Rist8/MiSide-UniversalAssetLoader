@@ -151,6 +151,103 @@ public class Plugin : MonoBehaviour
         }
     }
 
+    public static void PatchAssetsSync()
+    {
+        var textures = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Texture2D>());
+        var textureDict = new Dictionary<string, Texture2D>();
+        var sprites = Resources.FindObjectsOfTypeAll(Il2CppType.Of<Sprite>());
+        var spritesDict = new Dictionary<string, Sprite>();
+        var audios = Resources.FindObjectsOfTypeAll(Il2CppType.Of<AudioClip>());
+        var audioDict = new Dictionary<string, AudioClip>();
+
+        foreach (var texture in textures)
+        {
+            if (loadedTextureInstanceIds.Contains(texture.GetInstanceID()))
+                continue;
+
+            var tex = texture.Cast<Texture2D>();
+            if (tex != null)
+            {
+                string baseName = tex.name;
+                string uniqueName = baseName;
+                int counter = 1;
+
+                // Generate a unique name if a texture with the same name already exists
+                while (textureDict.ContainsKey(uniqueName))
+                {
+                    uniqueName = $"{baseName}#{counter}";
+                    counter++;
+                }
+
+                textureDict[uniqueName] = tex;
+            }
+        }
+
+        foreach (var sprite in sprites)
+        {
+            var spr = sprite.Cast<Sprite>();
+            if (spr != null)
+            {
+                string baseName = spr.name;
+                string uniqueName = baseName;
+                int counter = 1;
+
+                // Generate a unique name if a sprite with the same name already exists
+                while (audioDict.ContainsKey(uniqueName))
+                {
+                    uniqueName = $"{baseName}#{counter}";
+                    counter++;
+                }
+
+                spritesDict[uniqueName] = spr;
+            }
+        }
+
+        foreach (var audio in audios)
+        {
+            if (loadedAudioInstanceIds.Contains(audio.GetInstanceID()))
+                continue;
+
+            var aud = audio.Cast<AudioClip>();
+            if (aud != null)
+            {
+                string baseName = aud.name;
+                string uniqueName = baseName;
+                int counter = 1;
+
+                // Generate a unique name if a audio with the same name already exists
+                while (audioDict.ContainsKey(uniqueName))
+                {
+                    uniqueName = $"{baseName}#{counter}";
+                    counter++;
+                }
+
+                audioDict[uniqueName] = aud;
+            }
+        }
+
+        foreach (var command in ConsoleCommandHandler.assetCommands)
+        {
+            if (command.args.Length == 0)
+                continue;
+
+            string commandKey = $"{command.name} {string.Join(" ", command.args)}";
+
+            switch (command.name)
+            {
+                case "replace_2D":
+                    Commands.ApplyReplace2DCommand(command, textureDict);
+                    break;
+                case "replace_sprite":
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Commands.ApplyReplaceSprite(command, spritesDict));
+                    break;
+                case "replace_audio":
+                    Commands.ApplyReplaceAudioCommand(command, audioDict);
+                    break;
+            }
+        }
+    }
+
     public static System.Collections.IEnumerator PatchAssets()
     {
         float frameStartTime = Time.realtimeSinceStartup;

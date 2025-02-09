@@ -2,6 +2,7 @@
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using System.Reflection;
+using HarmonyLib;
 
 public static class PluginInfo
 {
@@ -26,6 +27,9 @@ public class PluginLoader : BasePlugin
 
     public override void Load()
     {
+        var harmony = new Harmony("org.miside.plugins.assetloader");
+        harmony.PatchAll();
+
         Logger = (this as BasePlugin).Log;
         PluginInfo.Instance = this;
 

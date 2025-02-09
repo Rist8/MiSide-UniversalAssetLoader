@@ -5,7 +5,6 @@ using BepInEx.Unity.IL2CPP.Utils;
 using Coffee.UIEffects;
 using UnityEngine.UI;
 
-
 public class SceneHandler
 {
     public static string? currentSceneName;
