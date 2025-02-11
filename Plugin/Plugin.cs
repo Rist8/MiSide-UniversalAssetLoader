@@ -398,29 +398,11 @@ public class Plugin : MonoBehaviour
             var anim = obj.Cast<Animator>();
             var runtimeController = anim.runtimeAnimatorController;
 
-            if (runtimeController != null)
+            if (runtimeController != null || obj != null)
             {
                 foreach (var mitaName in mitaNames)
                 {
-                    if (runtimeController.name.Contains(mitaName) || obj.name.Contains(mitaName))
-                    {
-                        if (!mitaAnimators.Contains(anim.gameObject))
-                        {
-                            mitaAnimators.Add(anim.gameObject);
-                            if (anim.gameObject.transform.parent.name.Contains("Car"))
-                            {
-                                mitaAnimators[mitaAnimators.Count - 1].name = "ChibiRacer";
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                foreach (var mitaName in mitaNames)
-                {
-                    if (obj.name.Contains(mitaName))
+                    if ((runtimeController != null && runtimeController.name.Contains(mitaName)) || obj.name.Contains(mitaName))
                     {
                         if (!mitaAnimators.Contains(anim.gameObject))
                         {

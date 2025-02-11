@@ -14,7 +14,6 @@ class TelevisionGamePatch
 {
     static void Prefix(MinigamesTelevisionController __instance)
     {
-        // wait for the game to start
         Plugin.PatchAssetsSync();
     }
 }
@@ -26,7 +25,6 @@ class GameAutomatePatch
     static void Postfix(MinigamesTelevisionController __instance)
     {
         UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
-        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindPlayerCoroutine());
-        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
+        Plugin.PatchAssetsSync();
     }
 }
