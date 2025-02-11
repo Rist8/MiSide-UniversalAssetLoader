@@ -416,6 +416,24 @@ public class Plugin : MonoBehaviour
                     }
                 }
             }
+            else
+            {
+                foreach (var mitaName in mitaNames)
+                {
+                    if (obj.name.Contains(mitaName))
+                    {
+                        if (!mitaAnimators.Contains(anim.gameObject))
+                        {
+                            mitaAnimators.Add(anim.gameObject);
+                            if (anim.gameObject.transform.parent.name.Contains("Car"))
+                            {
+                                mitaAnimators[mitaAnimators.Count - 1].name = "ChibiRacer";
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
         }
 
         return mitaAnimators;

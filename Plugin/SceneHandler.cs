@@ -25,6 +25,26 @@ public class SceneHandler
             {
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(SceneLoading());
             }
+            else if (currentSceneName == "Scene 12 - Freak")
+            {
+                GameObject.Find("World/Quest/Quest 1/Trigger EnterCutscene")
+                    .GetComponent<Trigger_Event>().eventEnter
+                    .AddListener((UnityEngine.Events.UnityAction)(() =>
+                    {
+                        UnityEngine.Debug.Log("[INFO] Cutscene triggered, patching new Mitas...");
+                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                    }));
+            }
+            else if (currentSceneName == "Scene 6 - BasementFirst")
+            {
+                GameObject.Find("World/Act/ContinueScene/TriggerEnter")
+                    .GetComponent<Trigger_Event>().eventEnter
+                    .AddListener((UnityEngine.Events.UnityAction)(() =>
+                    {
+                        UnityEngine.Debug.Log("[INFO] Scene continuation triggered, patching new Mitas...");
+                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                    }));
+            }
 
             UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}, synch is {synch}.");
             Plugin.globalAppliedCommands.Clear();
@@ -51,20 +71,27 @@ public class SceneHandler
         sceneObjectTransform = GameObject.Find("MenuGame/Scene").transform;
         gameObjectCount = sceneObjectTransform.childCount;
         UnityEngine.Debug.Log($"[INFO] Patching game scene.");
-        var hide_ver = ConsoleCommandHandler.assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_game_version", (null, null));
-        var hide_glowing = ConsoleCommandHandler.assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_glowing_effect", (null, null));
-        var command = ConsoleCommandHandler.assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
+
+        var hide_ver = ConsoleCommandHandler.assetCommands
+            .FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_game_version", (null, null));
+        var hide_glowing = ConsoleCommandHandler.assetCommands
+            .FirstOrDefault<(string? name, string[]? args)>(item => item.name == "hide_glowing_effect", (null, null));
+        var command = ConsoleCommandHandler.assetCommands
+            .FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_logo", (null, null));
+
         if (command.name != null)
         {
             var animators = Reflection.FindObjectsOfType<Animator>(true);
             GameObject gameName = null;
             foreach (var obj in animators)
+            {
                 if (obj.name == "NameGame")
                 {
                     gameName = obj.Cast<Animator>().gameObject;
                     UnityEngine.GameObject.Destroy(obj);
                     break;
                 }
+            }
 
             for (int i = 0; i < gameName.transform.childCount; i++)
             {
@@ -80,7 +107,9 @@ public class SceneHandler
                     Reflection.GetComponent<RectTransform>(tr).sizeDelta = new Vector2(1600, 400);
                 }
                 else if (tr.name != "TextVersion")
+                {
                     tr.gameObject.SetActive(false);
+                }
                 else
                 {
                     if (hide_ver.name == null)
@@ -93,23 +122,28 @@ public class SceneHandler
             }
         }
 
-        command = ConsoleCommandHandler.assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "resize_logo", (null, null));
+        command = ConsoleCommandHandler.assetCommands
+            .FirstOrDefault<(string? name, string[]? args)>(item => item.name == "resize_logo", (null, null));
         if (command.name != null)
         {
-            Reflection.GetComponent<RectTransform>(Plugin.logo.transform).localScale = new Vector3(float.Parse(command.args[0]), float.Parse(command.args[1]), 1);
+            Reflection.GetComponent<RectTransform>(Plugin.logo.transform).localScale =
+                new Vector3(float.Parse(command.args[0]), float.Parse(command.args[1]), 1);
         }
 
-        command = ConsoleCommandHandler.assetCommands.FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
+        command = ConsoleCommandHandler.assetCommands
+            .FirstOrDefault<(string? name, string[]? args)>(item => item.name == "menu_music", (null, null));
         if (command.name != null)
         {
             var musicSources = Reflection.FindObjectsOfType<AudioSource>(true);
             foreach (var source in musicSources)
+            {
                 if (source.name == "Music")
                 {
                     source.clip = AssetLoader.loadedAudio[command.args[0]];
                     source.Play();
                     break;
                 }
+            }
         }
 
         ClothesMenuPatcher.Run();
