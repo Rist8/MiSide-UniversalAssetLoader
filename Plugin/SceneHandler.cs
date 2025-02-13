@@ -11,6 +11,7 @@ public class SceneHandler
     public static bool synch = false;
     private static int gameObjectCount = 0;
     private static Transform sceneObjectTransform = null;
+    private static bool PreviousSceneContinuation = false;
 
     public static void OnSceneChanged()
     {
@@ -23,13 +24,22 @@ public class SceneHandler
             }
             else if (currentSceneName == "SceneLoading")
             {
+                PreviousSceneContinuation = false;
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(SceneLoading());
             }
-            
-            HookTrigerEvents();
 
             UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}, synch is {synch}.");
-            Plugin.globalAppliedCommands.Clear();
+
+            if (PreviousSceneContinuation)
+            {
+                PreviousSceneContinuation = false;
+            }
+            else
+            {
+                Plugin.globalAppliedCommands.Clear();
+            }
+            PreviousSceneContinuation = HookTrigerEvents();
+
             UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
             if (synch)
             {
@@ -48,29 +58,37 @@ public class SceneHandler
         }
     }
 
-    private static void HookTrigerEvents()
+    private static bool HookTrigerEvents()
     {
+        List<GameObject> TriggerGameObjects = new List<GameObject>();
+        bool HookingSuccess = false;
+
         switch (currentSceneName)
         {
             case "Scene 12 - Freak":
-                GameObject.Find("World/Quest/Quest 1/Trigger EnterCutscene")
-                    .GetComponent<Trigger_Event>().eventEnter
-                    .AddListener((UnityEngine.Events.UnityAction)(() =>
-                    {
-                        UnityEngine.Debug.Log("[INFO] Cutscene triggered, patching new Mitas...");
-                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
-                    }));
+                TriggerGameObjects.Add(GameObject.Find("World/Quest/Quest 1/Trigger EnterCutscene"));
+                TriggerGameObjects.Add(GameObject.Find("World/Acts/Spiders/Trigger EnterRun"));
                 break;
             case "Scene 6 - BasementFirst":
-                GameObject.Find("World/Act/ContinueScene/TriggerEnter")
-                    .GetComponent<Trigger_Event>().eventEnter
-                    .AddListener((UnityEngine.Events.UnityAction)(() =>
-                    {
-                        UnityEngine.Debug.Log("[INFO] Scene continuation triggered, patching new Mitas...");
-                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
-                    }));
+                TriggerGameObjects.Add(GameObject.Find("World/Act/ContinueScene/TriggerEnter"));
                 break;
         }
+
+        foreach (var TriggerGameObject in TriggerGameObjects)
+        {
+            if (TriggerGameObject != null)
+            {
+                TriggerGameObject.GetComponent<Trigger_Event>().eventEnter
+                        .AddListener((UnityEngine.Events.UnityAction)(() =>
+                        {
+                            UnityEngine.Debug.Log("[INFO] Scene continuation triggered, patching new Mitas...");
+                            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                        }));
+                HookingSuccess = true;
+            }
+        }
+
+        return HookingSuccess;
     }
 
     private static void PatchMenuScene()

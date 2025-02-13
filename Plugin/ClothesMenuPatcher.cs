@@ -174,7 +174,7 @@ public class ClothesMenuPatcher
             Debug.Log($"[INFO] Clicked: {name}");
             addonButtons[name].GetComponent<RectTransform>().Find("Text").GetComponent<Text>().text = name + ((!active) ? "" : "(*)");
 
-            if (DeveloperMode)
+            if (DeveloperMode && active)
             {
                 Debug.LogWarning($"[WARNING] Developer mode is enabled. Reloading addons config file.");
                 Plugin.globalAppliedCommands.Clear();
