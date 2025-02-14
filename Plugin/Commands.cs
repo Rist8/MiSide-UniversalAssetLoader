@@ -305,7 +305,7 @@ public class Commands
             var materials = renderers[command.args[1]].materials;
             foreach (var mat in materials)
             {
-                mat.mainTexture = AssetLoader.loadedTextures[textureKey];
+                mat.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
                 mat.SetFloat("_EnableTextureTransparent", 1.0f);
             }
 
@@ -313,12 +313,10 @@ public class Commands
         }
         else if (staticRenderers.ContainsKey(command.args[1]))
         {
-            // Material material = staticRenderers[command.args[1]].material;
-            // material.mainTexture = AssetLoader.loadedTextures[textureKey];
             var materials = staticRenderers[command.args[1]].materials;
             foreach (var mat in materials)
             {
-                mat.mainTexture = AssetLoader.loadedTextures[textureKey];
+                mat.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
                 mat.SetFloat("_EnableTextureTransparent", 1.0f);
             }
             UnityEngine.Debug.Log($"[INFO] Replaced texture for static renderer '{command.args[1]}' on '{mita.name}'.");
@@ -341,7 +339,7 @@ public class Commands
 
         string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
-        Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+        Assimp.Mesh meshData = AssetLoader.GetLoadedModel(meshKey, subMeshName);
 
         if (meshData == null)
         {
@@ -389,7 +387,7 @@ public class Commands
         string meshKey = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
 
-        Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+        Assimp.Mesh meshData = AssetLoader.GetLoadedModel(meshKey, subMeshName);
 
         if (renderers.ContainsKey(command.args[1]))
         {
@@ -811,7 +809,7 @@ public class Commands
                                 break;
                             case "SetTexture2D":
                                 string textureKey = parts[2].Replace(@"\\", @"\").TrimStart('.', '\\');
-                                material.SetTexture(parts[1], AssetLoader.loadedTextures[textureKey]);
+                                material.SetTexture(parts[1], AssetLoader.GetLoadedTexture(textureKey));
                                 break;
                             default:
                                 UnityEngine.Debug.LogWarning($"[WARNING] Unknown shader parameter '{parts[0]}' in shader '{material.shader.name}'.");
@@ -907,16 +905,17 @@ public class Commands
         UnityEngine.Debug.Log($"[INFO] Replacing Texture 2D '{command.args[0]}' with '{command.args[1]}'.");
         if (textures.ContainsKey(command.args[0]) && textures[command.args[0]] != null)
         {
+            string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+
             if (command.args[0] == "Cursor")
             {
-                Cursor.SetCursor(loadedTextures[command.args[1]], Vector2.zero, CursorMode.Auto);
-                UnityEngine.Debug.Log($"[INFO] Replaced Cursor with '{command.args[1]}'.");
+                Cursor.SetCursor(AssetLoader.GetLoadedTexture(textureKey), Vector2.zero, CursorMode.Auto);
+                UnityEngine.Debug.Log($"[INFO] Replaced Cursor with '{textureKey}'.");
                 return;
             }
 
 
-            string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
-            var imageData = LZ4Pickler.Unpickle(loadedTexturesRaw[textureKey]);
+            var imageData = LZ4Pickler.Unpickle(AssetLoader.GetLoadedTextureRaw(textureKey));
             textures[command.args[0]].LoadImage(imageData);
             UnityEngine.Debug.Log($"[INFO] Replaced Texture 2D '{command.args[0]}' with '{textureKey}'.");
         }
@@ -943,7 +942,8 @@ public class Commands
         bool success = false;
         while (!success || SceneHandler.currentSceneName == "Scene 18 - 2D")
         {
-            if (loadedTextures.TryGetValue(textureKey, out var texture) && newSprite == null)
+            var texture = AssetLoader.GetLoadedTexture(textureKey);
+            if (texture != null && newSprite == null)
             {
                 newSprite = Sprite.Create(
                     texture,
@@ -975,14 +975,16 @@ public class Commands
 
         string audioKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
 
-        if (!loadedAudio.ContainsKey(audioKey))
-        {
-            UnityEngine.Debug.LogWarning($"[WARNING] AudioClip '{audioKey}' not found in loaded audio.");
-            return;
-        }
+        // if (!loadedAudio.ContainsKey(audioKey))
+        // {
+        //     UnityEngine.Debug.LogWarning($"[WARNING] AudioClip '{audioKey}' not found in loaded audio.");
+        //     return;
+        // }
 
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
+
+        GetLoadedAudio(audioKey);
 
         byte[] decompressedData;
         using (var compressedStream = new MemoryStream(loadedAudioData[audioKey]))
@@ -1042,7 +1044,7 @@ public class Commands
             return;
         }
 
-        Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+        Assimp.Mesh meshData = AssetLoader.GetLoadedModel(meshKey, subMeshName);
 
         if (meshData == null)
         {
@@ -1076,13 +1078,7 @@ public class Commands
             return;
         }
 
-        if (!loadedTextures.ContainsKey(textureKey))
-        {
-            UnityEngine.Debug.LogWarning($"[WARNING] Texture '{textureKey}' not found.");
-            return;
-        }
-
-        renderer.material.mainTexture = loadedTextures[textureKey];
+        renderer.material.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
         UnityEngine.Debug.Log($"[INFO] Replaced texture for object '{objectPath}' with '{textureKey}'.");
     }
 }

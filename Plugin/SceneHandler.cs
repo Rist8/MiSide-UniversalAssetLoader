@@ -19,6 +19,7 @@ public class SceneHandler
         {
             if (currentSceneName == "SceneMenu")
             {
+                AssetLoader.alreadyReloaded.Clear();
                 synch = true;
                 PatchMenuScene();
             }

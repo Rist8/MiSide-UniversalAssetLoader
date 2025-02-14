@@ -23,6 +23,8 @@ public class AssetLoader
     public static Dictionary<string, AudioClip>? loadedAudio;
     public static List<int> loadedAudioInstanceIds;
 
+    public static List<string> alreadyReloaded = new List<string>();
+
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
     {
         if (loadedModels != null) yield break;
@@ -132,6 +134,158 @@ public class AssetLoader
         PluginInfo.Instance.Logger.LogInfo($"Loaded all textures in {stopwatch.ElapsedMilliseconds}ms");
         Plugin.loaded = true;
     }
+
+    public static Assimp.Mesh GetLoadedModel(string meshKey, string subMeshName)
+    {
+        var FilePath = Path.Combine(PluginInfo.AssetsFolder, meshKey + ".fbx");
+        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || alreadyReloaded.Contains(FilePath))
+        {
+            return loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+        }
+
+        if (!File.Exists(FilePath))
+        {
+            PluginInfo.Instance.Logger.LogError($"[ERROR] File not found: {FilePath}");
+            return null;
+        }
+
+        var mesh = LoadFBX(FilePath);
+        loadedModels[meshKey] = mesh;
+        alreadyReloaded.Add(FilePath);
+
+        return loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+    }
+
+    public static Texture2D GetLoadedTexture(string textureKey)
+    {
+
+        string foundTexture;
+
+        var texturePngSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".png");
+        var textureJpgSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpg");
+        var textureJpegSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpeg");
+
+        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || (alreadyReloaded.Contains(texturePngSearch) || alreadyReloaded.Contains(textureJpgSearch) || alreadyReloaded.Contains(textureJpegSearch)))
+        {
+            return loadedTextures[textureKey];
+        }
+
+        if (File.Exists(texturePngSearch))
+        {
+            foundTexture = texturePngSearch;
+        }
+        else if (File.Exists(textureJpgSearch))
+        {
+            foundTexture = textureJpgSearch;
+        }
+        else if (File.Exists(textureJpegSearch))
+        {
+            foundTexture = textureJpegSearch;
+        }
+        else
+        {
+            PluginInfo.Instance.Logger.LogError($"[ERROR] File not found: {textureKey}");
+            return null;
+        }
+
+
+        if (loadedTextures.ContainsKey(textureKey))
+        {
+            loadedTextureInstanceIds.Remove(loadedTextures[textureKey].GetInstanceID());
+            UnityEngine.Object.Destroy(loadedTextures[textureKey]);
+        }
+
+        var texture = LoadTexture(foundTexture, out var rawData);
+        loadedTextures[textureKey] = texture;
+        var compressedData = LZ4Pickler.Pickle(rawData); // Compress rawData using LZ4
+        loadedTexturesRaw[textureKey] = compressedData;
+
+        loadedTextureInstanceIds.Add(texture.GetInstanceID());
+
+        alreadyReloaded.Add(foundTexture);
+
+        return texture;
+    }
+
+    public static Il2CppStructArray<byte> GetLoadedTextureRaw(string textureKey)
+    {
+        string foundTexture;
+
+        var texturePngSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".png");
+        var textureJpgSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpg");
+        var textureJpegSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpeg");
+
+        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || (alreadyReloaded.Contains(texturePngSearch) || alreadyReloaded.Contains(textureJpgSearch) || alreadyReloaded.Contains(textureJpegSearch)))
+        {
+            return loadedTexturesRaw[textureKey];
+        }
+        if (File.Exists(texturePngSearch))
+        {
+            foundTexture = texturePngSearch;
+        }
+        else if (File.Exists(textureJpgSearch))
+        {
+            foundTexture = textureJpgSearch;
+        }
+        else if (File.Exists(textureJpegSearch))
+        {
+            foundTexture = textureJpegSearch;
+        }
+        else
+        {
+            PluginInfo.Instance.Logger.LogError($"[ERROR] File not found: {textureKey}");
+            return null;
+        }
+
+        if (loadedTextures.ContainsKey(textureKey))
+        {
+            loadedTextureInstanceIds.Remove(loadedTextures[textureKey].GetInstanceID());
+            UnityEngine.Object.Destroy(loadedTextures[textureKey]);
+        }
+
+        var texture = LoadTexture(foundTexture, out var rawData);
+        loadedTextures[textureKey] = texture;
+        var compressedData = LZ4Pickler.Pickle(rawData);
+        loadedTexturesRaw[textureKey] = compressedData;
+
+        loadedTextureInstanceIds.Add(texture.GetInstanceID());
+
+        alreadyReloaded.Add(foundTexture);
+
+        return compressedData;
+    }
+
+    public static AudioClip GetLoadedAudio(string audioKey)
+    {
+        var audioFile = Path.Combine(PluginInfo.AssetsFolder, audioKey + ".ogg");
+        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || alreadyReloaded.Contains(audioFile))
+        {
+            return loadedAudio[audioKey];
+        }
+
+        if (!File.Exists(audioFile))
+        {
+            PluginInfo.Instance.Logger.LogError($"[ERROR] File not found: {audioKey}");
+            return null;
+        }
+
+        if (loadedAudio.ContainsKey(audioKey))
+        {
+            loadedAudioInstanceIds.Remove(loadedAudio[audioKey].GetInstanceID());
+            UnityEngine.Object.Destroy(loadedAudio[audioKey]);
+        }
+
+        AudioClip audio = null;
+        LoadAudioCoroutine(audioKey, audioKey, File.OpenRead(audioFile), clip => audio = clip);
+        loadedAudio[audioKey] = audio;
+
+        loadedAudioInstanceIds.Add(audio.GetInstanceID());
+
+        alreadyReloaded.Add(audioFile);
+        return audio;
+    }
+
+
 
     private static IEnumerable<List<string>> SplitIntoBatches(IEnumerable<string> files, int batchSize)
     {

@@ -178,6 +178,7 @@ public class ClothesMenuPatcher
             {
                 Debug.LogWarning($"[WARNING] Developer mode is enabled. Reloading addons config file.");
                 Plugin.globalAppliedCommands.Clear();
+                AssetLoader.alreadyReloaded.Clear();
                 Plugin.ReadAddonsConfigs();
             }
         }
