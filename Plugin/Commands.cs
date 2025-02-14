@@ -72,7 +72,7 @@ public class Commands
     private static bool ShouldSkipScene(int start, (string name, string[] args) command)
     {
         int i = start;
-        for(; i < command.args.Length && command.args[i] != "all"; i++)
+        for (; i < command.args.Length && command.args[i] != "all"; i++)
         {
             string argsName = command.args[i];
             if (command.args[i].StartsWith("!"))
@@ -343,7 +343,7 @@ public class Commands
         string subMeshName = command.args.Length >= 4 ? command.args[3] : Path.GetFileNameWithoutExtension(command.args[2]);
         Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
 
-        if(meshData == null)
+        if (meshData == null)
         {
             UnityEngine.Debug.LogWarning($"[WARNING] Mesh {subMeshName} not found in {meshKey}!");
             return;
@@ -1016,5 +1016,73 @@ public class Commands
 
         stopwatch.Stop();
         UnityEngine.Debug.Log($"[INFO] Successfully replaced AudioClip '{command.args[0]}' with '{audioKey}' in {stopwatch.ElapsedMilliseconds}ms.");
+    }
+
+    public static void ApplyReplaceObjectCommand((string name, string[] args) command)
+    {
+        if (ShouldSkipScene(3, command))
+            return;
+
+        string objectPath = command.args[0];
+        string meshKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+        string subMeshName = command.args.Length >= 3 ? command.args[2] : Path.GetFileNameWithoutExtension(command.args[1]);
+
+
+        var obj = GameObject.Find(objectPath);
+        if (obj == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' not found.");
+            return;
+        }
+
+        var meshFilter = obj.GetComponent<MeshFilter>();
+        if (meshFilter == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' does not have a MeshFilter component.");
+            return;
+        }
+
+        Assimp.Mesh meshData = AssetLoader.loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
+
+        if (meshData == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Mesh {Path.GetFileNameWithoutExtension(command.args[1])} not found in {meshKey}!");
+            return;
+        }
+
+        meshFilter.mesh = AssetLoader.BuildMesh(meshData);
+        UnityEngine.Debug.LogError($"[INFO] Replaced object '{objectPath}' with '{meshKey}'.");
+    }
+
+    public static void ApplyReplaceObjectTextureCommand((string name, string[] args) command)
+    {
+        if (ShouldSkipScene(3, command))
+            return;
+
+        string objectPath = command.args[0];
+        string textureKey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+
+        var obj = GameObject.Find(objectPath);
+        if (obj == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' not found.");
+            return;
+        }
+
+        var renderer = obj.GetComponent<Renderer>();
+        if (renderer == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' does not have a Renderer component.");
+            return;
+        }
+
+        if (!loadedTextures.ContainsKey(textureKey))
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Texture '{textureKey}' not found.");
+            return;
+        }
+
+        renderer.material.mainTexture = loadedTextures[textureKey];
+        UnityEngine.Debug.Log($"[INFO] Replaced texture for object '{objectPath}' with '{textureKey}'.");
     }
 }

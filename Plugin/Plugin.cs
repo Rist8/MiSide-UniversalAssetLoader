@@ -244,6 +244,12 @@ public class Plugin : MonoBehaviour
                 case "replace_audio":
                     Commands.ApplyReplaceAudioCommand(command, audioDict);
                     break;
+                case "replace_object":
+                    Commands.ApplyReplaceObjectCommand(command);
+                    break;
+                case "replace_object_texture":
+                    Commands.ApplyReplaceObjectTextureCommand(command);
+                    break;
             }
         }
     }
@@ -362,6 +368,12 @@ public class Plugin : MonoBehaviour
                     break;
                 case "replace_audio":
                     Commands.ApplyReplaceAudioCommand(command, audioDict);
+                    break;
+                case "replace_object":
+                    Commands.ApplyReplaceObjectCommand(command);
+                    break;
+                case "replace_object_texture":
+                    Commands.ApplyReplaceObjectTextureCommand(command);
                     break;
             }
 
