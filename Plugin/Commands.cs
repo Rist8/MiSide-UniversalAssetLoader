@@ -1053,12 +1053,12 @@ public class Commands
         }
 
         meshFilter.mesh = AssetLoader.BuildMesh(meshData);
-        UnityEngine.Debug.LogError($"[INFO] Replaced object '{objectPath}' with '{meshKey}'.");
+        UnityEngine.Debug.Log($"[INFO] Replaced object '{objectPath}' with '{meshKey}'.");
     }
 
     public static void ApplyReplaceObjectTextureCommand((string name, string[] args) command)
     {
-        if (ShouldSkipScene(3, command))
+        if (ShouldSkipScene(2, command))
             return;
 
         string objectPath = command.args[0];
