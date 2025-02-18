@@ -61,6 +61,52 @@ namespace UtilityNamespace
 
             return replacementSucceeded;
         }
+
+        public static Il2CppSystem.Object ParseStringToValue(string value)
+        {
+            if (int.TryParse(value, out int intValue))
+            {
+                return intValue;
+            }
+            else if (float.TryParse(value, out float floatValue))
+            {
+                return floatValue;
+            }
+            else if (bool.TryParse(value, out bool boolValue))
+            {
+                return boolValue;
+            }
+            else
+            {
+                return value;
+            }
+        }
+
+        public static Component FindGameObjectComponentType(GameObject gameObject, string typeName)
+        {
+            typeName = typeName.Split(',')[0].Trim();
+            switch (typeName)
+            {
+                case "UnityEngine.AudioSource":
+                    return gameObject.GetComponent<UnityEngine.AudioSource>();
+                case "UnityEngine.Texture":
+                    return gameObject.GetComponent<UnityEngine.UI.RawImage>();
+                case "UnityEngine.Text":
+                    return gameObject.GetComponent<UnityEngine.UI.Text>();
+                case "UnityEngine.UI.Text":
+                    return gameObject.GetComponent<UnityEngine.UI.Text>();
+                case "UnityEngine.UI.Image":
+                    return gameObject.GetComponent<UnityEngine.UI.Image>();
+                case "UnityEngine.UI.RawImage":
+                    return gameObject.GetComponent<UnityEngine.UI.RawImage>();
+                case "UnityEngine.UI.Button":
+                    return gameObject.GetComponent<UnityEngine.UI.Button>();
+                case "UnityEngine.UI.Toggle":
+                    return gameObject.GetComponent<UnityEngine.UI.Toggle>();
+            }
+
+            return null;
+        }
     }
 
 

@@ -1,0 +1,3 @@
+*Mute Main Menu Music
+set_properties "MenuGame/Sounds/Music" "UnityEngine.AudioSource, UnityEngine.AudioModule, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" MuteMainMenuMusic\mute
+-set_properties "MenuGame/Sounds/Music" "UnityEngine.AudioSource, UnityEngine.AudioModule, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" MuteMainMenuMusic\enable

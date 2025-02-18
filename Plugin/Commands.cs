@@ -1081,4 +1081,39 @@ public class Commands
         renderer.material.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
         UnityEngine.Debug.Log($"[INFO] Replaced texture for object '{objectPath}' with '{textureKey}'.");
     }
+
+    public static void ApplySetPropertiesCommand((string name, string[] args) command)
+    {
+        if (ShouldSkipScene(3, command))
+            return;
+
+        string objectPath = command.args[0];
+        var obj = GameObject.Find(objectPath);
+        if (obj == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' not found.");
+            return;
+        }
+
+        string typeName = command.args[1];
+
+        var propertyfile = command.args[2].Replace(@"\\", @"\").TrimStart('.', '\\');
+        string filePath = PluginInfo.AssetsFolder + "/" + propertyfile + ".txt";
+        if (!File.Exists(filePath))
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Property file '{propertyfile}' not found.");
+            return;
+        }
+
+        foreach (var line in File.ReadAllLines(filePath))
+        {
+            var parts = line.Split('=');
+            if (parts.Length != 2) continue;
+
+            string propertyName = parts[0].Trim();
+            string value = parts[1].Trim();
+
+            RuntimeMemberAccessor.SetRuntimeMember(obj, typeName, propertyName, value);
+        }
+    }
 }
