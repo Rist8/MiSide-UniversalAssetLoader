@@ -250,6 +250,9 @@ public class Plugin : MonoBehaviour
                 case "replace_object_texture":
                     Commands.ApplyReplaceObjectTextureCommand(command);
                     break;
+                case "set_properties":
+                    Commands.ApplySetPropertiesCommand(command);
+                    break;
             }
         }
     }
@@ -374,6 +377,9 @@ public class Plugin : MonoBehaviour
                     break;
                 case "replace_object_texture":
                     Commands.ApplyReplaceObjectTextureCommand(command);
+                    break;
+                case "set_properties":
+                    Commands.ApplySetPropertiesCommand(command);
                     break;
             }
 
