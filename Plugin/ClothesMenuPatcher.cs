@@ -183,12 +183,12 @@ public class ClothesMenuPatcher
             }
         }
 
-        MitaClothesResource clothes =
-            Reflection.FindObjectsOfType<MenuClothes>()[0].resourceClothes.GetComponent<MitaClothesResource>();
+        // MitaClothesResource clothes =
+        //     Reflection.FindObjectsOfType<MenuClothes>()[0].resourceClothes.GetComponent<MitaClothesResource>();
 
-        Dictionary<string, DataClothMita> clothesDict = new Dictionary<string, DataClothMita>();
-        foreach (var cloth in clothes.clothes)
-            clothesDict[cloth.fileSave] = cloth;
+        // Dictionary<string, DataClothMita> clothesDict = new Dictionary<string, DataClothMita>();
+        // foreach (var cloth in clothes.clothes)
+        //     clothesDict[cloth.fileSave] = cloth;
 
         Debug.Log($"[INFO] {name} is active: {active}");
         Plugin.Active[name] = active;
@@ -311,6 +311,7 @@ public class ClothesMenuPatcher
                 }
             }
             UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
+
 
             foreach (string line in oneTimeCommands)
             {

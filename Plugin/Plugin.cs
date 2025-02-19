@@ -24,7 +24,7 @@ public class Plugin : MonoBehaviour
         int targetFrameRate = UnityEngine.Application.targetFrameRate;
         CheckDevMode();
         ReadAssetsConfig();
-        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
+        // UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
         ReadAddonsConfigs();
         ConsoleCommandHandler.Initialize();
     }
@@ -137,7 +137,16 @@ public class Plugin : MonoBehaviour
                 UnityEngine.Debug.Log($"[INFO] Active mod: {line}");
                 try
                 {
-                    ClothesMenuPatcher.ClickAddonButton(line);
+                    if (SceneHandler.currentSceneName == "SceneMenu")
+                    {
+                        Active[line] = false;
+                        ClothesMenuPatcher.ClickAddonButton(line);
+                    }
+                    else if(SceneHandler.currentSceneName == "SceneAihasto")
+                    {
+                        Active.Add(line, false);
+                        ClothesMenuPatcher.LogOnClick(line);
+                    }
                 }
                 catch (System.Exception)
                 {
@@ -390,6 +399,7 @@ public class Plugin : MonoBehaviour
             }
         }
     }
+
 
     public static bool loaded = false;
 

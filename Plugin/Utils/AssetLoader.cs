@@ -15,19 +15,20 @@ using System.Runtime.InteropServices;
 
 public class AssetLoader
 {
-    public static Dictionary<string, Assimp.Mesh[]>? loadedModels;
-    public static Dictionary<string, Texture2D>? loadedTextures;
-    public static List<int> loadedTextureInstanceIds;
-    public static Dictionary<string, Il2CppStructArray<byte>>? loadedTexturesRaw;
-    public static Dictionary<string, byte[]>? loadedAudioData;
-    public static Dictionary<string, AudioClip>? loadedAudio;
-    public static List<int> loadedAudioInstanceIds;
+    public static Dictionary<string, Assimp.Mesh[]>? loadedModels = new Dictionary<string, Assimp.Mesh[]>();
+    public static Dictionary<string, Texture2D>? loadedTextures = new Dictionary<string, Texture2D>();
+    public static List<int> loadedTextureInstanceIds = new List<int>();
+    public static Dictionary<string, Il2CppStructArray<byte>>? loadedTexturesRaw = new Dictionary<string, Il2CppStructArray<byte>>();
+    public static Dictionary<string, byte[]>? loadedAudioData = new Dictionary<string, byte[]>();
+    public static Dictionary<string, AudioClip>? loadedAudio = new Dictionary<string, AudioClip>();
+    public static List<int> loadedAudioInstanceIds = new List<int>();
 
     public static List<string> alreadyReloaded = new List<string>();
 
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
     {
-        if (loadedModels != null) yield break;
+        // if (loadedModels != null) yield break;
+        if (Plugin.loaded) yield break;
         Plugin.loaded = false;
 
         loadedModels = new Dictionary<string, Assimp.Mesh[]>();
@@ -138,7 +139,7 @@ public class AssetLoader
     public static Assimp.Mesh GetLoadedModel(string meshKey, string subMeshName)
     {
         var FilePath = Path.Combine(PluginInfo.AssetsFolder, meshKey + ".fbx");
-        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || alreadyReloaded.Contains(FilePath))
+        if ((!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu" && SceneHandler.currentSceneName != "SceneAihasto") || alreadyReloaded.Contains(FilePath)) && loadedModels.ContainsKey(meshKey))
         {
             return loadedModels[meshKey].FirstOrDefault(mesh => mesh.Name == subMeshName);
         }
@@ -165,7 +166,7 @@ public class AssetLoader
         var textureJpgSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpg");
         var textureJpegSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpeg");
 
-        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || (alreadyReloaded.Contains(texturePngSearch) || alreadyReloaded.Contains(textureJpgSearch) || alreadyReloaded.Contains(textureJpegSearch)))
+        if ((!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu" && SceneHandler.currentSceneName != "SceneAihasto") || (alreadyReloaded.Contains(texturePngSearch) || alreadyReloaded.Contains(textureJpgSearch) || alreadyReloaded.Contains(textureJpegSearch))) && loadedTextures.ContainsKey(textureKey))
         {
             return loadedTextures[textureKey];
         }
@@ -194,6 +195,10 @@ public class AssetLoader
             loadedTextureInstanceIds.Remove(loadedTextures[textureKey].GetInstanceID());
             UnityEngine.Object.Destroy(loadedTextures[textureKey]);
         }
+        else
+        {
+            loadedTextures.Add(textureKey, null);
+        }
 
         var texture = LoadTexture(foundTexture, out var rawData);
         loadedTextures[textureKey] = texture;
@@ -215,7 +220,10 @@ public class AssetLoader
         var textureJpgSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpg");
         var textureJpegSearch = Path.Combine(PluginInfo.AssetsFolder, textureKey + ".jpeg");
 
-        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || (alreadyReloaded.Contains(texturePngSearch) || alreadyReloaded.Contains(textureJpgSearch) || alreadyReloaded.Contains(textureJpegSearch)))
+        if ((!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu" && SceneHandler.currentSceneName != "SceneAihasto") || (alreadyReloaded.Contains(texturePngSearch) || alreadyReloaded.Contains(textureJpgSearch) || alreadyReloaded.Contains(textureJpegSearch))) && loadedTexturesRaw.ContainsKey(textureKey))
+        {
+            return loadedTexturesRaw[textureKey];
+        }
         {
             return loadedTexturesRaw[textureKey];
         }
@@ -242,6 +250,10 @@ public class AssetLoader
             loadedTextureInstanceIds.Remove(loadedTextures[textureKey].GetInstanceID());
             UnityEngine.Object.Destroy(loadedTextures[textureKey]);
         }
+        else
+        {
+            loadedTextures.Add(textureKey, null);
+        }
 
         var texture = LoadTexture(foundTexture, out var rawData);
         loadedTextures[textureKey] = texture;
@@ -258,7 +270,7 @@ public class AssetLoader
     public static AudioClip GetLoadedAudio(string audioKey)
     {
         var audioFile = Path.Combine(PluginInfo.AssetsFolder, audioKey + ".ogg");
-        if (!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu") || alreadyReloaded.Contains(audioFile))
+        if ((!ClothesMenuPatcher.DeveloperMode || (SceneHandler.currentSceneName != "SceneMenu" && SceneHandler.currentSceneName != "SceneAihasto") || alreadyReloaded.Contains(audioFile)) && loadedAudio.ContainsKey(audioKey))
         {
             return loadedAudio[audioKey];
         }

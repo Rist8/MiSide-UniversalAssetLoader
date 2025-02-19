@@ -17,40 +17,60 @@ public class SceneHandler
     {
         try
         {
+            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}");
             if (currentSceneName == "SceneMenu")
             {
                 AssetLoader.alreadyReloaded.Clear();
                 synch = true;
                 PatchMenuScene();
             }
+            else if (currentSceneName == "SceneAihasto")
+            {
+                synch = true;
+                AssetLoader.alreadyReloaded.Clear();
+                Plugin.ReadAssetsConfig();
+                Plugin.ReadActiveAddons();
+            }
             else if (currentSceneName == "SceneLoading")
             {
                 PreviousSceneContinuation = false;
+                // Loading assets only on loading to prevent mita greeting shuttering
+                if (Plugin.startup)
+                {
+                    UnityEngine.Debug.Log("[INFO] Loading assets for the first time...");
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(AssetLoader.LoadAssetsForPatchCoroutine());
+                }
                 UtilityNamespace.LateCallUtility.Handler.StartCoroutine(SceneLoading());
+            
             }
 
-            UnityEngine.Debug.Log($"[INFO] Scene changed to: {currentSceneName}, synch is {synch}.");
 
-            if (PreviousSceneContinuation)
+            if (currentSceneName != "SceneLoading")
             {
-                PreviousSceneContinuation = false;
-            }
-            else
-            {
-                Plugin.globalAppliedCommands.Clear();
-            }
-            PreviousSceneContinuation = HookTrigerEvents();
 
-            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
-            if (synch)
-            {
-                Plugin.FindMita();
-                Plugin.FindPlayer();
-            }
-            else
-            {
-                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
-                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindPlayerCoroutine());
+                if (PreviousSceneContinuation)
+                {
+                    PreviousSceneContinuation = false;
+                }
+                else
+                {
+                    Plugin.globalAppliedCommands.Clear();
+                }
+                PreviousSceneContinuation = HookTrigerEvents();
+
+                if (synch)
+                {
+                    Plugin.FindMita();
+                    Plugin.FindPlayer();
+                    Plugin.PatchAssetsSync();
+                }
+                else
+                {
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindPlayerCoroutine());
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
+
+                }
             }
         }
         catch (Exception e)
@@ -221,12 +241,13 @@ public class SceneHandler
                 if (synch)
                 {
                     Plugin.FindMita();
+                    Plugin.PatchAssetsSync();
                 }
                 else
                 {
                     UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
                 }
-                UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
             }
         }
     }

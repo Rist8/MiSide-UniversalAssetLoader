@@ -1,5 +1,9 @@
-﻿using Assimp;
+﻿using System.IO;
+using System.Collections.Generic;
+using Assimp;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 
 public static class AnimationLoader
 {
@@ -8,7 +12,7 @@ public static class AnimationLoader
     /// </summary>
     /// <param name="filePath">path to FBX file containing the animations</param>
     /// <param name="animation">animation to which animationClips will be added</param>
-    public static void LoadAnimationFromFBX(string filePath, UnityEngine.Animation animation)
+    public static void LoadAnimationFromFBX(string filePath, Animator animator)
     {
         AssimpContext importer = new AssimpContext();
         var stream = File.OpenRead(filePath);
@@ -24,11 +28,14 @@ public static class AnimationLoader
 
         Debug.Log($"Found {scene.Animations.Count} animations");
 
+        List<AnimationClip> clips = new List<AnimationClip>();
         foreach (var anim in scene.Animations)
         {
             AnimationClip clip = ConvertAssimpAnimationToUnity(anim);
-            ApplyAnimationClip(clip, animation);
+            clips.Add(clip);
         }
+
+        PlayCustomAnimation(animator, clips[0]);
     }
 
     static AnimationClip ConvertAssimpAnimationToUnity(Assimp.Animation anim)
@@ -80,13 +87,30 @@ public static class AnimationLoader
             clip.SetCurve(boneName, type, "localRotation.z", rotZ);
             clip.SetCurve(boneName, type, "localRotation.w", rotW);
         }
-
+        clip.legacy = false;
         return clip;
     }
 
-    static void ApplyAnimationClip(AnimationClip clip, UnityEngine.Animation anim)
+    public static void PlayCustomAnimation(Animator animator, AnimationClip clip)
     {
-        anim.AddClip(clip, clip.name);
-        anim.Play(clip.name);
+        if (animator == null || clip == null) return;
+    
+        // Create a new PlayableGraph
+        PlayableGraph playableGraph = PlayableGraph.Create();
+        playableGraph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+    
+        // Create an AnimationPlayableOutput
+        AnimationPlayableOutput playableOutput = AnimationPlayableOutput.Create(playableGraph, "CustomAnimation", animator);
+    
+        // Create an AnimationClipPlayable
+        AnimationClipPlayable clipPlayable = AnimationClipPlayable.Create(playableGraph, clip);
+        clipPlayable.SetApplyFootIK(true);
+    
+        // Connect Playable to Output without using the generic method
+        PlayableOutput output = (PlayableOutput)playableOutput;
+        output.SetSourcePlayable((Playable)clipPlayable, 0);
+    
+        // Play the animation
+        playableGraph.Play();
     }
 }
