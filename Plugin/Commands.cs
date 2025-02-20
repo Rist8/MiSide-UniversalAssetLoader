@@ -853,6 +853,32 @@ public class Commands
         }
     }
 
+    public static void ApplyShaderParamsObjCommand((string name, string[] args) command)
+    {
+        if (ShouldSkipScene(2, command))
+            return;
+
+        var objectPath = command.args[0];
+        string txtkey = command.args[1].Replace(@"\\", @"\").TrimStart('.', '\\');
+
+        var obj = GameObject.Find(objectPath);
+        if (obj == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' not found for shader parameter setting.");
+            return;
+        }
+
+        var materials = obj.GetComponentsInChildren<Renderer>(true)
+            .Select(r => r.material)
+            .ToArray();
+
+        foreach (var material in materials)
+        {
+            ReadShaderParams(material, txtkey);
+        }
+
+    }
+
     public static void ApplyRemoveOutlineCommand((string name, string[] args) command, GameObject mita,
     Dictionary<string, SkinnedMeshRenderer> renderers, Dictionary<string, MeshRenderer> staticRenderers)
     {

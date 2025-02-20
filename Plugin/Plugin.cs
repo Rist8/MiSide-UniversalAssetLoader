@@ -237,7 +237,7 @@ public class Plugin : MonoBehaviour
 
         foreach (var command in ConsoleCommandHandler.assetCommands)
         {
-            if (command.args.Length == 0)
+            if (command.args.Length == 0 || command.args[0] == "Mita" || command.args[0] == "Player")
                 continue;
 
             string commandKey = $"{command.name} {string.Join(" ", command.args)}";
@@ -261,6 +261,9 @@ public class Plugin : MonoBehaviour
                     break;
                 case "set_properties":
                     Commands.ApplySetPropertiesCommand(command);
+                    break;
+                case "shader_params":
+                    Commands.ApplyShaderParamsObjCommand(command);
                     break;
             }
         }
@@ -365,7 +368,7 @@ public class Plugin : MonoBehaviour
 
         foreach (var command in ConsoleCommandHandler.assetCommands)
         {
-            if (command.args.Length == 0)
+            if (command.args.Length == 0 || command.args[0] == "Mita" || command.args[0] == "Player")
                 continue;
 
             string commandKey = $"{command.name} {string.Join(" ", command.args)}";
@@ -389,6 +392,9 @@ public class Plugin : MonoBehaviour
                     break;
                 case "set_properties":
                     Commands.ApplySetPropertiesCommand(command);
+                    break;
+                case "shader_params":
+                    Commands.ApplyShaderParamsObjCommand(command);
                     break;
             }
 

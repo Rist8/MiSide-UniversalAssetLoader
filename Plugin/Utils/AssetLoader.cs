@@ -27,18 +27,8 @@ public class AssetLoader
 
     public static System.Collections.IEnumerator LoadAssetsForPatchCoroutine()
     {
-        // if (loadedModels != null) yield break;
         if (Plugin.loaded) yield break;
         Plugin.loaded = false;
-
-        loadedModels = new Dictionary<string, Assimp.Mesh[]>();
-        loadedTextures = new Dictionary<string, Texture2D>();
-        loadedTexturesRaw = new Dictionary<string, Il2CppStructArray<byte>>();
-        loadedAudio = new Dictionary<string, AudioClip>();
-        loadedAudioData = new Dictionary<string, byte[]>();
-
-        loadedTextureInstanceIds = new List<int>();
-        loadedAudioInstanceIds = new List<int>();
 
         PluginInfo.Instance.Logger.LogInfo($"Processor count : {Environment.ProcessorCount}");
         var stopwatch = Stopwatch.StartNew();
