@@ -220,11 +220,12 @@ public class Commands
 
         if (closestOutlinables.Count > 0)
         {
+            Bounds rendererBounds = rendererObject.bounds;
             OutlineTarget target = new OutlineTarget(rendererObject)
             {
                 BoundsMode = BoundsMode.Manual,
-                CullMode = UnityEngine.Rendering.CullMode.Off,
-                Bounds = new Bounds(Vector3.forward, Vector3.one) { extents = Vector3.one }
+                CullMode = UnityEngine.Rendering.CullMode.Back,
+                Bounds = new Bounds(rendererBounds.center, rendererBounds.size)
             };
 
             foreach (var outlinable in closestOutlinables)
