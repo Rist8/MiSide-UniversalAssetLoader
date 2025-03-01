@@ -60,8 +60,8 @@ For a complete list of features, refer to the `readme.txt` file.
 #### **Plugin Installation**
 
 
-1. **Download** `UniversalAssetLoaderRelease-0.11.6.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).  
-   > **Скачайте** `UniversalAssetLoaderRelease-0.11.6.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).
+1. **Download** `UniversalAssetLoaderRelease-0.11.7.zip` from the [releases page](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).  
+   > **Скачайте** `UniversalAssetLoaderRelease-0.11.7.zip` с [страницы релизов](https://github.com/Rist8/MiSide-UniversalAssetLoader/releases/latest).
 
 2. **Extract** the entire `BepInEx` folder from the archive directly into your game's root directory (where the `BepInEx` folder already exists). This will merge the folders automatically.
    > **Извлеките** всю папку `BepInEx` из архива непосредственно в корневой каталог вашей игры (где папка `BepInEx` уже существует). Это автоматически объединит папки.

@@ -15,7 +15,7 @@ public static class PluginInfo
     public static string DependenciesFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Dependencies";
 }
 
-[BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.11.6")]
+[BepInPlugin("org.miside.plugins.assetloader", PluginInfo.PLUGIN_NAME, "0.11.7")]
 public class PluginLoader : BasePlugin
 {
     public ManualLogSource Logger { get; private set; }
