@@ -8,7 +8,7 @@ public static class PluginInfo
 {
     public const string PLUGIN_GUID = "UniversalAssetLoader";
     public const string PLUGIN_NAME = "Universal Asset Loader";
-    public const string PLUGIN_VERSION = "0.11.6";
+    public const string PLUGIN_VERSION = "0.11.7";
 
     public static PluginLoader Instance;
     public static string AssetsFolder = Paths.PluginPath + "\\" + PluginInfo.PLUGIN_GUID + "\\Assets";
