@@ -2,6 +2,10 @@
 using System.IO.Compression;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace UtilityNamespace
 {
@@ -120,5 +124,74 @@ namespace UtilityNamespace
         }
     }
 
+    public class ConfigParser
+    {
+        private static readonly Regex entryPattern = new Regex(
+            "^(\\w+)\\s*=\\s*(.+)$",
+            RegexOptions.Compiled);
+
+        private static readonly Regex vector3Pattern = new Regex(
+            "^Vector3\\((-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?\\)$",
+            RegexOptions.Compiled);
+
+        private static readonly Regex vector2Pattern = new Regex(
+            "^Vector2\\((-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?\\)$",
+            RegexOptions.Compiled);
+
+        private static readonly Regex vector4Pattern = new Regex(
+            "^Vector4\\((-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?\\)$",
+            RegexOptions.Compiled);
+
+        private static readonly Regex colorPattern = new Regex(
+            "^Color\\((-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?;\\s*(-?\\d*\\.?\\d+)[fF]?\\)$",
+            RegexOptions.Compiled);
+
+        public static object ParseValue(string value)
+        {
+            if (int.TryParse(value, out int intValue)) return intValue;
+            if (float.TryParse(value.TrimEnd('f', 'F'), NumberStyles.Float, CultureInfo.InvariantCulture, out float floatValue)) return floatValue;
+            if (bool.TryParse(value, out bool boolValue)) return boolValue;
+            if (value.StartsWith("\"") && value.EndsWith("\"")) return value.Trim('"');
+
+            var vector3Match = vector3Pattern.Match(value);
+            if (vector3Match.Success)
+            {
+                return new Vector3(
+                    float.Parse(vector3Match.Groups[1].Value, CultureInfo.InvariantCulture),
+                    float.Parse(vector3Match.Groups[2].Value, CultureInfo.InvariantCulture),
+                    float.Parse(vector3Match.Groups[3].Value, CultureInfo.InvariantCulture));
+            }
+
+            var vector2Match = vector2Pattern.Match(value);
+            if (vector2Match.Success)
+            {
+                return new Vector2(
+                    float.Parse(vector2Match.Groups[1].Value, CultureInfo.InvariantCulture),
+                    float.Parse(vector2Match.Groups[2].Value, CultureInfo.InvariantCulture));
+            }
+
+            var vector4Match = vector4Pattern.Match(value);
+            if (vector4Match.Success)
+            {
+                return new Vector4(
+                    float.Parse(vector4Match.Groups[1].Value, CultureInfo.InvariantCulture),
+                    float.Parse(vector4Match.Groups[2].Value, CultureInfo.InvariantCulture),
+                    float.Parse(vector4Match.Groups[3].Value, CultureInfo.InvariantCulture),
+                    float.Parse(vector4Match.Groups[4].Value, CultureInfo.InvariantCulture));
+            }
+
+            var colorMatch = colorPattern.Match(value);
+            if (colorMatch.Success)
+            {
+                return new Color(
+                    float.Parse(colorMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                    float.Parse(colorMatch.Groups[2].Value, CultureInfo.InvariantCulture),
+                    float.Parse(colorMatch.Groups[3].Value, CultureInfo.InvariantCulture),
+                    float.Parse(colorMatch.Groups[4].Value, CultureInfo.InvariantCulture));
+            }
+
+            return value;
+        }
+    }
 
 }

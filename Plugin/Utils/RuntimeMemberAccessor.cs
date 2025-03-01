@@ -38,6 +38,9 @@ public static class RuntimeMemberAccessor
             case Type _ when componentType == typeof(Toggle):
                 SetProperty(gameObject.GetComponent<Toggle>(), memberName, value);
                 break;
+            case Type _ when componentType == typeof(RectTransform):
+                SetProperty(gameObject.GetComponent<RectTransform>(), memberName, value);
+                break;
             default:
                 var componentInstance = gameObject.GetComponent(Il2CppType.From(componentType));
                 if (componentInstance == null)
@@ -124,13 +127,27 @@ public static class RuntimeMemberAccessor
             Debug.LogWarning($"[WARNING] Component '{typeof(T).FullName}' not found.");
             return;
         }
-
+    
         var prop = typeof(T).GetProperty(memberName);
         if (prop != null && prop.CanWrite)
         {
             try
             {
-                object convertedValue = Convert.ChangeType(value, prop.PropertyType);
+                object convertedValue;
+                if (prop.PropertyType == typeof(Quaternion))
+                {
+                    convertedValue = new Quaternion(
+                        ((Vector4)value).x,
+                        ((Vector4)value).y,
+                        ((Vector4)value).z,
+                        ((Vector4)value).w
+                    );
+                }
+                else
+                {
+                    convertedValue = Convert.ChangeType(value, prop.PropertyType);
+                }
+    
                 prop.SetValue(component, convertedValue);
                 Debug.Log($"[INFO] Set property '{memberName}' to '{value}' on '{typeof(T).FullName}'.");
             }

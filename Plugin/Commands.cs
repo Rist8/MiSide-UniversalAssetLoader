@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using BepInEx.Unity.IL2CPP.Utils;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 public class Commands
 {
@@ -1134,12 +1135,14 @@ public class Commands
 
         foreach (var line in File.ReadAllLines(filePath))
         {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                continue;
+
             var parts = line.Split('=');
             if (parts.Length != 2) continue;
 
             string propertyName = parts[0].Trim();
-            string value = parts[1].Trim();
-
+            object value = UtilityNamespace.ConfigParser.ParseValue(parts[1].Trim());
             RuntimeMemberAccessor.SetRuntimeMember(obj, typeName, propertyName, value);
         }
     }
