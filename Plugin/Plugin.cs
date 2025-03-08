@@ -265,6 +265,10 @@ public class Plugin : MonoBehaviour
                 case "shader_params":
                     Commands.ApplyShaderParamsObjCommand(command);
                     break;
+                case "create_skinned_appendix":
+                case "create_static_appendix":
+                    Commands.ApplyCreateAppendixFromObjectCommand(command);
+                    break;
             }
         }
     }
@@ -396,6 +400,10 @@ public class Plugin : MonoBehaviour
                 case "shader_params":
                     Commands.ApplyShaderParamsObjCommand(command);
                     break;
+                case "create_skinned_appendix":
+                case "create_static_appendix":
+                    Commands.ApplyCreateAppendixFromObjectCommand(command);
+                    break;
             }
 
             if ((Time.realtimeSinceStartup - frameStartTime) > 1 / UnityEngine.Application.targetFrameRate)
@@ -455,7 +463,7 @@ public class Plugin : MonoBehaviour
         return mitaAnimators;
     }
 
-    public static System.Collections.IEnumerator FindMitaCoroutine(string modName = "", bool disactivation = false)
+    public static System.Collections.IEnumerator FindMitaCoroutine()
     {
         var mitaAnimators = GetMitaAnimators();
         mitas.Clear();
@@ -482,7 +490,7 @@ public class Plugin : MonoBehaviour
             float distance = player != null ? Vector3.Distance(player.position, mitaAnimators[i].transform.position) : 0f;
             float maxFrameTime = distance <= 20 ? 1f / targetFrameRate : 1f / (targetFrameRate * Mathf.Log(distance - 19, 8));
             UnityEngine.Debug.Log(distance);
-            yield return PatchMitaCoroutine(modName, mitaAnimators[i], false, disactivation, maxFrameTime);
+            yield return PatchMitaCoroutine(mitaAnimators[i], false, maxFrameTime);
         }
     }
 
@@ -688,7 +696,7 @@ public class Plugin : MonoBehaviour
     // Global dictionary to track applied commands per object
     public static Dictionary<GameObject, HashSet<string>> globalAppliedCommands = new();
 
-    public static System.Collections.IEnumerator PatchMitaCoroutine(string modName, GameObject mita, bool recursive = false, bool disactivation = false, float maxFrameTime = 1f / 120f)
+    public static System.Collections.IEnumerator PatchMitaCoroutine(GameObject mita, bool recursive = false, float maxFrameTime = 1f / 120f)
     {
         var stopwatch = Stopwatch.StartNew();
         float frameStartTime = Time.realtimeSinceStartup;
@@ -700,7 +708,7 @@ public class Plugin : MonoBehaviour
 
         if (mita.name == "MitaTrue(Clone)" && !recursive)
         {
-            yield return PatchMitaCoroutine(modName, mita.transform.Find("MitaUsual").gameObject, true, disactivation);
+            yield return PatchMitaCoroutine(mita.transform.Find("MitaUsual").gameObject, true);
             mita = mita.transform.Find("MitaTrue").gameObject;
         }
 

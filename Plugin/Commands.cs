@@ -1066,24 +1066,88 @@ public class Commands
         }
 
         var meshFilter = obj.GetComponent<MeshFilter>();
-        if (meshFilter == null)
+        var skinnedMeshRenderer = obj.GetComponent<SkinnedMeshRenderer>();
+        var meshRenderer = obj.GetComponent<MeshRenderer>();
+
+        var modelData = AssetLoader.GetLoadedModel(meshKey, subMeshName);
+        if (modelData == null)
         {
-            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' does not have a MeshFilter component.");
+            UnityEngine.Debug.LogWarning($"[WARNING] Mesh '{subMeshName}' not found in '{meshKey}'.");
             return;
         }
 
-        Assimp.Mesh meshData = AssetLoader.GetLoadedModel(meshKey, subMeshName);
-
-        if (meshData == null)
+        if (meshFilter != null)
         {
-            UnityEngine.Debug.LogWarning($"[WARNING] Mesh {Path.GetFileNameWithoutExtension(command.args[1])} not found in {meshKey}!");
+            meshFilter.mesh = AssetLoader.BuildMesh(modelData);
+        }
+        else if (skinnedMeshRenderer != null)
+        {
+            skinnedMeshRenderer.sharedMesh = AssetLoader.BuildMesh(modelData, new AssetLoader.ArmatureData(skinnedMeshRenderer));
+        }
+        else if (meshRenderer != null)
+        {
+            meshRenderer.GetComponent<MeshFilter>().mesh = AssetLoader.BuildMesh(modelData);
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' does not have a MeshFilter, SkinnedMeshRenderer, or MeshRenderer component.");
             return;
         }
-
-        meshFilter.mesh = AssetLoader.BuildMesh(meshData);
         UnityEngine.Debug.Log($"[INFO] Replaced object '{objectPath}' with '{meshKey}'.");
     }
+    public static void ApplyCreateAppendixFromObjectCommand((string name, string[] args) command)
+    {
+        if (ShouldSkipScene(3, command))
+            return;
 
+        string parentPath = command.args[0];
+        string newObjectName = command.args[1];
+        string objectToCopy = command.args[2];
+
+        var parent = GameObject.Find(parentPath);
+        if (parent == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Parent object '{parentPath}' not found.");
+            return;
+        }
+        var obj = parent.transform.Find(objectToCopy);
+        if (obj == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectToCopy}' not found in parent '{parentPath}'.");
+            return;
+        }
+
+        var renderer = obj.GetComponent<Renderer>();
+        var skinnedRenderer = obj.GetComponent<SkinnedMeshRenderer>();
+        var meshRenderer = obj.GetComponent<MeshRenderer>();
+
+        if (renderer == null && skinnedRenderer == null && meshRenderer == null)
+        {
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectToCopy}' does not have a Renderer, SkinnedMeshRenderer, or MeshRenderer component.");
+            return;
+        }
+
+        var newObj = UnityEngine.Object.Instantiate(obj.gameObject, parent.transform);
+        newObj.name = newObjectName;
+        newObj.transform.localEulerAngles = new Vector3(-90f, 0, 0);
+        newObj.gameObject.SetActive(true);
+
+        if (renderer != null)
+        {
+            newObj.GetComponent<Renderer>().material = new Material(renderer.material);
+        }
+        else if (skinnedRenderer != null)
+        {
+            newObj.GetComponent<SkinnedMeshRenderer>().material = new Material(skinnedRenderer.material);
+        }
+        else
+        {
+            newObj.GetComponent<MeshRenderer>().material = new Material(meshRenderer.material);
+        }
+
+        UnityEngine.Debug.Log($"[INFO] Created appendix '{newObjectName}' from object '{objectToCopy}'.");
+
+    }
     public static void ApplyReplaceObjectTextureCommand((string name, string[] args) command)
     {
         if (ShouldSkipScene(2, command))
@@ -1100,13 +1164,39 @@ public class Commands
         }
 
         var renderer = obj.GetComponent<Renderer>();
-        if (renderer == null)
+        var skinnedRenderer = obj.GetComponent<SkinnedMeshRenderer>();
+        var meshRenderer = obj.GetComponent<MeshRenderer>();
+        if (renderer == null && skinnedRenderer == null && meshRenderer == null)
         {
-            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' does not have a Renderer component.");
+            UnityEngine.Debug.LogWarning($"[WARNING] Object '{objectPath}' does not have a Renderer, SkinnedMeshRenderer, or MeshRenderer component.");
             return;
         }
 
-        renderer.material.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
+        if (renderer != null)
+        {
+            var materials = renderer.materials;
+            foreach (var mat in materials)
+            {
+                mat.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
+            }
+        }
+        else if (skinnedRenderer != null)
+        {
+            var materials = skinnedRenderer.materials;
+            foreach (var mat in materials)
+            {
+                mat.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
+            }
+        }
+        else
+        {
+            var materials = meshRenderer.materials;
+            foreach (var mat in materials)
+            {
+                mat.mainTexture = AssetLoader.GetLoadedTexture(textureKey);
+            }
+        }
+
         UnityEngine.Debug.Log($"[INFO] Replaced texture for object '{objectPath}' with '{textureKey}'.");
     }
 

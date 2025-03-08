@@ -307,7 +307,7 @@ public class ClothesMenuPatcher
                 }
                 else
                 {
-                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine(name, !active));
+                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
                 }
             }
             UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());

@@ -68,7 +68,14 @@ public class SceneHandler
                 {
                     UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
                     UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindPlayerCoroutine());
-                    UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
+                    if (currentSceneName == "Scene 2 - InGame")
+                    {
+                        Plugin.PatchAssetsSync();
+                    }
+                    else
+                    {
+                        UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.PatchAssets());
+                    }
 
                 }
             }
@@ -99,12 +106,25 @@ public class SceneHandler
         {
             if (TriggerGameObject != null)
             {
-                TriggerGameObject.GetComponent<Trigger_Event>().eventEnter
+                if (TriggerGameObject.name == "Trigger EnterCutscene" && currentSceneName == "Scene 12 - Freak")
+                {
+                    TriggerGameObject.GetComponent<Trigger_Event>().eventEnter
+                        .AddListener((UnityEngine.Events.UnityAction)(() =>
+                        {
+                            UnityEngine.Debug.Log("[INFO] Scene continuation triggered, patching new Mitas...");
+                            UtilityNamespace.LateCallUtility.Handler.StopAllCoroutines();
+                            UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
+                        }));
+                }
+                else
+                {
+                    TriggerGameObject.GetComponent<Trigger_Event>().eventEnter
                         .AddListener((UnityEngine.Events.UnityAction)(() =>
                         {
                             UnityEngine.Debug.Log("[INFO] Scene continuation triggered, patching new Mitas...");
                             UtilityNamespace.LateCallUtility.Handler.StartCoroutine(Plugin.FindMitaCoroutine());
                         }));
+                }
                 HookingSuccess = true;
             }
         }

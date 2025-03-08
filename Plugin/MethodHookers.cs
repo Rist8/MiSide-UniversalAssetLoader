@@ -12,7 +12,7 @@ using HarmonyLib;
 [HarmonyPatch(typeof(MinigamesTelevisionController), "StartGame")]
 class TelevisionGamePatch
 {
-    static void Prefix(MinigamesTelevisionController __instance)
+    static void Postfix(MinigamesTelevisionController __instance)
     {
         Plugin.PatchAssetsSync();
     }
