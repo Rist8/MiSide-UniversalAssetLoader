@@ -75,9 +75,27 @@
 //   rotate_mesh Mita Name x y z w KeyWords
 //     # Rotate the mesh using quaternion angles (x, y, z, w).
 
-// ==================== FOR 2D TEXTURES AND SPRITES ==========================
+// ==================== FOR 2D TEXTURES AND SPRITES ======================
 // Commands for sprites and 2d textures replacement:
 //
 //   replace_2D TextureName TextureFilename
 //   replace_sprite SpriteName SpriteTextureFilename
 //     # See the Carnage2D mod for novel sprites' names and example usage     
+
+
+// ========================== FOR 3D ASSETS ==============================
+// Commands for 3d assets replacement:
+//
+//   replace_object ObjectInGamePath MeshFilename MeshName SceneKeyWords
+//     # - SceneKeyWords: Use "!" to exclude KeyWord (e.g., "!Scene 7 - Backrooms"). 
+//     # - SceneKeyWords: Don't combine positive and negative KeyWords.
+//     # - SceneKeyWords can be omitted to apply the command to all scenes.
+//
+//   replace_object_texture ObjectInGamePath TextureFilename SceneKeyWords
+//     # - SceneKeyWords: Use "!" to exclude KeyWord (e.g., "!Scene 7 - Backrooms").
+//
+//   set_properties ObjectInGamePath PropertyType PropertyFilePath SceneKeyWords
+//     # - example: set_properties "World/World/Room GameAutomate/Room/GameAutomate/InterfaceGame/Background" "UnityEngine.RectTransform, UnityEngine.CoreModule" "HatsuneMiku\Properties\Minigames\ScreenPosition" "Scene 10 - ManekenWorld"
+//
+//   shader_params ObjectInGamePath ShaderFilename SceneKeyWords
+//     # - SceneKeyWords: Use "!" to exclude KeyWord (e.g., "!Scene 7 - Backrooms").
